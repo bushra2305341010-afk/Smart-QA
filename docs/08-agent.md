@@ -56,7 +56,10 @@ result = gateway.generate(
 | `cache.py` | Replay-cache key (model, stage, prompt version, effort, schema, prepared request) + in-memory cache (Postgres-backed in M08) |
 | `cost.py` | `usage_cost()` (input, output, cache read, cache write × 1.25) and `Budget` (check before, add after) |
 
-Credentials: the SDK resolves `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or an `ant auth login` profile. Local-model adapter: T-602.
+| `local_adapter.py` | Local model via any OpenAI-compatible `/chat/completions` server (Ollama, llama.cpp, vLLM, LM Studio) over plain HTTP: `response_format: json_schema`, temperature 0, finish reasons mapped (`length` → `max_tokens`, `content_filter` → `refusal`), errors raised as `LocalModelError`; `count_tokens` is a conservative estimate (~3 chars/token). Effort is ignored |
+| `factory.py` | `build_provider(policy, …)`: `local-only` **never** builds the Claude provider and rejects any `LOCAL_MODEL_URL` that is not internal (loopback, private IP, single-label Compose name, `.local/.internal/.lan/.home.arpa`); `LOCAL_PRICES` = $0 |
+
+Credentials: the SDK resolves `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or an `ant auth login` profile. Local-model quality must be measured on the same eval set before a project relies on it.
 
 ## 3. Prompt management
 

@@ -13,7 +13,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M03 | Safe-action policy + permissions | Stuti | todo | |
 | M04 | Planning: techniques, risk, counts, cost | Nadia | review | #3 |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
-| M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) | Nadia | review | — |
+| M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) | Nadia | review | #4 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
 | M08 | DB models + migrations, auth, projects/sources API, orchestrator state machine | Shared | todo | |
 | M09 | Ingest + Product Understanding Graph (analyst, explorer) | Nadia | todo | |
@@ -32,7 +32,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | T-005 | Golden project 2 (school) requirements + seeded bugs | — | Stuti | todo | |
 | T-006 | QA lead interview script + schedule 10–15 interviews | — | Shared | todo | |
 | T-007 | Replace Starlette TestClient httpx warning filter: verify the recommended replacement package is legitimate, then switch | — | Nadia | done | `httpx2` confirmed as the official anthropic SDK 2.x HTTP library; installed via `anthropic`, filter removed in M06 |
-| T-602 | Local-model adapter for the Model Gateway (air-gapped mode, P4) + quality shown on the eval set | — | Nadia | todo | follow-up to M06 |
+| T-602 | Local-model adapter for the Model Gateway (air-gapped mode, P4) + quality shown on the eval set | — | Nadia | review | adapter + policy factory done; eval-set quality comparison needs evals (M09+) |
 | T-603 | Postgres-backed replay cache + `model_call` recorder | — | Shared | todo | with M08 DB |
 | T-008 | Contributor guide for Stuti (`stuti.md`) + CONTRIBUTING.md | — | Nadia | done | M01 |
 

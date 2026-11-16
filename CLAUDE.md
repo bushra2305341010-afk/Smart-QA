@@ -64,6 +64,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-17: T-602 local model on `feat/T602-local-model` (stacked on M06): `LocalProvider` + `build_provider()` enforcing local-only. 159 tests, 100% coverage. PRs #1–#4 open. Next: M08.
 - 2026-11-17: M06 model gateway on `feat/M06-model-gateway` (stacked on M04): Claude adapter (SDK 2.x, structured output, effort explicit, cache, fallbacks), redaction, untrusted wrapping, replay cache, budget. 128 tests, 100% coverage. PRs #1–#3 open. Next: T-602 local adapter; Stuti M03/M05.
 - 2026-11-17: M04 planning on `feat/M04-planning` (stacked on M02): techniques, risk, counts, cost, 100% coverage. PRs #1 (M01), #2 (M02) open. Next: M06 model gateway.
 - 2026-11-17: M02 citations on `feat/M02-citations` (stacked on M01): contracts + normalise + chunk + verify, 100% coverage. PR #1 (M01) open. Next: M03 policy (Stuti), M04 planning.

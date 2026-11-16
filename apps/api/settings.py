@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     saq_model_policy: Literal["local-only", "external-redacted", "external-code"] = (
         "external-redacted"
     )
+    local_model_url: str | None = None
+    local_model_name: str = "qwen3:8b"
     saq_telemetry: Literal["off", "on"] = "off"
     saq_budget_monthly_usd: float = Field(default=20.0, ge=0)
     log_level: str = "info"

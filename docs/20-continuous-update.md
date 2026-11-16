@@ -40,6 +40,14 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 0 — 2026-11-17 (T-602 local model)
+**Goal:** Pillar P4: run with a local model so nothing leaves the network.
+**Done:** OpenAI-compatible local adapter over plain HTTP; provider factory that enforces `local-only` (never Claude, internal hosts only); new settings.
+**Tests:** 159 passed, 100% line + branch coverage; adapter tested with `httpx.MockTransport` (no server needed).
+**Bugs found & fixed:** none.
+**Decisions:** OpenAI-compatible protocol (covers Ollama, llama.cpp, vLLM, LM Studio); token count is an estimate; local cost $0.
+**Next:** M08 DB + auth + orchestrator (shared). Stuti: M03, M05.
+
 ### Week 0 — 2026-11-17 (M06 model gateway)
 **Goal:** One safe, cheap, testable path for every model call (ADR-003).
 **Done:** gateway with redaction, untrusted wrapping, replay cache, budget pre-check, schema validation and retries; Claude adapter using structured outputs, explicit effort, cached context and server-side refusal fallbacks.

@@ -139,7 +139,7 @@ Smart QA uses a **separate schema or database** for its own data. It never conne
 
 | Mode | What leaves the network | For |
 |---|---|---|
-| **Local-only (air-gapped)** | Nothing | Banks, government, strict NDAs |
+| **Local-only (air-gapped)** | Nothing (enforced in `packages/model_gateway/factory.py`: no Claude provider, local URL must be an internal host) | Banks, government, strict NDAs |
 | **External, redacted** (default) | Only the minimum chunks needed for a step, with emails, phones, tokens, IDs and secrets masked | Most teams |
 | **External, code allowed** | Plus relevant code snippets (still redacted) | Teams that accept it in writing |
 
