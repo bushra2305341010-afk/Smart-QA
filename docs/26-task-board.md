@@ -40,7 +40,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | ID | Task | Story | Owner | Status | Notes |
 |---|---|---|---|---|---|
-| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, minio, web | — | Nadia | doing | db, redis, minio, api done in M01; worker/orchestrator/runner added with their modules |
+| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, s3, web | — | Nadia | doing | db, redis, api done in M01; s3 = SeaweedFS (MinIO image no longer published, ADR-010); worker/orchestrator/runner added with their modules |
 | T-102 | Model Gateway: Claude adapter, schema output, cost log | — | Nadia | todo | |
 | T-103 | Runner registration over mTLS | US-06 | Stuti | todo | |
 | T-104 | Auth: register/login/session, RBAC skeleton | US-11 | Stuti | todo | |

@@ -127,7 +127,7 @@ Smart QA does not need its own cloud. The company points it at its own infrastru
 
 ```env
 DATABASE_URL=postgresql://saq@db.company.internal:5432/smartqa   # company Postgres (pgvector enabled)
-S3_ENDPOINT=https://minio.company.internal                       # or the company's own S3 / Azure Blob / GCS
+S3_ENDPOINT=https://s3.company.internal                          # or the company's own S3 / Azure Blob / GCS
 KMS_PROVIDER=vault                                               # HashiCorp Vault, AWS KMS, Azure Key Vault
 SAQ_TELEMETRY=off
 SAQ_MODEL_POLICY=local-only                                      # or: external-redacted

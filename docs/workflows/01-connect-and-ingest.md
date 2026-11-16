@@ -6,7 +6,7 @@
 ## Flow
 
 ```
-User ─▶ Setup wizard ─▶ POST /sources ─▶ store original (MinIO, sha256)
+User ─▶ Setup wizard ─▶ POST /sources ─▶ store original (S3, sha256)
      ─▶ q.understand: parse (PyMuPDF / python-docx / markdown-it / OpenAPI)
      ─▶ chunk with start/end offsets + page + line ─▶ embed ─▶ chunk table
 Repo ─▶ read-only clone ─▶ tree-sitter facts (routes, forms, validators, endpoints)

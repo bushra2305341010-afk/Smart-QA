@@ -22,7 +22,7 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 P1 cited ground truth (code-checked quote) · P2 reviewable Product Understanding Graph · P3 honest verdicts (Pass, Fail, Flaky, Blocked, Test Error, Unable to Verify) · P4 local-first, bring your own model · P5 independent verifier via MCP/CLI · P6 open artifacts (Playwright code, Excel, tracker tickets).
 
 ## Stack (decided)
-- Backend: Python 3.12, FastAPI, Pydantic v2, Celery + Redis, PostgreSQL 16 + pgvector, Alembic, MinIO/S3, Playwright (Python), tree-sitter, openpyxl, MCP Python SDK, Typer CLI.
+- Backend: Python 3.12, FastAPI, Pydantic v2, Celery + Redis, PostgreSQL 16 + pgvector, Alembic, S3-compatible object storage (SeaweedFS locally, ADR-010; boto3 client), Playwright (Python), tree-sitter, openpyxl, MCP Python SDK, Typer CLI.
 - Frontend: React 18 + TypeScript (strict) + Vite, Tailwind, shadcn/ui (Radix), TanStack Query/Table, React Flow, Recharts, i18next.
 - AI: all calls through `packages/model_gateway`. Default model `claude-opus-5-5` with explicit effort per stage; cheaper models only after evals hold. Check current Claude API docs before changing model params.
 - Superseded: Next.js → Vite SPA (ADR-006); LangGraph → explicit Postgres state machine (ADR-002).
@@ -60,10 +60,13 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 
 ## Conventions
 - Branches `feat/F13-short-name`, Conventional Commits, PR < 400 lines where possible.
+- Commits are authored as `Nadia sultana Bushra <128922611+Lokkhita@users.noreply.github.com>` (repo-local git config). No AI co-author trailers or "Generated with" lines in commits or PRs.
+- PRs: push module branches to `upstream` (bushra2305341010-afk/Smart-QA) and stack them (each PR targets the previous module's branch); merge in order with merge commits.
 - Layers never import upward; sectors share only `packages/contracts` schemas.
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-17: PRs moved to the main repo as Lokkhita: #6 M01, #7 M02, #8 M04, #9 M06, #10 T-602 (stacked, CI green). MinIO image gone → SeaweedFS fix on `fix/dev-s3-seaweedfs` (ADR-010). Next: M08.
 - 2026-11-17: T-602 local model on `feat/T602-local-model` (stacked on M06): `LocalProvider` + `build_provider()` enforcing local-only. 159 tests, 100% coverage. PRs #1–#4 open. Next: M08.
 - 2026-11-17: M06 model gateway on `feat/M06-model-gateway` (stacked on M04): Claude adapter (SDK 2.x, structured output, effort explicit, cache, fallbacks), redaction, untrusted wrapping, replay cache, budget. 128 tests, 100% coverage. PRs #1–#3 open. Next: T-602 local adapter; Stuti M03/M05.
 - 2026-11-17: M04 planning on `feat/M04-planning` (stacked on M02): techniques, risk, counts, cost, 100% coverage. PRs #1 (M01), #2 (M02) open. Next: M06 model gateway.

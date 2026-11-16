@@ -19,7 +19,7 @@
 | `saq debug replay <model_call_id>` | Re-run the same model call (stub or live) |
 | `saq audit verify --project prj_1` | Check hash chain |
 | Playwright trace viewer | `npx playwright show-trace evidence/<sha>.zip` |
-| MinIO console | http://localhost:9001 — evidence objects |
+| S3 (SeaweedFS) | `http://localhost:8333` — inspect with boto3 or `uv run --with boto3 python` (see ADR-010) |
 | Flower | http://localhost:5555 — Celery queues |
 | `psql` | `docker compose exec db psql -U saq_app saq` |
 | React Query Devtools | Bottom-left in dev web app |
@@ -40,6 +40,7 @@
 | Cache hit rate ~0 | Timestamp/run ID inside cached prefix | Prompt assembly | Move volatile parts after last breakpoint |
 | 403 on approve | Role lacks permission / wrong project | API logs, membership | Assign role |
 | SSE not updating UI | Proxy buffering | NGINX config | `proxy_buffering off;` for `/events` |
+| S3 upload "succeeds" but GET/HEAD says 404 | AWS CLI v2 streaming-checksum uploads not handled by SeaweedFS | Client config | Use boto3 with `request_checksum_calculation="when_required"` and path-style addressing (ADR-010) |
 | Excel opens with errors | Invalid chars / formula injection | Exporter logs | Sanitise cells starting with `= + - @` |
 | GitHub filing fails | Token scope / repo not allowed | Tracker adapter logs | Fix token scopes |
 | Duplicate results after crash | Missing idempotency key | `result` unique index errors | Ensure job key + ON CONFLICT |

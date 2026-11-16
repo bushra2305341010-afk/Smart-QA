@@ -63,7 +63,7 @@ cd apps/web && pnpm install && cd ../..
 ```bash
 make test                         # lint + type check + Python unit tests → all green
 cd apps/web && pnpm test && pnpm typecheck && cd ../..
-docker compose up -d              # Postgres, Redis, MinIO, API
+docker compose up -d              # Postgres, Redis, S3 (SeaweedFS), API
 curl http://localhost:8000/api/v1/readyz     # → {"status":"ready",...}
 cd apps/web && pnpm dev           # open http://localhost:5173 → you see the verdict badges
 ```
