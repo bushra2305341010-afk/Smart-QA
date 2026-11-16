@@ -40,6 +40,14 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 0 — 2026-11-17 (M04 planning)
+**Goal:** Suggested test counts with visible reasons (F08, N12, N13, N14; US-04).
+**Done:** planning contracts; technique rows; transparent risk score and priority; suggested count with half-up rounding and a happy-path floor; design cost estimate with budget check.
+**Tests:** 88 passed overall; planning + contracts 100% line and branch coverage; the Login example from docs/04 gives exactly 10.
+**Bugs found & fixed:** a test wrongly required reasons to start with a capital letter (they start with "1 per ...") → test now checks reason content.
+**Decisions:** numbers are code-only, the LLM only explains; prices are passed in, never hard-coded.
+**Next:** M06 model gateway (Nadia); Stuti: M03 policy, M05 verdict rules.
+
 ### Week 0 — 2026-11-17 (M02 citations)
 **Goal:** Pillar P1 in code: quotes are accepted only if they match the source exactly.
 **Done:** contracts for citations and chunks; normaliser; chunker with exact offsets, page and line; quote verifier with offset correction and short-quote rejection.

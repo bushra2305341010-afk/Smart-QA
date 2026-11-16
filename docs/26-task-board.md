@@ -9,9 +9,9 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | Module | Scope | Owner | Status | PR |
 |---|---|---|---|---|
 | M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #1 |
-| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | — |
+| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #2 |
 | M03 | Safe-action policy + permissions | Stuti | todo | |
-| M04 | Planning: techniques, risk, counts, cost | Nadia | todo | |
+| M04 | Planning: techniques, risk, counts, cost | Nadia | review | — |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
 | M06 | Model gateway (Claude + local adapters, schema output, cost, redaction, replay cache) | Nadia | todo | |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
