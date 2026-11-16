@@ -66,7 +66,7 @@ Adding a new provider / engine / tracker = one new adapter class + its contract 
   "location": { "file": "PRD-v3.pdf", "page": 12, "line": 4 },
   "status": "verified" }
 ```
-`status` is set only by `citations.verify(quote, source_text[start:end])` — a plain string comparison.
+`status` is set only by `packages.citations.verify.verify_citation()` — a plain string comparison after the shared `normalize_text()`. Rules: empty or < 12-character quotes are rejected; wrong offsets are corrected to the nearest exact occurrence; anything not found exactly is `unverified`.
 
 **Test case**
 ```json

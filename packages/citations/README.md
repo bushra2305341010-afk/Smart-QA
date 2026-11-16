@@ -8,4 +8,4 @@ Text normalisation, chunking with offsets, quote verification (100% branch cover
 | Owner | Nadia |
 | Planned module | M02 |
 
-Status: not started — see docs/26-task-board.md.
+Status: implemented in M02 — `normalize.py`, `chunker.py`, `verify.py` (100% branch coverage).
