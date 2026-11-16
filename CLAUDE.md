@@ -64,6 +64,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-17: M04 planning on `feat/M04-planning` (stacked on M02): techniques, risk, counts, cost, 100% coverage. PRs #1 (M01), #2 (M02) open. Next: M06 model gateway.
 - 2026-11-17: M02 citations on `feat/M02-citations` (stacked on M01): contracts + normalise + chunk + verify, 100% coverage. PR #1 (M01) open. Next: M03 policy (Stuti), M04 planning.
 - 2026-11-17: M01 foundation on branch `feat/M01-foundation` (skeleton, tooling, health API, Compose, CI, web scaffold, contributor guides). Next: M02 contracts + citations; Stuti: M03 policy.
 - 2026-11-16: Added docs 22–27 (standards, deployment, runbook, user stories, task board, glossary) and `docs/adr/` (ADR-001…009).

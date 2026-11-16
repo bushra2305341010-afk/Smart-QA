@@ -99,7 +99,7 @@ Suggested count per segment = Σ technique rows, × risk multiplier (0.7 – 1.5
 | State transition | 1 per important transition |
 | Accessibility | 1 scan per screen |
 
-Risk score = weighted sum of business criticality, rule count, input count, change frequency, past defects. Formula in `packages/planning/risk.py`, weights in project settings.
+Risk score = weighted average of normalised signals in [0, 1]: business criticality `(v-1)/4`, rule/input/defect counts `min(v,10)/10`, change frequency `v/5`. Default weights 0.30 / 0.20 / 0.15 / 0.20 / 0.15 (per-project override via `RiskWeights`). Multiplier = 0.7 + 0.8 × score; suggested = max(one per role, half-up round of base × multiplier). Priority: Must ≥ 0.66, Should ≥ 0.33, else Could. Code: `packages/planning/`.
 
 ## 6. Error design
 

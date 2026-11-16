@@ -8,4 +8,4 @@ Coverage techniques, risk score, suggested counts, cost estimate.
 | Owner | Nadia |
 | Planned module | M04 |
 
-Status: not started — see docs/26-task-board.md.
+Status: implemented in M04 — `techniques.py`, `risk.py`, `counts.py`, `cost.py` (100% branch coverage).

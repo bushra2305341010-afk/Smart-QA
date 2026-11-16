@@ -18,9 +18,11 @@ Numbers come from code; the model only writes the explanation. This keeps counts
 
 | Concern | Path |
 |---|---|
-| Techniques | `packages/planning/techniques.py` |
-| Risk | `packages/planning/risk.py` |
-| Cost estimate | `packages/planning/cost.py` → `model_gateway.count_tokens` |
+| Contracts | `packages/contracts/plan.py` — `JourneySpec`, `InputField`, `Limit`, `RiskInputs`, `RiskWeights`, `TechniqueRow`, `SegmentPlan`, `PriceTable`, `CostAssumptions`, `CostEstimate` |
+| Techniques | `packages/planning/techniques.py` — `technique_rows()` |
+| Risk + priority | `packages/planning/risk.py` — `risk_score()`, `priority_for()` (Must ≥ 0.66, Should ≥ 0.33, else Could) |
+| Counts | `packages/planning/counts.py` — `suggest_segment()`, `multiplier_for()` (0.7 → 1.5), half-up rounding once, never below one per role |
+| Cost estimate | `packages/planning/cost.py` — `estimate_design_cost()`; prices come from a `PriceTable` passed in (load from settings, verify against the provider's price page). Later: exact counts via `model_gateway.count_tokens` |
 | Worker | `apps/workers/planner/` |
 | Gate 2 | `apps/api/routers/plans.py::approve` |
 | UI | `apps/web/src/features/plan/` |
@@ -35,9 +37,11 @@ Numbers come from code; the model only writes the explanation. This keeps counts
 | Cost estimate 10× off | `cost.py` | Include cached context and output estimate |
 | Edited count not saved as rule | `plans.py` PATCH → `project_rule` | v1 learning hook |
 | Gate 2 passes with zero segments | `approve` | Validation |
+| Low-risk journey lost its happy paths | `counts.py::suggest_segment` floor | Count must be ≥ happy-path rows |
+| 12.5 rounded to 12 | `counts.py::_round_half_up` | Half-up after `round(x, 6)`, never Python's banker's `round()` |
 
 ## Change safety
 
-- [ ] `make test-planner` (property tests on counts)
+- [ ] `uv run pytest tests/planning --cov=packages/planning --cov=packages/contracts` → 100% branches; the Login example must stay at base 10
 - [ ] Segment schema change → `make test-designer test-reporter` (Coverage sheet) + web regen
 - [ ] Update §5 in `04-design.md` if formula changes
