@@ -8,14 +8,14 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | Module | Scope | Owner | Status | PR |
 |---|---|---|---|---|
-| M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #1 |
-| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #2 |
+| M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #6 (+ S3 fix #11) |
+| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #7 |
 | M03 | Safe-action policy + permissions | Stuti | todo | |
-| M04 | Planning: techniques, risk, counts, cost | Nadia | review | #3 |
+| M04 | Planning: techniques, risk, counts, cost | Nadia | review | #8 |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
-| M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) | Nadia | review | #4 |
+| M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
-| M08 | DB models + migrations, auth, projects/sources API, orchestrator state machine | Shared | todo | |
+| M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | todo — **next: M08a** | |
 | M09 | Ingest + Product Understanding Graph (analyst, explorer) | Nadia | todo | |
 | M10 | Runner + Judge worker | Stuti | todo | |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | todo | |
