@@ -46,9 +46,11 @@ Login: `owner@demo.local` / password printed by the seed script.
 | `DATABASE_URL` | `postgresql+psycopg://saq_app:***@db:5432/saq` | |
 | `REDIS_URL` | `redis://redis:6379/0` | |
 | `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` | `http://minio:9000` / `evidence` | |
-| `ANTHROPIC_API_KEY` | `sk-ant-…` | Only if Claude provider used |
+| `ANTHROPIC_API_KEY` | `sk-ant-…` | Only if the Claude provider is used. Alternatively run `ant auth login`; the SDK picks up the profile automatically |
 | `SAQ_DEFAULT_MODEL` | `claude-opus-5-5` | Per-stage overrides in project settings |
-| `LOCAL_MODEL_URL` | `http://host.docker.internal:11434/v1` | Optional local model |
+| `LOCAL_MODEL_URL` | `http://host.docker.internal:11434/v1` | OpenAI-compatible local server (Ollama, llama.cpp, vLLM, LM Studio). **Required** when `SAQ_MODEL_POLICY=local-only`, and must be an internal host |
+| `LOCAL_MODEL_NAME` | `qwen3:8b` | Model name on the local server |
+| `SAQ_MODEL_POLICY` | `external-redacted` | `local-only` · `external-redacted` · `external-code` (see docs/21 §B3) |
 | `SAQ_SECRET_KEY` | 32+ random bytes (base64) | Encryption envelope key |
 | `JWT_PRIVATE_KEY_FILE` | `/run/secrets/jwt.pem` | |
 | `GITHUB_TOKEN` | fine-grained PAT | Optional, for bug filing |

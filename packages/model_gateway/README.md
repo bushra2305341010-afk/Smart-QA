@@ -8,4 +8,4 @@ Provider interface, Claude + local adapters, structured output, caching, replay 
 | Owner | Nadia |
 | Planned module | M06 |
 
-Status: not started — see docs/26-task-board.md.
+Status: implemented in M06 (Claude adapter, redaction, untrusted wrapping, replay cache, cost, budget). Local adapter: T-602.

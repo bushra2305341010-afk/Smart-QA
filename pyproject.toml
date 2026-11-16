@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.6",
     "structlog>=24.4",
     "httpx>=0.27",
+    "anthropic>=1.0",
 ]
 
 [dependency-groups]
@@ -64,11 +65,7 @@ markers = [
     "integration: needs running Postgres/Redis (docker compose up -d db redis)",
 ]
 asyncio_default_fixture_loop_scope = "function"
-filterwarnings = [
-    "error",
-    # Starlette's TestClient warns about httpx; tracked as T-007 (verify the replacement package first).
-    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
-]
+filterwarnings = ["error"]
 
 [tool.coverage.run]
 source = ["apps", "packages"]

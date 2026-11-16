@@ -40,6 +40,22 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 0 — 2026-11-17 (T-602 local model)
+**Goal:** Pillar P4: run with a local model so nothing leaves the network.
+**Done:** OpenAI-compatible local adapter over plain HTTP; provider factory that enforces `local-only` (never Claude, internal hosts only); new settings.
+**Tests:** 159 passed, 100% line + branch coverage; adapter tested with `httpx.MockTransport` (no server needed).
+**Bugs found & fixed:** none.
+**Decisions:** OpenAI-compatible protocol (covers Ollama, llama.cpp, vLLM, LM Studio); token count is an estimate; local cost $0.
+**Next:** M08 DB + auth + orchestrator (shared). Stuti: M03, M05.
+
+### Week 0 — 2026-11-17 (M06 model gateway)
+**Goal:** One safe, cheap, testable path for every model call (ADR-003).
+**Done:** gateway with redaction, untrusted wrapping, replay cache, budget pre-check, schema validation and retries; Claude adapter using structured outputs, explicit effort, cached context and server-side refusal fallbacks.
+**Tests:** 128 passed with warnings as errors; whole codebase 100% line + branch coverage. Adapter tested against a fake SDK client (no network, no cost).
+**Bugs found & fixed:** mypy narrowed the client to the concrete SDK type and rejected dict params → client attribute typed `Any` on purpose (real client or test double).
+**Decisions:** SDK 2.x; `fallbacks="default"` on by default; local-model adapter split out as T-602.
+**Next:** Stuti: M03 policy, M05 verdicts. Nadia: T-602 local adapter, then M08 DB/auth/orchestrator with Stuti.
+
 ### Week 0 — 2026-11-17 (M04 planning)
 **Goal:** Suggested test counts with visible reasons (F08, N12, N13, N14; US-04).
 **Done:** planning contracts; technique rows; transparent risk score and priority; suggested count with half-up rounding and a happy-path floor; design cost estimate with budget check.
