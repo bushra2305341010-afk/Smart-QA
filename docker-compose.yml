@@ -1,0 +1,53 @@
+# Local stack (laptop mode). See docs/15-setup-and-initialization.md §5.
+name: smart-qa
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: saq_app
+      POSTGRES_PASSWORD: saq_dev_password
+      POSTGRES_DB: saq
+    ports: ["5432:5432"]
+    volumes: [db-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saq_app -d saq"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: saq_minio
+      MINIO_ROOT_PASSWORD: saq_minio_dev_password
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [minio-data:/data]
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/api.Dockerfile
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+psycopg://saq_app:saq_dev_password@db:5432/saq
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT: http://minio:9000
+    ports: ["8000:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+volumes:
+  db-data:
+  minio-data:

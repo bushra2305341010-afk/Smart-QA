@@ -1,0 +1,20 @@
+/* Design tokens — docs/05-frontend-ui-design.md §3. Use these, never raw hex in components. */
+:root {
+  --bg: #F8FAFC; --surface: #FFFFFF; --surface-2: #F1F5F9; --border: #E2E8F0;
+  --text: #0F172A; --text-muted: #475569; --sidebar: #0F172A;
+  --primary: #4338CA; --primary-hover: #3730A3; --accent: #0D9488; --focus-ring: #6366F1;
+  --quote-bg: #FEF9C3;
+  --pass: #15803D; --pass-bg: #DCFCE7; --fail: #B91C1C; --fail-bg: #FEE2E2;
+  --flaky: #B45309; --flaky-bg: #FEF3C7; --blocked: #475569; --blocked-bg: #E2E8F0;
+  --testerr: #7E22CE; --testerr-bg: #F3E8FF; --uv: #1D4ED8; --uv-bg: #DBEAFE;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0B1120; --surface: #111827; --surface-2: #1E293B; --border: #334155;
+    --text: #E2E8F0; --text-muted: #94A3B8; --sidebar: #020617;
+    --primary: #818CF8; --primary-hover: #A5B4FC; --accent: #2DD4BF; --focus-ring: #A5B4FC;
+    --quote-bg: #422006;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }

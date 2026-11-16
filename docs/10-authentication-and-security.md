@@ -1,0 +1,103 @@
+# 10 · Authentication and Security (implementation)
+
+Code: `apps/api/auth/`, `packages/policy/permissions.py`.
+
+## 1. Identities
+
+| Principal | How it authenticates | Where |
+|---|---|---|
+| Human user (web) | Email + password (Argon2id) + optional TOTP → session cookie | MVP |
+| Human user (SSO) | OIDC (Google, Microsoft, Keycloak) | v1 |
+| CLI / CI | Personal or project API token (`saq_pat_…`), hashed in DB, scoped, expiring | MVP |
+| MCP client | Project token with `mcp:*` scopes, read-only by default | MVP preview |
+| Runner | Registration token once → mTLS client certificate bound to runner ID | MVP |
+
+## 2. Login flow
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant A as API
+    participant D as DB
+    B->>A: POST /auth/login {email, password}
+    A->>D: fetch user, verify argon2id
+    alt TOTP enabled
+        A-->>B: 200 {mfa_required, mfa_token}
+        B->>A: POST /auth/login/mfa {mfa_token, code}
+    end
+    A->>D: create session (refresh token hash, device, ip)
+    A-->>B: Set-Cookie access (15 min), refresh (7 d, rotating), csrf
+```
+
+## 3. Sessions & tokens
+
+| Item | Setting |
+|---|---|
+| Access token | JWT (EdDSA), 15 min, claims: `sub`, `sid`, `roles` per project version |
+| Refresh token | Opaque, 7 days, rotated on every use; reuse → revoke whole session family |
+| Cookies | `HttpOnly`, `Secure`, `SameSite=Lax`, path-scoped |
+| CSRF | Double-submit token header `X-CSRF-Token` on unsafe methods |
+| Logout | Revokes session; access JWT expires ≤ 15 min (denylist by `sid` for immediate) |
+| Brute force | 5 failures → exponential backoff per account + per IP; alert after 20 |
+| Password rules | ≥ 12 chars, check against breached-password list (k-anonymity), no composition rules |
+
+## 4. Authorisation (RBAC)
+
+| Permission | Owner | QA Lead | Tester | Developer | Viewer |
+|---|---|---|---|---|---|
+| Manage members, model policy, budgets | ✔ | | | | |
+| Add sources / environments / identities | ✔ | ✔ | | | |
+| Gate 1 approve graph | ✔ | ✔ | | | |
+| Gate 2 approve plan | ✔ | ✔ | | | |
+| Gate 3 approve cases | ✔ | ✔ | ✔ | | |
+| Start run | ✔ | ✔ | ✔ | ✔ | |
+| Gate 4 confirm & file bug | ✔ | ✔ | | | |
+| Approve heal diff | ✔ | ✔ | | | |
+| Mark env production-safe | ✔ | | | | |
+| View everything | ✔ | ✔ | ✔ | ✔ | ✔ |
+
+Implementation:
+```python
+@router.post("/plans/{plan_id}/approve")
+def approve_plan(plan_id: str, user: User = Depends(require("plan.approve"))):
+    ...
+```
+`require()` loads the plan's `project_id`, checks membership + role, and sets `app.project_id` for Postgres RLS. **Separation of duties:** the person who generated a plan can approve it only if they are QA Lead/Owner; a Tester cannot self-approve.
+
+## 5. Secrets
+
+| Secret | Storage | Who can read |
+|---|---|---|
+| Test identity passwords | Vault table encrypted (AES-256-GCM, envelope key) | Runner only, at fill time |
+| Model API key | Env var / Docker secret / KMS | Model Gateway only |
+| Tracker tokens | Encrypted column | Tracker adapter only |
+| JWT signing key | Docker secret / KMS, rotated 90 days (kid header) | API |
+| Runner CA key | Offline / KMS | `saq runner` admin command |
+
+Never logged, never in exports, never sent to a model (placeholders `{{secret:name}}`).
+
+## 6. Runner mTLS
+
+1. Owner creates runner: `saq runner create --env staging` → one-time registration token (10 min).
+2. Runner calls `/runner/register` with token + CSR → receives cert (30-day validity, auto-renew at day 20).
+3. All later traffic: WSS with client cert; API checks cert serial ↔ runner ID ↔ environment binding.
+4. Revoke: `saq runner revoke <id>` → CRL updated, active socket closed.
+
+## 7. Security headers (API + web)
+
+```
+Content-Security-Policy: default-src 'self'; img-src 'self' blob: data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
+Strict-Transport-Security: max-age=63072000; includeSubDomains
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+```
+
+## 8. Checklist before each release
+
+- [ ] All new endpoints use `require(<permission>)`
+- [ ] RLS policy exists for new tables
+- [ ] No secret in logs (grep CI step on test logs)
+- [ ] ZAP baseline: 0 high
+- [ ] Red-team suite green
+- [ ] ASVS L1 items re-checked for changed areas
