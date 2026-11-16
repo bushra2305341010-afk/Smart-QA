@@ -45,7 +45,7 @@ Login: `owner@demo.local` / password printed by the seed script.
 | `SAQ_ENV` | `dev` | dev / test / prod |
 | `DATABASE_URL` | `postgresql+psycopg://saq_app:***@db:5432/saq` | |
 | `REDIS_URL` | `redis://redis:6379/0` | |
-| `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` | `http://minio:9000` / `evidence` | |
+| `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` | `http://localhost:8333` / `evidence` / `saq_s3` / dev password | Local SeaweedFS keys live in `deploy/seaweedfs/s3.json`; companies point these at their own S3 |
 | `ANTHROPIC_API_KEY` | `sk-ant-…` | Only if the Claude provider is used. Alternatively run `ant auth login`; the SDK picks up the profile automatically |
 | `SAQ_DEFAULT_MODEL` | `claude-opus-5-5` | Per-stage overrides in project settings |
 | `LOCAL_MODEL_URL` | `http://host.docker.internal:11434/v1` | OpenAI-compatible local server (Ollama, llama.cpp, vLLM, LM Studio). **Required** when `SAQ_MODEL_POLICY=local-only`, and must be an internal host |
@@ -70,13 +70,13 @@ Generate secrets: `python -c "import secrets,base64;print(base64.b64encode(secre
 | `runner` | — | Playwright runner (registers itself in dev) |
 | `db` | 5432 | Postgres 16 + pgvector |
 | `redis` | 6379 | Queue, rate limits, pub/sub |
-| `minio` | 9000/9001 | Evidence store + console |
+| `s3` | 8333 | S3-compatible evidence store (SeaweedFS 4.00, ADR-010) |
 | `mailpit` | 8025 | Mail sink for safe email tests |
 
 ## 6. Local development without Docker (faster loops)
 
 ```bash
-docker compose up -d db redis minio     # infra only
+docker compose up -d db redis s3        # infra only
 uv sync                                  # Python deps
 uv run alembic upgrade head
 uv run uvicorn apps.api.main:app --reload
@@ -106,7 +106,7 @@ uv run pre-commit install
 ## 9. Verify the install
 
 ```bash
-make doctor      # checks docker, ports, env vars, DB migration, MinIO bucket, runner registered, model reachable
+make doctor      # checks docker, ports, env vars, DB migration, S3 bucket, runner registered, model reachable
 make test-fast   # unit tests (Python + web)
 ```
 

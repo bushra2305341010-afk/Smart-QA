@@ -6,6 +6,7 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Fixed
+- Local dev S3: the `minio/minio` image is no longer published on Docker Hub or quay.io; Compose now runs SeaweedFS 4.00 (`s3` service, port 8333, keys in `deploy/seaweedfs/s3.json`). Verified with boto3: bucket create, put, head, get (hash match), list, presigned GET, wrong-key rejection (ADR-010).
 - Removed the Starlette TestClient warning filter (T-007): the official SDK brings `httpx2`, so tests run with warnings as errors and no exceptions.
 - CI `web`: pnpm 12 fails on unapproved build scripts in CI; esbuild's build is now approved in `apps/web/pnpm-workspace.yaml`.
 - CI `secrets`: `.gitleaks.toml` keeps default rules and allowlists only the fake secret-shaped redaction-test fixtures.

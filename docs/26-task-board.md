@@ -8,14 +8,14 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | Module | Scope | Owner | Status | PR |
 |---|---|---|---|---|
-| M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #1 |
-| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #2 |
+| M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #6 (+ S3 fix #11) |
+| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #7 |
 | M03 | Safe-action policy + permissions | Stuti | todo | |
-| M04 | Planning: techniques, risk, counts, cost | Nadia | review | #3 |
+| M04 | Planning: techniques, risk, counts, cost | Nadia | review | #8 |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
-| M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) | Nadia | review | #4 |
+| M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
-| M08 | DB models + migrations, auth, projects/sources API, orchestrator state machine | Shared | todo | |
+| M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | todo — **next: M08a** | |
 | M09 | Ingest + Product Understanding Graph (analyst, explorer) | Nadia | todo | |
 | M10 | Runner + Judge worker | Stuti | todo | |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | todo | |
@@ -40,7 +40,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | ID | Task | Story | Owner | Status | Notes |
 |---|---|---|---|---|---|
-| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, minio, web | — | Nadia | doing | db, redis, minio, api done in M01; worker/orchestrator/runner added with their modules |
+| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, s3, web | — | Nadia | doing | db, redis, api done in M01; s3 = SeaweedFS (MinIO image no longer published, ADR-010); worker/orchestrator/runner added with their modules |
 | T-102 | Model Gateway: Claude adapter, schema output, cost log | — | Nadia | todo | |
 | T-103 | Runner registration over mTLS | US-06 | Stuti | todo | |
 | T-104 | Auth: register/login/session, RBAC skeleton | US-11 | Stuti | todo | |

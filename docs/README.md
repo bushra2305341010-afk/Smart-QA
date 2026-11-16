@@ -77,7 +77,7 @@ These docs turn the research files in the parent folder into a build manual:
 ```bash
 git clone <repo> smart-autonomous-qa && cd smart-autonomous-qa
 cp .env.example .env          # add ANTHROPIC_API_KEY or LOCAL_MODEL_URL
-docker compose up -d          # api, web, worker, runner, postgres, redis, minio
+docker compose up -d          # api, postgres, redis, s3 (worker, runner, web added with their modules)
 open http://localhost:5173    # web app
 ```
 

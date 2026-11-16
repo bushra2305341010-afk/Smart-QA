@@ -1,6 +1,6 @@
 # 07 · Database
 
-PostgreSQL 16 + pgvector · migrations with Alembic · evidence blobs in MinIO/S3, only metadata in Postgres.
+PostgreSQL 16 + pgvector · migrations with Alembic · evidence blobs in S3-compatible storage (SeaweedFS locally), only metadata in Postgres.
 
 ## 1. ER diagram
 

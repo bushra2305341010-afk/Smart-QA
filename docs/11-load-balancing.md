@@ -76,7 +76,7 @@ Laptop mode: the same containers, one replica each; NGINX in `deploy/nginx/` doe
 
 ## 7. Evidence
 
-- Runner uploads directly to MinIO/S3 with presigned PUT URLs → no blob traffic through the API.
+- Runner uploads directly to S3-compatible storage with presigned PUT URLs → no blob traffic through the API.
 - Downloads via short-lived presigned GET; static web assets via CDN in hosted mode.
 
 ## 8. Capacity rule of thumb (MVP laptop)

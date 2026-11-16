@@ -24,7 +24,7 @@ flowchart LR
         WK --> GW[Model Gateway]
         ORCH --> DB[(PostgreSQL 16 + pgvector)]
         WK --> DB
-        ORCH --> OBJ[(Evidence store - MinIO/S3)]
+        ORCH --> OBJ[(Evidence store - S3-compatible)]
     end
     GW -->|HTTPS| CLAUDE[Claude API]
     GW -->|local| LOCAL[Local model server]
@@ -47,7 +47,7 @@ flowchart LR
 | Code Analyzer | Routes, forms, validation, endpoints | tree-sitter (JS/TS, Python, PHP, Java), OpenAPI parser | `packages/analyzers/code` |
 | Document Analyzer | Citable chunks with page + line offsets | PyMuPDF, python-docx, markdown-it | `packages/citations` |
 | Runner | Execute Playwright, explore UI, capture evidence | Python, Playwright, Docker, axe-core | `apps/runner` |
-| Evidence Store | Screenshots, traces, video, HAR, logs | MinIO / S3, content-addressed by SHA-256 | — |
+| Evidence Store | Screenshots, traces, video, HAR, logs | Any S3-compatible store (company S3 in production; SeaweedFS locally, ADR-010), boto3 client, content-addressed by SHA-256 | — |
 | Database | All domain data + audit ledger | PostgreSQL 16 + pgvector, Alembic | `apps/api/db` |
 | Exporters | Excel, HTML evidence pack, tracker tickets | openpyxl, Jinja2, GitHub/Jira REST | `packages/exporters` |
 | Policy | Safe-action rules, domain allow-list, permissions | Pure Python, 100% branch-tested | `packages/policy` |
@@ -67,7 +67,7 @@ flowchart LR
 | Service / domain | projects, sources, graph, plans, cases, runs, verdicts, bugs, audit, billing | Repos, orchestrator, policy |
 | Orchestration | State machine, gate checks, job dispatch | Queue, repos |
 | Workers | AI stages | Model gateway, analyzers, repos |
-| Infrastructure | Postgres, Redis, MinIO, model providers, trackers | — |
+| Infrastructure | Postgres, Redis, S3-compatible storage, model providers, trackers | — |
 
 Rule: a layer never imports from a layer above it. `packages/policy` and `packages/citations` import nothing from `apps/`.
 
@@ -120,5 +120,6 @@ smart-autonomous-qa/
 | 006 | React + Vite SPA instead of Next.js |
 | 007 | Evidence content-addressed by SHA-256 |
 | 008 | Audit ledger hash-chained in Postgres |
+| 010 | SeaweedFS as the local S3-compatible evidence store (MinIO image no longer published) |
 
 Template: `docs/adr/NNN-title.md` with Context, Decision, Consequences, Status.

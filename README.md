@@ -49,7 +49,7 @@ Prerequisites: Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 20 + pnpm
 cp .env.example .env
 make install            # Python deps + git hooks
 make test               # lint + type check + unit tests
-docker compose up -d    # Postgres (pgvector), Redis, MinIO, API
+docker compose up -d    # Postgres (pgvector), Redis, S3 (SeaweedFS), API
 curl localhost:8000/api/v1/readyz
 
 cd apps/web && pnpm install && pnpm dev   # http://localhost:5173

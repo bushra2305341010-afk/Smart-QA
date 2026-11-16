@@ -1,0 +1,11 @@
+{
+  "identities": [
+    {
+      "name": "saq_dev",
+      "credentials": [
+        { "accessKey": "saq_s3", "secretKey": "saq_s3_dev_password" }
+      ],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

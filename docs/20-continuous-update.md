@@ -40,6 +40,12 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 0 — 2026-11-17 (Docker verification + ADR-010)
+**Goal:** Verify `docker compose up` from M01 now that Docker Desktop runs.
+**Done:** API, Postgres + pgvector and Redis start; `/readyz` ready; API runs as uid 10001. CI fixed (pnpm esbuild approval, gitleaks allowlist for fake fixtures). PRs moved to the main repo as Lokkhita (#6–#10, stacked), Claude attribution removed.
+**Bugs found & fixed:** (1) `minio/minio` image no longer exists → SeaweedFS (ADR-010). (2) AWS CLI 2.22 uploads to SeaweedFS then GET/HEAD 404 → use boto3 with checksums "when required" (documented in 19-debugging).
+**Next:** M08 DB + auth + projects API + orchestrator.
+
 ### Week 0 — 2026-11-17 (T-602 local model)
 **Goal:** Pillar P4: run with a local model so nothing leaves the network.
 **Done:** OpenAI-compatible local adapter over plain HTTP; provider factory that enforces `local-only` (never Claude, internal hosts only); new settings.

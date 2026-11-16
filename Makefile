@@ -4,7 +4,7 @@ install:        ## install deps + git hooks
 	uv sync
 	uv run pre-commit install
 
-up:             ## start infra (db, redis, minio) and api
+up:             ## start infra (db, redis, s3) and api
 	docker compose up -d --build
 
 down:
