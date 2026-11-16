@@ -40,6 +40,14 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 0 — 2026-11-17 (M02 citations)
+**Goal:** Pillar P1 in code: quotes are accepted only if they match the source exactly.
+**Done:** contracts for citations and chunks; normaliser; chunker with exact offsets, page and line; quote verifier with offset correction and short-quote rejection.
+**Tests:** 51 passed overall; `packages/citations` and `packages/contracts` 100% line + branch coverage; property-style test verifies 300 random substrings.
+**Bugs found & fixed:** (1) two unreachable branches in the chunker's long-paragraph split → simplified the loop instead of testing dead code. (2) Non-ASCII characters written into source files were flagged by ruff RUF001 → stored as `\uXXXX` escapes.
+**Decisions:** minimum quote length 12 characters; wrong offsets are corrected rather than failed.
+**Next:** M03 policy (Stuti), M04 planning (Nadia).
+
 ### Week 0 — 2026-11-17 (M01 foundation)
 **Goal:** Working repository skeleton everyone can clone, test and extend.
 **Done:**

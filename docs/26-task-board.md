@@ -8,8 +8,8 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | Module | Scope | Owner | Status | PR |
 |---|---|---|---|---|
-| M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | — |
-| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | todo | |
+| M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #1 |
+| M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | — |
 | M03 | Safe-action policy + permissions | Stuti | todo | |
 | M04 | Planning: techniques, risk, counts, cost | Nadia | todo | |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |

@@ -8,4 +8,4 @@ Pydantic schemas shared between sectors. The only thing sectors import from each
 | Owner | Shared |
 | Planned module | M02 |
 
-Status: not started — see docs/26-task-board.md.
+Status: started in M02 — `citation.py` (`Citation`, `Chunk`, `Location`).
