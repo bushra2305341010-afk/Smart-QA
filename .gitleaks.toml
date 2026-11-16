@@ -1,0 +1,12 @@
+# gitleaks configuration (CI job `secrets` + pre-commit hook).
+# Keep the default rules and allow ONLY the redaction-test fixtures: they are fake,
+# deliberately secret-shaped strings (e.g. the public jwt.io sample) that the redactor
+# must detect. Never add real code paths here; a real secret must be removed and rotated.
+title = "Smart QA gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fake secret-shaped fixtures for packages/model_gateway/redact.py tests"
+paths = ['''tests/model_gateway/test_redact\.py''']

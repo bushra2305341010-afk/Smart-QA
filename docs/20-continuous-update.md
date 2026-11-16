@@ -1,0 +1,86 @@
+# 20 · Continuous Update (living docs + dev log)
+
+Docs are only useful if they match the code. This file sets the rules and holds the weekly development log.
+
+## 1. Rules
+
+| When you… | Update |
+|---|---|
+| Add/change an endpoint | [06-api.md](06-api.md) table |
+| Add/change a table or column | [07-database.md](07-database.md) |
+| Change an agent, prompt or model setting | [08-agent.md](08-agent.md) + prompt CHANGELOG |
+| Touch a sector | Its file in [workflows/](workflows/) (flow, bug locator, change safety) |
+| Make an architecture/security decision | New ADR in `docs/adr/` + one line in [02-architecture.md](02-architecture.md) §7 |
+| Merge any PR | [CHANGELOG.md](CHANGELOG.md) under *Unreleased* |
+| Finish a week | Dev-log entry below |
+| Measure a metric | Validation table in §4 |
+
+CI check `docs-guard`: if a PR changes `apps/api/routers/**`, `alembic/versions/**`, `apps/workers/**/prompts/**` or `packages/contracts/**` without touching `docs/`, the job warns and requires the label `docs-not-needed` to pass.
+
+Each doc ends with a "Last reviewed" line; review every doc at milestones M1–M4.
+
+## 2. Weekly dev-log template
+
+Copy this block to the top of §3 every Friday.
+
+```markdown
+### Week N — YYYY-MM-DD
+**Goal:** (from 16-project-implementation.md)
+**Done:**
+- [F13] quote verification merged (#42)
+**Not done / moved:**
+-
+**Metrics this week:** graph P/R, citation acc., flake acc., cost per run
+**Bugs found & fixed:** symptom → root cause → fix → prevention
+**Decisions (ADR links):**
+**Risks / blockers:**
+**Next week:**
+**Mentor feedback:**
+```
+
+## 3. Development log
+
+### Week 0 — 2026-11-17 (M01 foundation)
+**Goal:** Working repository skeleton everyone can clone, test and extend.
+**Done:**
+- Fork-based workflow set up (contributors push to forks, PR into `bushra2305341010-afk/Smart-QA`).
+- Repo skeleton for every app/package with owner + design-doc READMEs.
+- FastAPI health/readiness endpoints, settings, Compose stack, CI, pre-commit, Makefile.
+- Web scaffold (Vite + React + TS) with tokens and `VerdictBadge`.
+- `stuti.md` and `CONTRIBUTING.md`.
+**Tests:** Python 7 passed, 100% line+branch coverage; web 3 passed; typecheck and production build OK.
+**Bugs found & fixed:** Starlette TestClient deprecation warning broke `-W error` runs → filtered by message in pytest config; replacement package to be verified first (T-007).
+**Decisions:** Fork-and-PR contribution model (upstream account grants read access only).
+**Risks / blockers:** Docker Compose stack still to be verified on Docker Desktop.
+**Next:** M02 contracts + citations; Stuti starts M03 policy.
+
+### Week 0 — 2026-11-16
+**Goal:** Turn research into an engineering doc set and the capstone poster.
+**Done:**
+- Created `docs/` with 20 core docs, sector workflow files and bug-triage map.
+- Chose frontend stack (React + Vite + TS + Tailwind + shadcn/ui) and "Verified Indigo" colour system.
+- Poster produced for submission.
+**Decisions:** ADR-002 (explicit state machine instead of LangGraph), ADR-006 (Vite SPA instead of Next.js) — to be written.
+**Next week:** repo + CI skeleton, ADR-001…008, golden project 1 docs, interview script.
+**Mentor feedback:** —
+
+## 4. Validation results (fill as measured)
+
+| Metric | Target | Week measured | Result | Notes |
+|---|---|---|---|---|
+| Graph precision | ≥ 80% | | | |
+| Graph recall | ≥ 75% | | | |
+| Citation accuracy | ≥ 90% | | | |
+| Requirement coverage | ≥ 90% | | | |
+| Seeded bug detection | ≥ 70% | | | |
+| False-bug rate | ≤ 15% | | | |
+| Flake classification | ≥ 85% | | | |
+| Review time vs manual | ≤ 50% | | | |
+| First-run cost | < $5 | | | |
+| Replay model calls | 0 | | | |
+
+## 5. Release notes process
+
+1. Move *Unreleased* in CHANGELOG to a version heading (`## [0.3.0] - 2026-12-20`).
+2. Add upgrade notes (migrations, new env vars, breaking changes).
+3. Tag `v0.3.0`; CI builds images + SBOM.
