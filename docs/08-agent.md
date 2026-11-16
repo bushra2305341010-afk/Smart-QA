@@ -43,6 +43,21 @@ result = gateway.generate(
 
 > Before changing model IDs, pricing assumptions or SDK params, check the current Claude API docs — do not rely on memory.
 
+### 2.1 Implementation (M06, `packages/model_gateway/`)
+
+| File | Responsibility |
+|---|---|
+| `types.py` | `TaskSpec` (stage, prompt version, effort, max_tokens), `ModelRequest` (system, user, cached_context, untrusted), `ProviderCall/Response`, `Usage`, `GatewayResult`, `ModelCallRecord`, `ModelProvider` protocol |
+| `gateway.py` | `ModelGateway.generate(task, request, Schema)`: redact → replay cache → budget pre-check (`count_tokens`) → call → refusal / truncation handling → schema validation with ≤ 2 retries carrying the validation error → record + charge budget. Non-`ok` results never carry an output |
+| `anthropic_adapter.py` | Claude via the official `anthropic` SDK (2.x): `client.beta.messages.create` with `output_config={"effort", "format": json_schema}`, system prompt + cached context block (`cache_control: ephemeral`), `fallbacks="default"` + beta `server-side-fallback-2026-07-01` (refusals re-run server-side). Effort is always explicit because Claude Opus 5.5 defaults to `medium`; `thinking` is not sent (always on for Opus 5.5) and thinking blocks are skipped |
+| `schema.py` | Pydantic model → strict JSON schema (refs inlined, `additionalProperties: false`, all properties required) |
+| `redact.py` | Masks JWTs, bearer tokens, API keys, emails, Luhn-valid card numbers, phone numbers; keeps `{{secret:…}}` placeholders |
+| `untrusted.py` | `<untrusted_data source="…">` wrapper, HTML-escaped so injected text cannot close the tag, plus a fixed notice |
+| `cache.py` | Replay-cache key (model, stage, prompt version, effort, schema, prepared request) + in-memory cache (Postgres-backed in M08) |
+| `cost.py` | `usage_cost()` (input, output, cache read, cache write × 1.25) and `Budget` (check before, add after) |
+
+Credentials: the SDK resolves `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or an `ant auth login` profile. Local-model adapter: T-602.
+
 ## 3. Prompt management
 
 - Prompts live in `apps/workers/<stage>/prompts/<name>@<semver>.md` with a CHANGELOG.

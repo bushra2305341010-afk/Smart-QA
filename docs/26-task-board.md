@@ -11,9 +11,9 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #1 |
 | M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #2 |
 | M03 | Safe-action policy + permissions | Stuti | todo | |
-| M04 | Planning: techniques, risk, counts, cost | Nadia | review | — |
+| M04 | Planning: techniques, risk, counts, cost | Nadia | review | #3 |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
-| M06 | Model gateway (Claude + local adapters, schema output, cost, redaction, replay cache) | Nadia | todo | |
+| M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) | Nadia | review | — |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
 | M08 | DB models + migrations, auth, projects/sources API, orchestrator state machine | Shared | todo | |
 | M09 | Ingest + Product Understanding Graph (analyst, explorer) | Nadia | todo | |
@@ -31,7 +31,9 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | T-004 | Golden project 1 (shop) requirements + seeded bugs | — | Nadia | todo | bug list private |
 | T-005 | Golden project 2 (school) requirements + seeded bugs | — | Stuti | todo | |
 | T-006 | QA lead interview script + schedule 10–15 interviews | — | Shared | todo | |
-| T-007 | Replace Starlette TestClient httpx warning filter: verify the recommended replacement package is legitimate, then switch | — | Nadia | todo | warning filtered in pyproject for now |
+| T-007 | Replace Starlette TestClient httpx warning filter: verify the recommended replacement package is legitimate, then switch | — | Nadia | done | `httpx2` confirmed as the official anthropic SDK 2.x HTTP library; installed via `anthropic`, filter removed in M06 |
+| T-602 | Local-model adapter for the Model Gateway (air-gapped mode, P4) + quality shown on the eval set | — | Nadia | todo | follow-up to M06 |
+| T-603 | Postgres-backed replay cache + `model_call` recorder | — | Shared | todo | with M08 DB |
 | T-008 | Contributor guide for Stuti (`stuti.md`) + CONTRIBUTING.md | — | Nadia | done | M01 |
 
 ## Week 1 — Skeleton
