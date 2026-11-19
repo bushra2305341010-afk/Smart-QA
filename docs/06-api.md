@@ -77,7 +77,7 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | GET | `/projects/{id}/graph/{gv}` | Viewer+ | Nodes, edges, citations (quote, file, page, line); `?type=Conflict` / `Question` / `Rule` … |
 | PATCH | `/projects/{id}/graph/{gv}/nodes/{nid}` | QA Lead+ | `{review_status: approved|rejected|edited, label?}` (draft only) |
 | POST | `/projects/{id}/graph/{gv}/approve` | QA Lead | **Gate 1**: 409 `GATE_NOT_APPROVED` with `pending_node_ids` while any node is pending; 409 `STATE_CONFLICT` if the pipeline is not at graph review |
-| GET | `/graph/{version}/brief` | Viewer+ | Product brief (markdown) |
+| GET | `/projects/{id}/brief` | Viewer+ | Product brief (markdown) of the approved graph: roles, journeys with steps, quoted rules, endpoints, open questions, conflicts |
 
 ### Plans & cases
 | Method | Path | Role | Purpose |

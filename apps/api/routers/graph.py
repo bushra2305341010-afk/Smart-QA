@@ -19,11 +19,22 @@ from sqlalchemy.orm import Session
 from apps.api import ids
 from apps.api.auth.deps import ProjectContext, require
 from apps.api.db import audit
-from apps.api.db.models import Chunk, Edge, Feedback, GraphVersion, Node, NodeCitation, Source
+from apps.api.db.models import (
+    Chunk,
+    Edge,
+    Feedback,
+    GraphVersion,
+    Node,
+    NodeCitation,
+    Project,
+    Source,
+)
 from apps.api.errors import ApiError, conflict, not_found
 from apps.orchestrator import engine
 from apps.orchestrator.guards import GuardError
 from apps.orchestrator.machine import TransitionError
+from packages.graph.brief import build_brief
+from packages.planning.from_graph import EdgeView, NodeView
 
 router = APIRouter(tags=["graph"])
 
@@ -282,3 +293,39 @@ def approve_graph(
         ) from None
     except GuardError as exc:  # pragma: no cover - gate 1 data and role are checked above
         raise ApiError(exc.status, exc.code, exc.message, exc.details) from None
+
+
+class BriefOut(BaseModel):
+    graph_version: int
+    markdown: str
+
+
+@router.get("/projects/{project_id}/brief")
+def get_brief(ctx: ProjectContext = Depends(require("project.view"))) -> BriefOut:
+    """Markdown brief of the approved graph (rejected nodes left out, every rule quoted)."""
+    with ctx.session() as s:
+        gv = s.scalar(select(GraphVersion).where(GraphVersion.status == "approved"))
+        if gv is None:
+            raise not_found("Approved graph")
+        nodes = s.scalars(
+            select(Node).where(Node.graph_version_id == gv.id, Node.review_status != "rejected")
+        ).all()
+        node_ids = [n.id for n in nodes]
+        edges = s.scalars(
+            select(Edge).where(Edge.from_node_id.in_(node_ids), Edge.to_node_id.in_(node_ids))
+        ).all()
+        quotes: dict[str, list[str]] = {}
+        for node_id, quote in s.execute(
+            select(NodeCitation.node_id, NodeCitation.quote)
+            .where(NodeCitation.node_id.in_(node_ids))
+            .order_by(NodeCitation.start_offset)
+        ).all():
+            quotes.setdefault(str(node_id), []).append(quote)
+        project = s.get_one(Project, ctx.project_id)
+        markdown = build_brief(
+            project.name,
+            [NodeView(str(n.id), n.type, n.label, dict(n.attrs)) for n in nodes],
+            [EdgeView(str(e.from_node_id), str(e.to_node_id), e.kind) for e in edges],
+            quotes,
+        )
+        return BriefOut(graph_version=gv.number, markdown=markdown)

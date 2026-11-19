@@ -25,6 +25,8 @@ import typer
 app = typer.Typer(help="Smart Autonomous QA command line.", no_args_is_help=True)
 audit_app = typer.Typer(help="Audit ledger.", no_args_is_help=True)
 app.add_typer(audit_app, name="audit")
+mcp_app = typer.Typer(help="MCP server for coding agents (read-only).", no_args_is_help=True)
+app.add_typer(mcp_app, name="mcp")
 
 Project = Annotated[str, typer.Option("--project", "-p", help="Project ID (prj_...)")]
 AsJson = Annotated[bool, typer.Option("--json", help="Print raw JSON")]
@@ -233,6 +235,20 @@ def audit_verify(project: Project, as_json: AsJson = False) -> None:
     )
     if not result["verified"]:
         raise typer.Exit(1)
+
+
+def mcp_server(project: str) -> Any:
+    """Build the MCP server bound to this CLI's credentials (checked before serving)."""
+    from apps.mcp.server import build_server
+
+    client().close()  # fails early with NOT_LOGGED_IN if there are no credentials
+    return build_server(client, project)
+
+
+@mcp_app.command("serve")
+def mcp_serve(project: Project) -> None:  # pragma: no cover - blocks on stdio
+    """Serve the read-only tools over stdio: `claude mcp add smart-qa -- saq mcp serve -p prj_…`."""
+    mcp_server(project).run("stdio")
 
 
 def main() -> None:  # pragma: no cover - console entry point
