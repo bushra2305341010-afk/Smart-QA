@@ -18,15 +18,18 @@ approved plan + graph ─▶ Designer (batched per segment, cached graph prefix)
 
 | Concern | Path |
 |---|---|
-| Worker + prompts | `apps/workers/designer/` |
+| Worker + prompt (`designer@1.0.0`, `job.design`) | `apps/workers/designer.py` |
+| Case contract (model output) | `packages/contracts/case.py` (`CaseBatch`, `DesignedCase`) |
 | Quote verify | `packages/citations/verify.py` (**100% branch coverage**) — `verify_quote()`, `verify_citation()`, `MIN_QUOTE_CHARS = 12` |
 | Normalisation | `packages/citations/normalize.py` — same function for source text and quotes |
 | Chunking | `packages/citations/chunker.py` — `chunk_pages()` returns full normalised text + chunks with offsets, page, line |
 | Contracts | `packages/contracts/citation.py` — `Citation`, `Chunk`, `Location` (frozen) |
-| Dedup | `packages/cases/dedup.py` |
-| Test data | `packages/cases/data.py` |
-| Gate 3 | `apps/api/routers/cases.py::approve` |
+| Dedup + case codes | `packages/cases/dedup.py` (role + normalised steps + expected; `TC-<3 letters>-NNN`) |
+| Test data | `packages/cases/data.py` (later; the prompt forbids real personal data) |
+| Case API, review, Gate 3 | `apps/api/routers/cases.py` (`review_cases`, `approve_cases`); guard `apps/orchestrator/guards.py` gate 3 |
 | UI | `apps/web/src/features/cases/` |
+
+**Implementation (designer stage).** Per approved segment the model gets only approved/edited graph facts (Role…Requirement, never Questions/Conflicts/rejected) with their source quotes, as untrusted data, and must return exactly `approved_count` cases; a shortfall is re-requested once, duplicates are dropped. Each expected-result quote is verified in code: `citation.status = verified` with offsets, or `unable_to_verify` with the reason (unknown source, not found, too short). Such cases cannot be approved (`422 CITATION_UNVERIFIED`); the reviewer rejects them. Expected results are not editable in the API (a new result needs a new verified quote). Gate 3 counts only cases of the approved plan: none pending and at least one approved. Not yet: the "retry once with the verifier error" step and embedding-based dedup.
 
 ## Bug locator
 

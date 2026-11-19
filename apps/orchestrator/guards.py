@@ -15,7 +15,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from apps.api.db.model_store import budget_cap, month_spend
-from apps.api.db.models import Bug, GraphVersion, Plan, Project, TestCase
+from apps.api.db.models import Bug, GraphVersion, Plan, Project, Segment, TestCase
 
 
 @dataclass
@@ -53,9 +53,18 @@ def check_gate(s: Session, project_id: uuid.UUID, gate: int, event: str) -> None
             if settings.get("gate3_auto") is not True:
                 raise _gate(3, "Gate 3 can only be skipped when the project enables gate3_auto")
             return
-        pending = s.scalar(select(func.count()).where(TestCase.review_status == "pending"))
+        in_plan = (
+            select(func.count())
+            .select_from(TestCase)
+            .join(Segment, Segment.id == TestCase.segment_id)
+            .join(Plan, Plan.id == Segment.plan_id)
+            .where(Plan.status == "approved")
+        )
+        pending = s.scalar(in_plan.where(TestCase.review_status == "pending"))
         if pending:
             raise _gate(3, f"{pending} test case(s) still need review")
+        if not s.scalar(in_plan.where(TestCase.review_status.in_(("approved", "edited")))):
+            raise _gate(3, "Approve at least one test case")
     else:  # gate 4
         drafts = s.scalar(select(func.count()).where(Bug.status == "draft"))
         if drafts:
