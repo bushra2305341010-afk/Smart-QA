@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ForeignKey, Index, Integer, LargeBinary, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, LargeBinary, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, CITEXT
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,6 +36,8 @@ class AppUser(Timestamped, Base):
     status: Mapped[str] = mapped_column(
         choice("user_status", "active", "disabled"), default="active", server_default="active"
     )
+    failed_logins: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Project(Timestamped, Base):

@@ -1,6 +1,8 @@
 # 10 · Authentication and Security (implementation)
 
-Code: `apps/api/auth/`, `packages/policy/permissions.py`.
+Code: `apps/api/auth/` — `passwords.py` (Argon2id + rule), `tokens.py` (EdDSA JWT, opaque secrets), `service.py` (register, login + lockout, refresh rotation, API tokens), `deps.py` (`current_principal`, `require()`), `permissions.py` (RBAC matrix §4). Endpoints: `apps/api/routers/auth.py`.
+
+**Implemented (M08b):** email + password login, lockout (5 failures → 30 s, doubling, max 1 h, per account), 15-min EdDSA access JWT in `saq_access` (path `/api`), rotating 7-day refresh token in `saq_refresh` (path `/api/v1/auth`) with reuse → family revoke, `saq_csrf` double-submit cookie, logout revokes the family immediately (every request checks the session row), personal API tokens `saq_pat_…` (scopes `read` / `write`, expiry ≤ 365 days, only SHA-256 stored), security headers §7. Cookies are `Secure` when `SAQ_ENV=prod`. **Not yet:** TOTP (T-105a), breached-password check (T-105b), per-IP limits (T-105c), OIDC (v1), runner mTLS (M10).
 
 ## 1. Identities
 
@@ -62,7 +64,7 @@ Implementation:
 def approve_plan(plan_id: str, user: User = Depends(require("plan.approve"))):
     ...
 ```
-`require()` loads the plan's `project_id`, checks membership + role, and sets `app.project_id` for Postgres RLS. **Separation of duties:** the person who generated a plan can approve it only if they are QA Lead/Owner; a Tester cannot self-approve.
+`require()` (in `apps/api/auth/deps.py`) reads `{project_id}` from the path, checks membership + role, and returns a `ProjectContext` whose `session()` is an RLS-scoped transaction. Not a member → **404** (project IDs cannot be probed); member without the permission → **403** with `details.permission`. Resource routes (`/plans/{id}`…) resolve their `project_id` first (M08c). **Separation of duties:** the person who generated a plan can approve it only if they are QA Lead/Owner; a Tester cannot self-approve.
 
 ## 5. Secrets
 

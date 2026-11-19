@@ -10,12 +10,12 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 |---|---|---|---|---|
 | M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #6 (+ S3 fix #11) |
 | M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #7 |
-| M03 | Safe-action policy + permissions | Stuti | todo | |
+| M03 | Safe-action policy (the RBAC matrix itself shipped in M08b: `apps/api/auth/permissions.py`) | Stuti | todo | |
 | M04 | Planning: techniques, risk, counts, cost | Nadia | review | #8 |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
 | M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
-| M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | M08a review — **next: M08b** | M08a #12 |
+| M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | M08a, M08b review — **next: M08c** | M08a #12, M08b #13 |
 | M09 | Ingest + Product Understanding Graph (analyst, explorer) | Nadia | todo | |
 | M10 | Runner + Judge worker | Stuti | todo | |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | todo | |
@@ -43,7 +43,10 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, s3, web | — | Nadia | doing | db, redis, api done in M01; s3 = SeaweedFS (MinIO image no longer published, ADR-010); worker/orchestrator/runner added with their modules |
 | T-102 | Model Gateway: Claude adapter, schema output, cost log | — | Nadia | todo | |
 | T-103 | Runner registration over mTLS | US-06 | Stuti | todo | |
-| T-104 | Auth: register/login/session, RBAC skeleton | US-11 | Stuti | todo | |
+| T-104 | Auth: register/login/session, RBAC skeleton | US-11 | Nadia | review | Done in M08b (#13) because the API needed it; TOTP → T-105a, breached-password check → T-105b, per-IP/user rate limits → T-105c |
+| T-105a | TOTP second factor (`/auth/login/mfa`) | US-11 | Shared | todo | `app_user.totp_secret_enc` exists |
+| T-105b | Breached-password check (k-anonymity) in `check_password_rule` | US-11 | Shared | todo | |
+| T-105c | Rate limits: 600 req/min per user, 30 job starts/min per project, per-IP login backoff (Redis) | — | Shared | todo | per-account lockout done in M08b |
 | T-105 | Web shell: layout, stage stepper, tokens | — | Stuti | doing | Vite+React+TS scaffold, tokens and VerdictBadge in M01; layout/stepper in M07 |
 
 ## Week 2 — Ingest
@@ -52,7 +55,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 |---|---|---|---|---|---|
 | T-201 | Upload + parsers (PDF, DOCX, MD, OpenAPI) with offsets | US-01 | Nadia | todo | |
 | T-202 | Git import read-only | US-01 | Nadia | todo | |
-| T-203 | Environments + identity vault | US-01 | Stuti | todo | |
+| T-203 | Environments + identity vault | US-01 | Stuti | todo | Environment/identity API done in M08b (identity stores a vault *reference*, write-only); the encrypted vault itself remains |
 
 ## Later weeks
 

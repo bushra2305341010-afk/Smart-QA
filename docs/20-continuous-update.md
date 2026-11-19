@@ -40,6 +40,14 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 1 — 2026-11-20 (M08b auth + projects API)
+**Goal:** Sign-in, roles and the first project endpoints, all enforced server-side.
+**Done:** Auth (Argon2id, lockout, EdDSA access JWT, rotating refresh with reuse detection, CSRF, API tokens), RBAC matrix + `require()`, projects/members/sources/chunks/environments/identities/audit endpoints, error envelope, prefixed IDs, security headers, migration 0003.
+**Tests:** 231 passed (46 new: 19 unit, 27 integration), 100% line+branch coverage; smoke-tested with uvicorn connected as the real `saq_app` login.
+**Bugs found & fixed:** (1) `email-validator` rejects the reserved `.test` TLD → tests use `example.com`. (2) Re-setting a cookie in the httpx jar adds a second cookie instead of replacing it, so the reuse test sent the new token → replay sent from a separate client. (3) A dependency error (503) masked body validation in a unit test → inject a factory.
+**Decisions:** RBAC matrix lives in `apps/api/auth/permissions.py` (auth needs it now); M03 keeps the safe-action policy. Non-members get 404 rather than 403.
+**Next:** M08c orchestrator state machine + gates + outbox relay + recovery.
+
 ### Week 1 — 2026-11-20 (M08a database)
 **Goal:** Persist everything in docs/07 with project isolation and a tamper-evident audit ledger.
 **Done:** 30 SQLAlchemy models, Alembic `0001` (schema) + `0002` (grants, forced RLS on 29 tables, audit chain + append-only triggers, HNSW indexes). Composite `(id, project_id)` FKs, transaction-local project scope, `audit.verify_chain`, outbox helpers. Separate `saq_migrator` / `saq_app` roles (ADR-011).

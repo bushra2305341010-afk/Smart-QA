@@ -6,9 +6,9 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 
 | Topic | Rule |
 |---|---|
-| IDs | Prefixed strings: `prj_`, `src_`, `gv_`, `nod_`, `pln_`, `seg_`, `tc_`, `run_`, `res_`, `ver_`, `bug_` |
+| IDs | Prefixed strings `<prefix>_<32 hex>`: `usr_`, `prj_`, `src_`, `chk_`, `env_`, `idn_`, `tok_`, `gv_`, `nod_`, `pln_`, `seg_`, `tc_`, `run_`, `res_`, `ver_`, `bug_` (`apps/api/ids.py`). Malformed or wrong-prefix IDs → 404 |
 | Timestamps | ISO 8601 UTC |
-| Pagination | `?limit=50&cursor=…` → `{ items, next_cursor }` |
+| Pagination | `?limit=50&cursor=…` → `{ items, next_cursor }` (limit 1–200; cursor is opaque) |
 | Long jobs | Return `202 Accepted` + `{ job_id }`; progress over SSE |
 | Idempotency | `Idempotency-Key` header on all POSTs that start jobs |
 | Versioning | Breaking change → `/api/v2`; additive changes allowed in v1 |
@@ -24,7 +24,10 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | HTTP | Code | Meaning |
 |---|---|---|
 | 400 | `VALIDATION_ERROR` | Body or params invalid |
-| 401 | `UNAUTHENTICATED` | No / expired session |
+| 401 | `UNAUTHENTICATED` | No / expired / revoked session or token |
+| 403 | `CSRF_FAILED` | Cookie request changing state without matching `X-CSRF-Token` |
+| 409 | `EMAIL_TAKEN` | Register with an existing email |
+| 503 | `UNAVAILABLE` | Database not configured / reachable |
 | 403 | `FORBIDDEN` | Role lacks permission |
 | 404 | `NOT_FOUND` | Resource missing or not in your project |
 | 409 | `GATE_NOT_APPROVED` | Earlier gate not signed |
@@ -45,17 +48,21 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | POST | `/auth/logout` | any | End session |
 | POST | `/auth/refresh` | any | Rotate refresh token |
 | GET | `/me` | any | Profile, roles, feature flags |
-| POST | `/tokens` | any | Create personal API token (CLI/CI) |
+| POST | `/tokens` | any | Create personal API token (CLI/CI); `{name, scopes:[read,write], expires_in_days}`; token shown once |
 
 ### Projects & sources
 | Method | Path | Role | Purpose |
 |---|---|---|---|
 | POST | `/projects` | Owner | Create project |
+| GET | `/projects` | any | My projects with my role |
 | GET | `/projects/{id}` | Viewer+ | Project detail + pipeline state |
-| POST | `/projects/{id}/members` | Owner | Add member with role |
-| POST | `/projects/{id}/sources` | QA Lead+ | Upload doc / connect repo (multipart or JSON) |
+| POST | `/projects/{id}/members` | Owner | Add member with role (`{email, role}`) |
+| GET | `/projects/{id}/members` | Viewer+ | Members and roles |
+| POST | `/projects/{id}/sources` | QA Lead+ | Register a source `{kind, uri, sha256}` (JSON, M08b); upload/multipart with M09 |
+| GET | `/projects/{id}/sources` | Viewer+ | Sources (paginated) |
 | GET | `/projects/{id}/sources/{sid}/chunks` | Viewer+ | Chunks with offsets |
-| POST | `/projects/{id}/environments` | QA Lead+ | Add env (url, kind, safe flags, runner binding) |
+| POST | `/projects/{id}/environments` | QA Lead+ | Add env (url, kind, safe flags); `kind=production` needs Owner; base URL host is added to `allowed_hosts` |
+| GET | `/projects/{id}/environments` | Viewer+ | Environments |
 | POST | `/projects/{id}/identities` | QA Lead+ | Add test identity (stored in vault, write-only) |
 | GET | `/projects/{id}/data-sharing` | Viewer+ | What leaves the machine under current model policy |
 

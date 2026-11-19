@@ -17,6 +17,9 @@ dependencies = [
     "alembic>=1.14",
     "psycopg[binary]>=3.2",
     "pgvector>=0.3.6",
+    "argon2-cffi>=23.1",
+    "pyjwt[crypto]>=2.10",
+    "email-validator>=2.2",
 ]
 
 [dependency-groups]
@@ -45,6 +48,10 @@ extend-exclude = ["docs"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "N", "SIM", "RUF"]
 ignore = ["S101"]  # assert is fine in tests
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency markers are evaluated once at import, by design.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "apps.api.auth.deps.require"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "N802"]

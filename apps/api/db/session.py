@@ -32,6 +32,14 @@ def set_scope(session: Session, project_id: uuid.UUID, user_id: uuid.UUID | None
     )
 
 
+def set_user_scope(session: Session, user_id: uuid.UUID) -> None:
+    """No project: only the caller's own memberships and projects are visible."""
+    session.execute(
+        text("SELECT set_config('app.project_id', '', true), set_config('app.user_id', :u, true)"),
+        {"u": str(user_id)},
+    )
+
+
 @contextmanager
 def project_session(
     factory: sessionmaker[Session], project_id: uuid.UUID, user_id: uuid.UUID | None = None

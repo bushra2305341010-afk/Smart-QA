@@ -96,7 +96,7 @@ def make_tenant(owner: sessionmaker[Session]):  # type: ignore[no-untyped-def]
 
     def _make(name: str = "Shop") -> Tenant:
         with owner.begin() as s:
-            user = AppUser(email=f"{uuid.uuid4().hex}@example.test", password_hash="x")
+            user = AppUser(email=f"{uuid.uuid4().hex}@example.com", password_hash="x")
             s.add(user)
             s.flush()
             project = Project(name=name, owner_id=user.id)
