@@ -107,7 +107,7 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | POST | `/projects/{id}/bugs/{bug}/dismiss` | QA Lead | `{reason}`; a learning label |
 | POST | `/projects/{id}/bugs/approve` | QA Lead | **Gate 4**: 409 with `bug_ids` while drafts remain; the report stage then files confirmed bugs |
 | GET | `/projects/{id}/runs/{run}/export.xlsx` | Viewer+ | Six-sheet workbook |
-| GET | `/runs/{id}/evidence-pack` | Viewer+ | HTML evidence pack |
+| GET | `/projects/{id}/runs/{run}/evidence-pack` | Viewer+ | HTML evidence pack, downloaded as an attachment |
 
 ### Pipeline
 | Method | Path | Role | Purpose |

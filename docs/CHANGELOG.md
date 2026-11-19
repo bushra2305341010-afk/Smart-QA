@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- N23 evidence pack: one self-contained HTML file per run (no script, every value redacted and HTML-escaped, verdict badges, expected-result quotes, SHA-256 evidence index); `GET /projects/{id}/runs/{run}/evidence-pack` (attachment) and stored by the report stage.
+
+### Added
 - M11 reporter: bug drafts from Fail verdicts (`packages/exporters/bug.py`, redacted, quote-cited), six-sheet run workbook (`packages/exporters/excel.py`: frozen headers, autofilter, verdict colours, formula-injection escaping, redaction), GitHub tracker adapter with duplicate search, bugs API (edit, duplicates, confirm, dismiss, Gate 4, `export.xlsx`), `job.report` worker (workbook to object storage, filing confirmed bugs). Setting `GITHUB_TOKEN`.
 
 ### Added

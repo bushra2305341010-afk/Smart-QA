@@ -26,6 +26,7 @@ from apps.api.trackers import TrackerFactory
 from apps.orchestrator import engine
 from apps.orchestrator.machine import TransitionError
 from packages.exporters.bug import draft_bug
+from packages.exporters.evidence_pack import build_evidence_pack
 from packages.exporters.excel import build_workbook
 from packages.exporters.trackers.github import TrackerError
 
@@ -62,6 +63,10 @@ def draft_bugs(factory: sessionmaker[Session], pid: uuid.UUID, run_id: uuid.UUID
 
 def report_key(run_id: uuid.UUID) -> str:
     return f"reports/{run_id}.xlsx"
+
+
+def pack_key(run_id: uuid.UUID) -> str:
+    return f"reports/{run_id}-evidence.html"
 
 
 def file_confirmed(
@@ -116,10 +121,13 @@ def handle_report_job(
     send("job_started")
     with project_session(factory, pid) as s:
         run = s.scalar(select(Run).order_by(Run.created_at.desc()).limit(1))
-        workbook = build_workbook(collect_run_export(s, run)) if run else None
+        export = collect_run_export(s, run) if run else None
         run_id = run.id if run else None
-    if workbook is not None and run_id is not None:
-        store.put(report_key(run_id), workbook, XLSX)
+    if export is not None and run_id is not None:
+        store.put(report_key(run_id), build_workbook(export), XLSX)
+        store.put(
+            pack_key(run_id), build_evidence_pack(export).encode(), "text/html; charset=utf-8"
+        )
     filed, failed = file_confirmed(factory, make_tracker, pid)
     if failed:
         send("job_failed", reason=f"{failed} bug(s) could not be filed", filed=filed)
