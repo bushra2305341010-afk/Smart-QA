@@ -26,6 +26,7 @@ from apps.api.auth.tokens import ACCESS_TTL, REFRESH_TTL, AccessClaims, JwtSigne
 from apps.api.db.models import AppUser, AuthSession, Membership, Project
 from apps.api.db.session import set_user_scope
 from apps.api.errors import unauthenticated
+from apps.api.ratelimit import enforce
 from apps.api.settings import get_settings
 
 router = APIRouter(tags=["auth"])
@@ -126,6 +127,8 @@ def login(
     factory: sessionmaker[Session] = Depends(get_factory),
     signer: JwtSigner = Depends(get_signer),
 ) -> SessionOut:
+    ip = request.client.host if request.client else "unknown"
+    enforce(request.app.state.rate_limiter, f"login:{ip}", get_settings().rate_login_per_ip_per_min)
     user = service.authenticate(factory, body.email, body.password)
     with factory.begin() as s:
         issued = service.start_session(

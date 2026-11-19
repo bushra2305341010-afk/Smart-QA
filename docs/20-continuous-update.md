@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (T-105c rate limits)
+**Done:** `apps/api/ratelimit.py` (fixed window, memory/Redis), login per IP, requests per user, job starts per project. 1,607 tests, 100% coverage.
+**Decisions:** Memory backend by default so the shared test Redis and single-process laptops behave predictably; Redis for multi-replica team mode.
+**Next:** T-105a TOTP second factor.
+
 ### Week 4 — 2026-11-20 (MCP preview)
 **Goal:** P5: coding agents can ask Smart QA which journeys a change touches and what to test, without any power over gates.
 **Done:** Brief endpoint, impact analysis, MCP server with three read-only tools over the API, `saq mcp serve`; real stdio handshake checked (initialize + tools/list).

@@ -2,7 +2,7 @@
 
 Code: `apps/api/auth/` — `passwords.py` (Argon2id + rule), `tokens.py` (EdDSA JWT, opaque secrets), `service.py` (register, login + lockout, refresh rotation, API tokens), `deps.py` (`current_principal`, `require()`), `permissions.py` (RBAC matrix §4). Endpoints: `apps/api/routers/auth.py`.
 
-**Implemented (M08b):** email + password login, lockout (5 failures → 30 s, doubling, max 1 h, per account), 15-min EdDSA access JWT in `saq_access` (path `/api`), rotating 7-day refresh token in `saq_refresh` (path `/api/v1/auth`) with reuse → family revoke, `saq_csrf` double-submit cookie, logout revokes the family immediately (every request checks the session row), personal API tokens `saq_pat_…` (scopes `read` / `write`, expiry ≤ 365 days, only SHA-256 stored), security headers §7. Cookies are `Secure` when `SAQ_ENV=prod`. **Not yet:** TOTP (T-105a), breached-password check (T-105b), per-IP limits (T-105c), OIDC (v1), runner mTLS (M10).
+**Implemented (M08b):** email + password login, lockout (5 failures → 30 s, doubling, max 1 h, per account), 15-min EdDSA access JWT in `saq_access` (path `/api`), rotating 7-day refresh token in `saq_refresh` (path `/api/v1/auth`) with reuse → family revoke, `saq_csrf` double-submit cookie, logout revokes the family immediately (every request checks the session row), personal API tokens `saq_pat_…` (scopes `read` / `write`, expiry ≤ 365 days, only SHA-256 stored), security headers §7. Cookies are `Secure` when `SAQ_ENV=prod`. **Not yet:** TOTP (T-105a), breached-password check (T-105b), OIDC (v1), runner mTLS (M10).
 
 ## 1. Identities
 
@@ -40,7 +40,7 @@ sequenceDiagram
 | Cookies | `HttpOnly`, `Secure`, `SameSite=Lax`, path-scoped |
 | CSRF | Double-submit token header `X-CSRF-Token` on unsafe methods |
 | Logout | Revokes session; access JWT expires ≤ 15 min (denylist by `sid` for immediate) |
-| Brute force | 5 failures → exponential backoff per account + per IP; alert after 20 |
+| Brute force | 5 failures → exponential backoff per account (lockout) + 20 login attempts/min per IP (rate limit); alert after 20 |
 | Password rules | ≥ 12 chars, check against breached-password list (k-anonymity), no composition rules |
 
 ## 4. Authorisation (RBAC)

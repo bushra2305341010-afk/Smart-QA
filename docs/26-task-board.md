@@ -48,7 +48,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | T-104 | Auth: register/login/session, RBAC skeleton | US-11 | Nadia | review | Done in M08b (#13) because the API needed it; TOTP → T-105a, breached-password check → T-105b, per-IP/user rate limits → T-105c |
 | T-105a | TOTP second factor (`/auth/login/mfa`) | US-11 | Shared | todo | `app_user.totp_secret_enc` exists |
 | T-105b | Breached-password check (k-anonymity) in `check_password_rule` | US-11 | Shared | todo | |
-| T-105c | Rate limits: 600 req/min per user, 30 job starts/min per project, per-IP login backoff (Redis) | — | Shared | todo | per-account lockout done in M08b |
+| T-105c | Rate limits: 600 req/min per user, 30 job starts/min per project, per-IP login backoff (Redis) | — | Nadia | review | #24; memory or Redis backend |
 | T-105 | Web shell: layout, stage stepper, tokens | — | Stuti | doing | Vite+React+TS scaffold, tokens and VerdictBadge in M01; layout/stepper in M07 |
 
 ## Week 2 — Ingest
