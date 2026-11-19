@@ -16,10 +16,11 @@ from apps.api.auth.tokens import JwtSigner
 from apps.api.db.models import Feedback, ModelCall, PipelineState, Project
 from apps.api.db.session import project_session
 from apps.api.main import create_app
+from apps.api.pricing import prices_for
 from apps.api.settings import Settings
 from apps.api.storage import MemoryObjectStore
 from apps.workers.analyst import handle_understand_job, windows
-from apps.workers.gateway import gateway_factory, prices_for
+from apps.workers.gateway import gateway_factory
 from apps.workers.ingest import handle_ingest_job
 from packages.model_gateway.factory import LOCAL_PRICES
 from packages.model_gateway.local_adapter import LocalProvider

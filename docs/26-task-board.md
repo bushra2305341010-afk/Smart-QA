@@ -16,7 +16,8 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
 | M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | M08a, M08b, M08c review | M08a #12, M08b #13, M08c #14 |
-| M09 | Split: M09a ingest (upload, parsers, chunks, ingest worker); M09b Product Understanding Graph (analyst, merge, conflicts, ambiguity, graph API, Gate 1); M09c explorer | Nadia | M09a, M09b review — **next: M09c explorer / M11** | M09a #16, M09b #17 |
+| M09 | Split: M09a ingest (upload, parsers, chunks, ingest worker); M09b Product Understanding Graph (analyst, merge, conflicts, ambiguity, graph API, Gate 1); M09c explorer | Nadia | M09a, M09b review | M09a #16, M09b #17 |
+| F08 | Planner stage: graph → plan worker, plan API, Gate 2 | Nadia | review | #18 |
 | M10 | Runner + Judge worker | Stuti | todo | |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | todo | |
 | M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | todo | |

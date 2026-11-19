@@ -40,6 +40,13 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 3 — 2026-11-20 (Planner stage + Gate 2)
+**Goal:** US-04: suggested counts with reasons from the approved graph; human sets approved counts at Gate 2.
+**Done:** `from_graph`, planner worker, plan API, Gate 2 with budget check, pricing module.
+**Tests:** 1,578 passed, 100% coverage; US-04 example (2 roles + 1 limit → 2 happy + 2 boundary) tested end to end.
+**Bugs found & fixed:** (1) "8-64" parsed as 8 and -64 → range-dash-aware number pattern. (2) **Cross-project settings read**: `select(Project.settings)` without a filter returned another project's row for users in several projects (RLS on `project` allows all of a user's projects) → filter by id everywhere + regression test.
+**Next:** designer stage (`job.design`: cited expected results, Gate 3), then M11 reporter.
+
 ### Week 3 — 2026-11-20 (M09b Product Understanding Graph)
 **Goal:** US-02/US-03: a reviewable graph whose rules all cite a verified quote, with conflicts and vague requirements surfaced.
 **Done:** Graph contract and package, analyst worker, gateway factory, graph API, node review with feedback, Gate 1.

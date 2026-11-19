@@ -14,7 +14,8 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all` to see which of PRs #6–#11 were merged.
    - If merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
    - If not merged: branch from the top of the stack (see the latest Status line for the branch). Note: PR #10 was merged into the M06 branch (not main); the rest of the stack is open.
-3. **Next task:** the planner stage (`job.plan` worker using `packages/planning` on the approved graph + plan API + Gate 2) and designer stage (`job.design`, cited expected results), then **M11** reporter. M09c explorer waits for Stuti's M03 safe-action policy. Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
+3. **Next task:** designer stage (`job.design`: test cases per approved segment through the gateway, expected results cite a quote verified with `packages/citations` else *Unable to Verify*; case API + Gate 3), then **M11** reporter. M09c explorer waits for Stuti's M03 safe-action policy.
+   - Gotcha: in a user-scoped session RLS shows every project the user belongs to in `project`/`membership`; always filter those by project id. Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
 4. Before each PR: `make test` (ruff, mypy --strict, pytest; keep 100% coverage on `packages/`), web `pnpm test && pnpm typecheck`, update docs/CHANGELOG/task board/dev log/this file, push branch to `upstream`, open PR with `--base <previous module branch>`.
 5. **Waiting on the user:** merge #6 → #11 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; Stuti starts M03 policy / M05 verdicts (don't build her modules: M03, M05, M07, M10, M12 UI).
 
@@ -85,6 +86,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-20: Planner stage + Gate 2 done (PR #18, branch `feat/F08-planner-gate2`, base `feat/M09b-graph`); fixed cross-project settings read. 1,578 tests. **Next: designer stage.**
 - 2026-11-20: M09b graph done (`packages/graph`, analyst worker, graph API, Gate 1). 1,562 tests. PR #17 (base `feat/M09-ingest-graph`, branch `feat/M09b-graph`).
 - 2026-11-20: M09a ingest done (upload, parsers, storage, ingest worker, Redis Streams consumer, ADR-013, migration 0006). 1,551 tests. PR #16 (base `feat/T603-db-replay-cache`, branch `feat/M09-ingest-graph`). **Next: M09b.**
 - 2026-11-20: T-603 done (Postgres replay cache, `model_call` recorder, budget, costs API, migration 0005). 1,522 tests. PR #15 (base `feat/M08c-orchestrator`, branch `feat/T603-db-replay-cache`). **Next: M09.**

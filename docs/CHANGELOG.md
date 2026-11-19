@@ -6,6 +6,12 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- Planner stage: `packages/planning/from_graph.py` (approved graph → `JourneySpec` + `RiskInputs`), `job.plan` worker (deterministic counts, no model call, cost estimate from settings prices), plan API with segment edits (feedback rows) and Gate 2 (refuses empty plans, stale graphs, estimates above the remaining budget; transition in the same transaction).
+
+### Fixed
+- Project settings (budget cap, `gate3_auto`) were read with an unfiltered `select(Project.settings)`; in a user-scoped session RLS shows all of the user's projects, so a member of two projects could get the wrong budget. Every lookup now filters by project id (regression test added).
+
+### Added
 - M09b Product Understanding Graph: extraction contract (`packages/contracts/graph.py`), `packages/graph` (merge by type + label, code quote verification that demotes uncited rules to Questions, conflict finder citing both sources, ambiguity Questions), Analyst worker on `job.understand` through the ModelGateway (`analyst@1.0.0`), gateway wiring from settings (`MODEL_PRICE_*` required for external models), graph API with node review (feedback rows for learning) and Gate 1 approve (refuses with pending node IDs, supersedes the old version, moves the pipeline in the same transaction).
 
 ### Added

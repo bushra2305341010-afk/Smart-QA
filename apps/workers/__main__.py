@@ -1,4 +1,4 @@
-"""`uv run python -m apps.workers`: run the job consumers (ingest, understand)."""
+"""`uv run python -m apps.workers`: run the job consumers (ingest, understand, plan)."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from apps.workers.analyst import handle_understand_job
 from apps.workers.consumer import Handler, JobConsumer
 from apps.workers.gateway import gateway_factory
 from apps.workers.ingest import handle_ingest_job
+from apps.workers.planner import handle_plan_job
 
 
 def main() -> None:  # pragma: no cover - process wiring; parts are tested separately
@@ -38,6 +39,7 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
         "understand": {
             "job.understand": functools.partial(handle_understand_job, factory, store, make_gateway)
         },
+        "plan": {"job.plan": functools.partial(handle_plan_job, factory, settings)},
     }
     consumers = [
         JobConsumer(client, group=group, consumer=socket.gethostname(), handlers=h)
