@@ -14,7 +14,7 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all` to see which of PRs #6–#11 were merged.
    - If merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
    - If not merged: branch from the top of the stack (see the latest Status line for the branch). Note: PR #10 was merged into the M06 branch (not main); the rest of the stack is open.
-3. **Next task:** CLI (`apps/cli`, Typer: login with an API token, project status, upload, pipeline events, export) and the MCP preview (M12, shared; read-only tools first, `docs/13-mcp-connection.md`). Compile/execute/judge are Stuti's (M10 runner, M05 verdicts): her judge must call `apps.workers.reporter.draft_bugs` before `verdicts_ready`. M09c explorer waits for her M03 policy.
+3. **Next task:** MCP preview (M12, shared; `apps/mcp`, official MCP Python SDK, read-only tools first per `docs/13-mcp-connection.md`, `saq mcp serve`). Then wait for Stuti's M03/M05/M10 to wire compile → execute → judge (`draft_bugs` before `verdicts_ready`). Compile/execute/judge are Stuti's (M10 runner, M05 verdicts): her judge must call `apps.workers.reporter.draft_bugs` before `verdicts_ready`. M09c explorer waits for her M03 policy.
    - Gotcha: in a user-scoped session RLS shows every project the user belongs to in `project`/`membership`; always filter those by project id. Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
 4. Before each PR: `make test` (ruff, mypy --strict, pytest; keep 100% coverage on `packages/`), web `pnpm test && pnpm typecheck`, update docs/CHANGELOG/task board/dev log/this file, push branch to `upstream`, open PR with `--base <previous module branch>`.
 5. **Waiting on the user:** merge #6 → #11 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; Stuti starts M03 policy / M05 verdicts (don't build her modules: M03, M05, M07, M10, M12 UI).
@@ -86,6 +86,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-20: `saq` CLI done (PR #22, branch `feat/M12-cli`, base `feat/N23-evidence-pack`). 1,597 tests.
 - 2026-11-20: N23 evidence pack done (PR #21, branch `feat/N23-evidence-pack`, base `feat/M11-reporter`). 1,593 tests.
 - 2026-11-20: M11 reporter done (PR #20, branch `feat/M11-reporter`, base `feat/F11-designer-gate3`). 1,592 tests, 100% coverage.
 - 2026-11-20: Designer stage + Gate 3 done (PR #19, branch `feat/F11-designer-gate3`, base `feat/F08-planner-gate2`). 1,582 tests, 100% coverage. **Next: M11.**

@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- `saq` CLI (FR-17, `apps/cli/main.py`, Typer): `login` (token checked, config file 0600), `status`, `upload`, `event`, `plan`, `cases`, `bugs`, `report` (workbook / evidence pack), `audit verify` (exit 1 if broken); `--json` everywhere; `SAQ_URL` / `SAQ_TOKEN` env.
+
+### Added
 - N23 evidence pack: one self-contained HTML file per run (no script, every value redacted and HTML-escaped, verdict badges, expected-result quotes, SHA-256 evidence index); `GET /projects/{id}/runs/{run}/evidence-pack` (attachment) and stored by the report stage.
 
 ### Added

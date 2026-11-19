@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api.auth.tokens import JwtSigner
 from apps.api.main import create_app
+from apps.api.storage import MemoryObjectStore
 
 PASSWORD = "correct horse battery staple"
 
@@ -32,7 +33,10 @@ def make_client(app: sessionmaker[Session]) -> Callable[[], TestClient]:
     signer = JwtSigner.ephemeral()
 
     def _make() -> TestClient:
-        return TestClient(create_app(session_factory=app, jwt_signer=signer))
+        # In-memory storage: tests must not depend on (or write to) the developer's .env S3.
+        return TestClient(
+            create_app(session_factory=app, jwt_signer=signer, object_store=MemoryObjectStore())
+        )
 
     return _make
 
