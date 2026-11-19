@@ -15,6 +15,9 @@ Smart QA is a **workflow with AI steps**, not one autonomous agent. Eight stage 
 | **Reporter** | Confirmed verdicts | Bug drafts, Excel, evidence pack | Fixed | medium | `search_tracker` (read-only) |
 | **Healer** | Broken locator, old/new page | Proposed locator diff only | Tool loop, budget **20** | medium | `read_a11y_tree`, `screenshot` |
 
+### 1.1 Analyst implementation (M09b)
+`apps/workers/analyst.py`: prompt `analyst@1.0.0`, stage `understand`, effort `high`, one call per ≤ 40k-char window of each source, output schema `packages/contracts/graph.Extraction`. The source is passed as untrusted data; the `source` label in the output is overwritten with the label we sent. Budget exhaustion fails the stage; other failed calls are counted and reported in the `graph_ready` event. Prices come from `MODEL_PRICE_*` settings (required for an external model).
+
 ## 2. Model Gateway
 
 All calls go through `packages/model_gateway`:

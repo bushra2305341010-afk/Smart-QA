@@ -1,5 +1,7 @@
 # 06 · API
 
+Graph routes are nested under `/projects/{id}` (so row-level security is scoped before any lookup); plan, run and bug routes will follow the same pattern.
+
 Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: session cookie (web) or bearer token (CLI/MCP/CI).
 
 ## 1. Conventions
@@ -71,11 +73,10 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | Method | Path | Role | Purpose |
 |---|---|---|---|
 | POST | `/projects/{id}/understand` | QA Lead+ | Start graph build → 202 |
-| GET | `/graph/{version}` | Viewer+ | Nodes, edges, citations |
-| PATCH | `/graph/{version}/nodes/{nid}` | QA Lead+ | Edit / approve / reject node |
-| GET | `/graph/{version}/conflicts` | Viewer+ | Spec conflicts |
-| GET | `/graph/{version}/questions` | Viewer+ | Ambiguity questions |
-| POST | `/graph/{version}/approve` | QA Lead | **Gate 1** |
+| GET | `/projects/{id}/graph` | Viewer+ | Graph versions with node / pending counts |
+| GET | `/projects/{id}/graph/{gv}` | Viewer+ | Nodes, edges, citations (quote, file, page, line); `?type=Conflict` / `Question` / `Rule` … |
+| PATCH | `/projects/{id}/graph/{gv}/nodes/{nid}` | QA Lead+ | `{review_status: approved|rejected|edited, label?}` (draft only) |
+| POST | `/projects/{id}/graph/{gv}/approve` | QA Lead | **Gate 1**: 409 `GATE_NOT_APPROVED` with `pending_node_ids` while any node is pending; 409 `STATE_CONFLICT` if the pipeline is not at graph review |
 | GET | `/graph/{version}/brief` | Viewer+ | Product brief (markdown) |
 
 ### Plans & cases
