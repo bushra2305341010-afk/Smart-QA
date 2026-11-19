@@ -42,6 +42,25 @@ def _param(p: dict[str, Any]) -> str:
     return f"Parameter {p.get('name', '?')} ({p.get('in', '?')}, {need}, {kind}){desc}"
 
 
+_CONSTRAINTS = ("format", "minLength", "maxLength", "minimum", "maximum", "pattern", "enum")
+
+
+def _body_fields(content: dict[str, Any]) -> list[str]:
+    """Inline JSON body properties with their constraints (`$ref` schemas are not followed)."""
+    schema = ((content.get("application/json") or {}).get("schema")) or {}
+    props = schema.get("properties") if isinstance(schema, dict) else None
+    if not isinstance(props, dict):
+        return []
+    required = set(schema.get("required") or [])
+    lines = []
+    for name in sorted(props):
+        prop = props[name] if isinstance(props[name], dict) else {}
+        parts = [str(prop.get("type", "any")), "required" if name in required else "optional"]
+        parts += [f"{k} {prop[k]}" for k in _CONSTRAINTS if k in prop]
+        lines.append(f"Body field {name} ({', '.join(parts)})")
+    return lines
+
+
 def _operation(path: str, method: str, op: dict[str, Any]) -> str:
     lines = [f"{method.upper()} {path}"]
     for label, key in (("Summary", "summary"), ("Description", "description")):
@@ -51,8 +70,10 @@ def _operation(path: str, method: str, op: dict[str, Any]) -> str:
     body = op.get("requestBody")
     if isinstance(body, dict):
         need = "required" if body.get("required") else "optional"
-        types = ", ".join(sorted((body.get("content") or {}).keys())) or "any"
+        content = body.get("content") or {}
+        types = ", ".join(sorted(content.keys())) or "any"
         lines.append(f"Request body ({need}): {types}")
+        lines += _body_fields(content)
     for code, resp in sorted((op.get("responses") or {}).items(), key=lambda kv: str(kv[0])):
         desc = resp.get("description", "") if isinstance(resp, dict) else ""
         lines.append(f"Response {code}: {desc}".rstrip())

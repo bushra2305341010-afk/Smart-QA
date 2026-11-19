@@ -6,6 +6,12 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- T-004 golden project 1 (shop): `PRD.md`, `openapi.yaml` (seeded PRD/API conflict on password length), hand-made `expected_graph.json`; `evals/scoring.py` (precision, recall, citation accuracy, conflict and vague-term checks) and `evals/run_graph_eval.py` (scores a live project through the API; exit 0 when docs/08 §6 targets are met).
+
+### Changed
+- OpenAPI rendering now lists inline JSON request-body fields with their constraints (`Body field password (string, optional, minLength 8, maxLength 128)`), so API limits can be cited and compared with documents. Offsets of OpenAPI sources ingested before this change differ; re-ingest them.
+
+### Added
 - T-204 embeddings: `LocalEmbedder` for OpenAI-compatible `/v1/embeddings` servers (Ollama, vLLM, llama.cpp, LM Studio), internal hosts only, 1024-d check, batching; the ingest worker stores chunk embeddings (failure keeps the source ready with a note); `similar_chunks` pgvector cosine search. Settings `EMBEDDING_URL`, `EMBEDDING_MODEL`.
 
 ### Added

@@ -1,0 +1,56 @@
+openapi: 3.0.3
+info:
+  title: Shop API
+  version: "1.0"
+paths:
+  /signup:
+    post:
+      summary: Create a customer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: {type: string}
+                password: {type: string, minLength: 8, maxLength: 128}
+      responses:
+        "201": {description: Account created}
+        "409": {description: Email already registered}
+  /login:
+    post:
+      summary: Log in
+      responses:
+        "200": {description: Logged in}
+        "423": {description: Account locked}
+  /products:
+    get:
+      summary: Search products by name
+      parameters:
+        - {name: q, in: query, schema: {type: string}}
+        - {name: page, in: query, schema: {type: integer}}
+      responses:
+        "200": {description: Up to 20 products}
+  /cart/items:
+    post:
+      summary: Add a product to the cart
+      responses:
+        "201": {description: Added}
+        "422": {description: Quantity above 10}
+  /orders:
+    post:
+      summary: Place an order
+      parameters:
+        - {name: coupon, in: query, description: Coupon code, schema: {type: string}}
+      responses:
+        "201": {description: Order placed}
+        "422": {description: Coupon expired}
+  /orders/{id}/cancel:
+    post:
+      summary: Cancel an order within 24 hours
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Cancelled}
+        "409": {description: Too late to cancel}

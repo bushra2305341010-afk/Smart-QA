@@ -80,14 +80,23 @@ paths:
       requestBody:
         required: true
         content:
-          application/json: {}
+          application/json:
+            schema:
+              required: [total]
+              properties:
+                total: {type: number, minimum: 0}
+                note: {type: string, maxLength: 200}
+                weird: 5
       responses:
         "201": {description: Order created}
         "422": {description: Coupon expired}
         default: plain
     get:
       description: List orders
-      requestBody: {}
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/Filter"}
     parameters: []
   /health: null
 """
