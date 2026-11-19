@@ -21,6 +21,7 @@ from apps.workers.gateway import gateway_factory
 from apps.workers.ingest import GitOptions, handle_ingest_job
 from apps.workers.planner import handle_plan_job
 from apps.workers.reporter import handle_report_job
+from packages.citations.embed import LocalEmbedder
 
 
 def main() -> None:  # pragma: no cover - process wiring; parts are tested separately
@@ -38,9 +39,14 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
     client = redis.Redis.from_url(settings.redis_url)
     token = settings.git_read_token.get_secret_value() if settings.git_read_token else None
     git = GitOptions(token=token)
+    embedder = (
+        LocalEmbedder(settings.embedding_url, settings.embedding_model)
+        if settings.embedding_url
+        else None
+    )
     make_gateway = gateway_factory(factory, settings)
     handlers: dict[str, dict[str, Handler]] = {
-        "ingest": {"job.ingest": lambda m: handle_ingest_job(factory, store, m, git)},
+        "ingest": {"job.ingest": lambda m: handle_ingest_job(factory, store, m, git, embedder)},
         "understand": {
             "job.understand": functools.partial(handle_understand_job, factory, store, make_gateway)
         },

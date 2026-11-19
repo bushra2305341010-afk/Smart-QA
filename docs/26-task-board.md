@@ -56,7 +56,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | ID | Task | Story | Owner | Status | Notes |
 |---|---|---|---|---|---|
 | T-201 | Upload + parsers (PDF, DOCX, MD, OpenAPI) with offsets | US-01 | Nadia | review | M09a #16; embeddings (T-204) and OCR not yet |
-| T-204 | Chunk embeddings (`chunk.embedding`, HNSW) via a local embedding model | US-01 | Nadia | todo | |
+| T-204 | Chunk embeddings (`chunk.embedding`, HNSW) via a local embedding model | US-01 | Nadia | review | #27; retrieval helper ready for analyst/designer use |
 | T-202 | Git import read-only | US-01 | Nadia | review | #26: shallow clone, SSRF guard, pattern-based code facts (tree-sitter later) |
 | T-203 | Environments + identity vault | US-01 | Stuti | todo | Environment/identity API done in M08b (identity stores a vault *reference*, write-only); the encrypted vault itself remains |
 

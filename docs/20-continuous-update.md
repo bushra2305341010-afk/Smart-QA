@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (T-204 embeddings)
+**Done:** Local embedder, ingest wiring, retrieval helper. 1,651 tests, 100% coverage.
+**Decisions:** Embedding server must be internal (documents never leave the network for retrieval); embeddings are optional for correctness because every quote is still verified exactly.
+**Next:** golden project 1 (T-004) for evals; integrate retrieval into the analyst/designer prompts when documents exceed one window.
+
 ### Week 4 — 2026-11-20 (T-202 Git import)
 **Done:** URL guard, safe shallow clone, file walk, code facts, repo ingest path, API endpoint, git in the image. 1,644 tests, 100% coverage (real local repos; no network).
 **Bugs found & fixed:** CI failures on #22–#25: tests read the developer's `.env` and used the local SeaweedFS; CI has no S3 → API fixtures now inject in-memory storage, and pre-push runs use empty S3 vars.

@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     )
     local_model_url: str | None = None
     local_model_name: str = "qwen3:8b"
+    embedding_url: str | None = None  # internal OpenAI-compatible server (T-204)
+    embedding_model: str = "bge-m3"
     # USD per million tokens for SAQ_DEFAULT_MODEL; verify on the provider's price page.
     model_price_input_per_mtok: float | None = None
     model_price_output_per_mtok: float | None = None
