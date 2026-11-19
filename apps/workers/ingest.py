@@ -11,9 +11,10 @@ from __future__ import annotations
 import logging
 import tempfile
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, sessionmaker
@@ -26,6 +27,7 @@ from apps.orchestrator.machine import TransitionError
 from apps.workers.git_source import check_repo_url, clone, collect, split_ref
 from packages.analyzers.code.facts import extract_facts, render_repo_text
 from packages.citations.chunker import ChunkedDocument, chunk_pages
+from packages.citations.embed import EmbeddingError
 from packages.citations.parsers import parse
 
 log = logging.getLogger(__name__)
@@ -65,12 +67,30 @@ def _repo_doc(uri: str, sid: uuid.UUID, git: GitOptions) -> ChunkedDocument:
     return chunk_pages(str(sid), [render_repo_text(label, extract_facts(files.code), files.docs)])
 
 
+class Embedder(Protocol):
+    def embed(self, texts: Sequence[str]) -> list[list[float]]: ...
+
+
+def _embed(
+    embedder: Embedder | None, texts: list[str]
+) -> tuple[list[list[float]] | None, str | None]:
+    """Embeddings are optional: on failure the source is still ready (quotes still verify)."""
+    if embedder is None or not texts:
+        return None, None
+    try:
+        return embedder.embed(texts), None
+    except EmbeddingError as exc:
+        log.warning("embedding failed: %s", exc)
+        return None, f"Embeddings skipped: {exc}"[:MAX_ERROR]
+
+
 def ingest_source(
     factory: sessionmaker[Session],
     store: ObjectStore,
     pid: uuid.UUID,
     sid: uuid.UUID,
     git: GitOptions | None = None,
+    embedder: Embedder | None = None,
 ) -> str:
     """Parse one source. Returns its final status (`ready` or `failed`)."""
     with project_session(factory, pid) as s:
@@ -95,17 +115,24 @@ def ingest_source(
         )
         return "failed"
     store.put(text_key(sha), doc.text.encode("utf-8"), "text/plain; charset=utf-8")
+    vectors, note = _embed(embedder, [c.text for c in doc.chunks])
     with project_session(factory, pid) as s:
         s.execute(delete(Chunk).where(Chunk.source_id == sid))
         s.add_all(
             Chunk(
-                project_id=pid, source_id=sid, text=c.text, start_offset=c.start_offset,
-                end_offset=c.end_offset, page=c.page, line=c.line,
+                project_id=pid,
+                source_id=sid,
+                text=c.text,
+                start_offset=c.start_offset,
+                end_offset=c.end_offset,
+                page=c.page,
+                line=c.line,
+                embedding=vectors[i] if vectors else None,
             )
-            for c in doc.chunks
-        )  # fmt: skip
+            for i, c in enumerate(doc.chunks)
+        )
         src = s.get_one(Source, sid)
-        src.status, src.text_key, src.error, src.sha256 = "ready", text_key(sha), None, sha
+        src.status, src.text_key, src.error, src.sha256 = "ready", text_key(sha), note, sha
     return "ready"
 
 
@@ -114,6 +141,7 @@ def run_ingest(
     store: ObjectStore,
     pid: uuid.UUID,
     git: GitOptions | None = None,
+    embedder: Embedder | None = None,
 ) -> IngestSummary:
     """Parse every pending (or interrupted) source of the project."""
     with project_session(factory, pid) as s:
@@ -122,7 +150,7 @@ def run_ingest(
             .where(Source.status.in_(("pending", "parsing")))
             .order_by(Source.created_at)
         ).all()
-    results = [ingest_source(factory, store, pid, sid, git) for sid in todo]
+    results = [ingest_source(factory, store, pid, sid, git, embedder) for sid in todo]
     with project_session(factory, pid) as s:
         ready = len(s.scalars(select(Source.id).where(Source.status == "ready")).all())
     return IngestSummary(ready=ready, failed=results.count("failed"))
@@ -143,11 +171,12 @@ def handle_ingest_job(
     store: ObjectStore,
     message: dict[str, Any],
     git: GitOptions | None = None,
+    embedder: Embedder | None = None,
 ) -> None:
     """Job handler for `job.ingest`: report start, ingest, then complete or fail the stage."""
     pid = uuid.UUID(message["project_id"])
     _send(factory, pid, "job_started")  # a redelivered job may already be running
-    summary = run_ingest(factory, store, pid, git)
+    summary = run_ingest(factory, store, pid, git, embedder)
     if summary.ready:
         _send(factory, pid, "sources_parsed", ready=summary.ready, failed=summary.failed)
     else:

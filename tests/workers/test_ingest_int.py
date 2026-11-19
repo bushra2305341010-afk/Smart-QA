@@ -178,3 +178,52 @@ def test_repo_with_disallowed_protocol_is_flagged(setup, app, tmp_path) -> None:
     handle_ingest_job(app, store, {"project_id": str(puid)})  # default: https only
     [src] = client.get(f"{V1}/projects/{pid}/sources").json()["items"]
     assert src["status"] == "failed" and "Only https" in src["error"]
+
+
+class KeywordEmbedder:
+    """Deterministic test embedder: one dimension per keyword."""
+
+    WORDS = ("password", "coupon", "refund")
+
+    def __init__(self, fail: bool = False) -> None:
+        self.fail = fail
+
+    def embed(self, texts):  # type: ignore[no-untyped-def]
+        from packages.citations.embed import DIMENSIONS, EmbeddingError
+
+        if self.fail:
+            raise EmbeddingError("server down")
+        out = []
+        for t in texts:
+            v = [0.0] * DIMENSIONS
+            for i, w in enumerate(self.WORDS):
+                v[i] = float(t.lower().count(w)) + 0.01
+            out.append(v)
+        return out
+
+
+def test_embeddings_and_retrieval(setup, app) -> None:  # type: ignore[no-untyped-def]
+    from apps.api.db.retrieval import similar_chunks
+
+    client, store, pid, puid = setup
+    doc = (
+        b"# Rules\n\nPassword must be 8 to 64 characters.\n\n"
+        + b"x " * 700
+        + b"\n\nA coupon expires after 30 days.\n"
+    )
+    _upload(client, pid, "rules.md", doc)
+    client.post(f"{V1}/projects/{pid}/pipeline/events", json={"event": "start"})
+    handle_ingest_job(app, store, {"project_id": str(puid)}, embedder=KeywordEmbedder())
+    query = KeywordEmbedder().embed(["coupon"])[0]
+    with project_session(app, puid) as s:
+        [(best, distance), *_] = similar_chunks(s, query, k=3)
+        assert "coupon" in best.text and distance < 0.1
+
+
+def test_embedding_failure_keeps_the_source_ready(setup, app) -> None:  # type: ignore[no-untyped-def]
+    client, store, pid, puid = setup
+    _upload(client, pid, "rules.md", b"Refunds take 5 days.\n")
+    client.post(f"{V1}/projects/{pid}/pipeline/events", json={"event": "start"})
+    handle_ingest_job(app, store, {"project_id": str(puid)}, embedder=KeywordEmbedder(fail=True))
+    [src] = client.get(f"{V1}/projects/{pid}/sources").json()["items"]
+    assert src["status"] == "ready" and src["error"] == "Embeddings skipped: server down"

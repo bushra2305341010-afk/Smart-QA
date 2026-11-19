@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- T-204 embeddings: `LocalEmbedder` for OpenAI-compatible `/v1/embeddings` servers (Ollama, vLLM, llama.cpp, LM Studio), internal hosts only, 1024-d check, batching; the ingest worker stores chunk embeddings (failure keeps the source ready with a note); `similar_chunks` pgvector cosine search. Settings `EMBEDDING_URL`, `EMBEDDING_MODEL`.
+
+### Added
 - T-202 read-only Git import: `POST /projects/{id}/sources/repo`; worker shallow-clones (https only, no prompts, symlinks as plain files, token via git env config never argv, 120 s timeout), reads only regular text files inside the clone (size/count caps), extracts code facts (routes for FastAPI/Flask/Express/Django, HTML forms and inputs with limits, Pydantic `Field` limits, each with `file:line`) and Markdown docs into one citable source. SSRF guard in API and worker. `git` added to the image. Setting `GIT_READ_TOKEN`.
 
 ### Added

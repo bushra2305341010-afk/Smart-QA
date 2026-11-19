@@ -24,7 +24,7 @@ Identities ─▶ vault (encrypted) — model only sees {{secret:name}}
 | Object storage (content-addressed `sources/<sha256>`, `texts/<sha256>.txt`) | `apps/api/storage.py` |
 | Ingest worker (`job.ingest`) | `apps/workers/ingest.py`, consumer `apps/workers/consumer.py` |
 | Chunker | `packages/citations/chunker.py` |
-| Embeddings | `packages/citations/embed.py` (not yet; `chunk.embedding` stays NULL until then) |
+| Embeddings (local OpenAI-compatible server, internal hosts only, `bge-m3` 1024-d) | `packages/citations/embed.py`; stored by the ingest worker; search `apps/api/db/retrieval.py::similar_chunks` (pgvector cosine, HNSW) |
 | Git import (read-only, shallow, SSRF-guarded) | `apps/workers/git_source.py` (clone + safe file walk), URL rules `packages/analyzers/code/repo_url.py`, code facts `packages/analyzers/code/facts.py` |
 | Vault | `apps/api/vault.py` |
 | UI | `apps/web/src/features/setup/` |
@@ -43,6 +43,7 @@ Identities ─▶ vault (encrypted) — model only sees {{secret:name}}
 | `failed` "No text found" | Scanned PDF | Needs OCR (not in MVP) |
 | Page/line wrong in UI | `parsers/pdf.py` | Line counting per page; hyphenation joins |
 | DOCX tables missing | `parsers/docx.py` | Iterate tables, not only paragraphs |
+| Source `ready` with "Embeddings skipped: …" | Embedding server / model | Server down or model is not 1024-d; quotes still verify, retrieval is just unavailable |
 | Quote check fails right after ingest | `chunker.py` normalisation | Whitespace/Unicode NFC mismatch between stored text and offsets |
 | Repo clone hangs | `git_source.py` | 120 s timeout, depth 1, single branch; token from `GIT_READ_TOKEN` |
 | Repo source `failed` "Only https …" | `repo_url.py` | Only https; no credentials in the URL; loopback / link-local hosts are refused |
