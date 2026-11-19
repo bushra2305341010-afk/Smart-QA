@@ -31,7 +31,8 @@ def test_every_table_has_rls_forced_with_a_policy(owner: sessionmaker[Session]) 
         rows = s.execute(
             text(
                 "SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity,"
-                " (SELECT count(*) FROM pg_policy p WHERE p.polrelid = c.oid) AS policies"
+                " (SELECT count(*) FROM pg_policy p WHERE p.polrelid = c.oid"
+                " AND p.polname = 'project_isolation') AS policies"
                 " FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace"
                 " WHERE n.nspname = 'public' AND c.relkind = 'r'"
             )

@@ -104,6 +104,12 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | GET | `/runs/{id}/export.xlsx` | Viewer+ | Excel workbook |
 | GET | `/runs/{id}/evidence-pack` | Viewer+ | HTML evidence pack |
 
+### Pipeline
+| Method | Path | Role | Purpose |
+|---|---|---|---|
+| GET | `/projects/{id}/pipeline` | Viewer+ | Current stage/status + history |
+| POST | `/projects/{id}/pipeline/events` | per event | `{event}`: `start`/`retry`/`cancel` (QA Lead+), gate decisions `graph_approved`, `graph_rejected`, `plan_approved`, `plan_edited`, `cases_approved`, `bugs_confirmed` (permission per docs/10 §4). Worker events are not accepted over HTTP. Errors: 409 `STATE_CONFLICT`, 409 `GATE_NOT_APPROVED`, 402 `BUDGET_EXCEEDED`, 403 `FORBIDDEN` |
+
 ### Admin & ops
 | Method | Path | Purpose |
 |---|---|---|

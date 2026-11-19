@@ -44,6 +44,7 @@ Login: `owner@demo.local` / password printed by the seed script.
 |---|---|---|
 | `SAQ_ENV` | `dev` | dev / test / prod |
 | `DATABASE_URL` | `postgresql+psycopg://saq_app:…@localhost:5432/saq` | Runtime role: DML only, row-level security applies |
+| `WORKER_DATABASE_URL` | `postgresql+psycopg://saq_worker:…@localhost:5432/saq` | Orchestrator relay/recovery (system role, ADR-012) |
 | `MIGRATION_DATABASE_URL` | `postgresql+psycopg://saq_migrator:…@localhost:5432/saq` | Owner role for Alembic and integration tests. A DB volume created before 2026-11-20 has `saq_app` as superuser: run `docker compose down -v` once (ADR-011) |
 | `DATABASE_URL` | `postgresql+psycopg://saq_app:***@db:5432/saq` | |
 | `REDIS_URL` | `redis://redis:6379/0` | |
@@ -83,7 +84,7 @@ uv sync                                  # Python deps
 uv run alembic upgrade head              # needs MIGRATION_DATABASE_URL (see .env.example)
 uv run uvicorn apps.api.main:app --reload
 uv run celery -A apps.workers worker -Q q.understand,q.plan,q.design,q.judge,q.report -l info
-uv run python -m apps.orchestrator
+uv run python -m apps.orchestrator      # recovery + outbox relay (needs WORKER_DATABASE_URL, REDIS_URL)
 uv run python -m apps.runner --dev
 cd apps/web && pnpm i && pnpm gen:api && pnpm dev
 ```

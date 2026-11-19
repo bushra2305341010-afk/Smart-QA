@@ -16,17 +16,22 @@ crash/restart ─▶ scan non-terminal states ─▶ re-dispatch idempotent jobs
 
 | Concern | Path |
 |---|---|
-| States & transitions | `apps/orchestrator/machine.py` |
-| Guards | `apps/orchestrator/guards.py` |
-| Outbox relay | `apps/orchestrator/outbox.py` |
-| Scheduler (runner shards) | `apps/orchestrator/scheduler.py` |
+| States & transitions | `apps/orchestrator/machine.py` (pure table) |
+| Apply an event (lock, guard, write state + audit + outbox) | `apps/orchestrator/engine.py:transition` |
+| Guards (gates, budget) | `apps/orchestrator/guards.py` |
+| Outbox relay → Redis streams `saq:jobs` / `saq:events` | `apps/orchestrator/relay.py` |
 | Recovery | `apps/orchestrator/recover.py` |
+| Process (`python -m apps.orchestrator`, Compose `orchestrator`) | `apps/orchestrator/__main__.py` |
+| HTTP | `apps/api/routers/pipeline.py` (`GET /projects/{id}/pipeline`, `POST …/pipeline/events`) |
+| Scheduler (runner shards) | `apps/orchestrator/scheduler.py` (M10) |
 
 ## Bug locator
 
 | Symptom | Go to | What to fix |
 |---|---|---|
-| Stage never advances | `outbox.py` relay / queue | Relay stopped; unacked events |
+| Stage never advances | `relay.py` / Redis | Relay stopped (check `orchestrator` logs); `WORKER_DATABASE_URL` not `saq_worker` → RLS hides the outbox |
+| Events arrive out of order | `db/outbox.py:enqueue` | `created_at` must be wall clock, not `now()` |
+| 409 STATE_CONFLICT on a gate | `machine.py` table | Event not valid at current stage/status |
 | Gate bypassed | **High** → `guards.py` | Guard missing on a transition |
 | Job runs twice with two results | Idempotency key | Key scope / ON CONFLICT |
 | Resume restarts from zero | `recover.py` | Read `last_completed_case_id` |
@@ -34,6 +39,6 @@ crash/restart ─▶ scan non-terminal states ─▶ re-dispatch idempotent jobs
 
 ## Change safety
 
-- [ ] `make test-orchestrator` (transition table tests: every state × event)
+- [ ] `tests/orchestrator/test_machine.py` (every stage × status × event) and `test_engine_int.py`
 - [ ] `make golden` + chaos kill tests
 - [ ] New state → update diagram in `03-system-workflow.md`
