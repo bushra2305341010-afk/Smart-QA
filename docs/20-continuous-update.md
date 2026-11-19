@@ -40,6 +40,14 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 2 — 2026-11-20 (M09a ingest)
+**Goal:** US-01: upload documents and get citable chunks with page and line.
+**Done:** Upload API, magic-byte detection, PDF/DOCX/MD/OpenAPI parsers, content-addressed storage, ingest worker, Redis Streams consumer (ADR-013), worker process + Compose service, migration 0006.
+**Tests:** 1,551 passed (parsers built from in-memory PDF/DOCX fixtures; every stored chunk re-verified against the stored text), 100% coverage; real SeaweedFS put/get checked.
+**Bugs found & fixed:** (1) pypdf returns `""` for pages without a text layer → flagged "No text found" instead of an empty ready source. (2) Any ZIP starts with `PK`, so DOCX detection also requires `word/document.xml` (a plain ZIP is rejected with 415).
+**Decisions:** pypdf (BSD) instead of PyMuPDF (AGPL); Redis Streams instead of Celery (ADR-013).
+**Next:** M09b Product Understanding Graph.
+
 ### Week 1 — 2026-11-20 (T-603 model gateway on Postgres)
 **Goal:** Pay for a model answer once, across processes; record every call for cost reports and budgets.
 **Done:** Postgres replay cache, `model_call` recorder, shared month-spend budget (orchestrator guard reuses it), costs/budget endpoints, migration 0005.

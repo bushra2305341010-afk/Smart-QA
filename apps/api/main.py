@@ -13,6 +13,7 @@ from apps.api.db.session import make_engine, make_session_factory
 from apps.api.health import check_dependencies
 from apps.api.routers import auth, costs, pipeline, projects
 from apps.api.settings import Settings, get_settings
+from apps.api.storage import ObjectStore, S3ObjectStore
 
 API_PREFIX = "/api/v1"
 
@@ -37,8 +38,21 @@ def _signer(settings: Settings) -> JwtSigner:
     return JwtSigner.ephemeral()
 
 
+def _store(settings: Settings) -> ObjectStore | None:
+    if not (settings.s3_endpoint and settings.s3_access_key and settings.s3_secret_key):
+        return None
+    return S3ObjectStore.from_settings(
+        settings.s3_endpoint,
+        settings.s3_bucket,
+        settings.s3_access_key,
+        settings.s3_secret_key.get_secret_value(),
+    )
+
+
 def create_app(
-    session_factory: sessionmaker[Session] | None = None, jwt_signer: JwtSigner | None = None
+    session_factory: sessionmaker[Session] | None = None,
+    jwt_signer: JwtSigner | None = None,
+    object_store: ObjectStore | None = None,
 ) -> FastAPI:
     """Build the FastAPI application. Tests inject a session factory and signer."""
     settings = get_settings()
@@ -52,6 +66,7 @@ def create_app(
         session_factory = make_session_factory(make_engine(settings.database_url))
     app.state.session_factory = session_factory
     app.state.jwt_signer = jwt_signer or _signer(settings)
+    app.state.object_store = object_store or _store(settings)
     errors.install(app)
 
     @app.middleware("http")

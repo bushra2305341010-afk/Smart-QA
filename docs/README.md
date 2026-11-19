@@ -58,7 +58,7 @@ These docs turn the research files in the parent folder into a build manual:
 | 25 | [user-stories-and-acceptance](25-user-stories-and-acceptance.md) | Stories with Given/When/Then acceptance criteria |
 | 26 | [task-board](26-task-board.md) | Living backlog with status per task |
 | 27 | [glossary](27-glossary.md) | Shared vocabulary |
-| — | [adr/](adr/) | Architecture decision records (template + ADR-001…012) |
+| — | [adr/](adr/) | Architecture decision records (template + ADR-001…013) |
 | — | [workflows/](workflows/) | One file per sector: flow, bug locator, change safety |
 
 ## The six pillars (never cut)

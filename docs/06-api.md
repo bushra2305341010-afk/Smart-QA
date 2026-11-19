@@ -59,7 +59,8 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | POST | `/projects/{id}/members` | Owner | Add member with role (`{email, role}`) |
 | GET | `/projects/{id}/members` | Viewer+ | Members and roles |
 | POST | `/projects/{id}/sources` | QA Lead+ | Register a source `{kind, uri, sha256}` (JSON, M08b); upload/multipart with M09 |
-| GET | `/projects/{id}/sources` | Viewer+ | Sources (paginated) |
+| POST | `/projects/{id}/sources/upload` | QA Lead+ | Multipart `file` (PDF, DOCX, Markdown, OpenAPI JSON/YAML; ≤ 50 MB; type from magic bytes). 201 new, 200 if the same bytes exist; 413 `PAYLOAD_TOO_LARGE`, 415 `UNSUPPORTED_TYPE`, 503 if storage is not configured |
+| GET | `/projects/{id}/sources` | Viewer+ | Sources (paginated; `status`, `filename`, `size`, `error`) |
 | GET | `/projects/{id}/sources/{sid}/chunks` | Viewer+ | Chunks with offsets |
 | POST | `/projects/{id}/environments` | QA Lead+ | Add env (url, kind, safe flags); `kind=production` needs Owner; base URL host is added to `allowed_hosts` |
 | GET | `/projects/{id}/environments` | Viewer+ | Environments |

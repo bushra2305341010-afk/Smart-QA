@@ -16,7 +16,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
 | M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | M08a, M08b, M08c review | M08a #12, M08b #13, M08c #14 |
-| M09 | Ingest + Product Understanding Graph (analyst, explorer) | Nadia | todo | |
+| M09 | Split: M09a ingest (upload, parsers, chunks, ingest worker); M09b Product Understanding Graph (analyst, merge, conflicts, ambiguity, graph API, Gate 1); M09c explorer | Nadia | M09a review — **next: M09b** | M09a #16 |
 | M10 | Runner + Judge worker | Stuti | todo | |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | todo | |
 | M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | todo | |
@@ -53,7 +53,8 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | ID | Task | Story | Owner | Status | Notes |
 |---|---|---|---|---|---|
-| T-201 | Upload + parsers (PDF, DOCX, MD, OpenAPI) with offsets | US-01 | Nadia | todo | |
+| T-201 | Upload + parsers (PDF, DOCX, MD, OpenAPI) with offsets | US-01 | Nadia | review | M09a #16; embeddings (T-204) and OCR not yet |
+| T-204 | Chunk embeddings (`chunk.embedding`, HNSW) via a local embedding model | US-01 | Nadia | todo | |
 | T-202 | Git import read-only | US-01 | Nadia | todo | |
 | T-203 | Environments + identity vault | US-01 | Stuti | todo | Environment/identity API done in M08b (identity stores a vault *reference*, write-only); the encrypted vault itself remains |
 

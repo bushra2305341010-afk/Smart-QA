@@ -25,6 +25,7 @@ from apps.api.auth.tokens import PAT_PREFIX, InvalidTokenError, JwtSigner
 from apps.api.db.models import Membership
 from apps.api.db.session import project_session, set_scope
 from apps.api.errors import ApiError, forbidden, not_found, unauthenticated
+from apps.api.storage import ObjectStore
 
 ACCESS_COOKIE = "saq_access"
 REFRESH_COOKIE = "saq_refresh"
@@ -38,6 +39,13 @@ def get_factory(request: Request) -> sessionmaker[Session]:
     if factory is None:
         raise ApiError(503, "UNAVAILABLE", "Database is not configured")
     return factory
+
+
+def get_store(request: Request) -> ObjectStore:
+    store: ObjectStore | None = request.app.state.object_store
+    if store is None:
+        raise ApiError(503, "UNAVAILABLE", "Object storage is not configured")
+    return store
 
 
 def get_signer(request: Request) -> JwtSigner:

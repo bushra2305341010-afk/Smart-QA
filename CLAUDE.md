@@ -14,7 +14,7 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all` to see which of PRs #6–#11 were merged.
    - If merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
    - If not merged: branch from the top of the stack (see the latest Status line for the branch). Note: PR #10 was merged into the M06 branch (not main); the rest of the stack is open.
-3. **Next task: M09** (ingest: parsers with offsets → `source`/`chunk`; Product Understanding Graph: analyst + explorer, graph API + Gate 1 endpoint). Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
+3. **Next task: M09b** (Product Understanding Graph: `packages/graph` schema/merge/conflicts/ambiguity, analyst worker on `job.understand` with cited extraction verified by `packages/citations`, graph API + Gate 1 endpoint that requires all nodes reviewed). Then M09c explorer, M11 reporter. Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
 4. Before each PR: `make test` (ruff, mypy --strict, pytest; keep 100% coverage on `packages/`), web `pnpm test && pnpm typecheck`, update docs/CHANGELOG/task board/dev log/this file, push branch to `upstream`, open PR with `--base <previous module branch>`.
 5. **Waiting on the user:** merge #6 → #11 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; Stuti starts M03 policy / M05 verdicts (don't build her modules: M03, M05, M07, M10, M12 UI).
 
@@ -41,7 +41,7 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 P1 cited ground truth (code-checked quote) · P2 reviewable Product Understanding Graph · P3 honest verdicts (Pass, Fail, Flaky, Blocked, Test Error, Unable to Verify) · P4 local-first, bring your own model · P5 independent verifier via MCP/CLI · P6 open artifacts (Playwright code, Excel, tracker tickets).
 
 ## Stack (decided)
-- Backend: Python 3.12, FastAPI, Pydantic v2, Celery + Redis, PostgreSQL 16 + pgvector, Alembic, S3-compatible object storage (SeaweedFS locally, ADR-010; boto3 client), Playwright (Python), tree-sitter, openpyxl, MCP Python SDK, Typer CLI.
+- Backend: Python 3.12, FastAPI, Pydantic v2, Redis Streams job queue (ADR-013, replaced Celery), PostgreSQL 16 + pgvector, Alembic, S3-compatible object storage (SeaweedFS locally, ADR-010; boto3 client), Playwright (Python), tree-sitter, openpyxl, MCP Python SDK, Typer CLI.
 - Frontend: React 18 + TypeScript (strict) + Vite, Tailwind, shadcn/ui (Radix), TanStack Query/Table, React Flow, Recharts, i18next.
 - AI: all calls through `packages/model_gateway`. Default model `claude-opus-5-5` with explicit effort per stage; cheaper models only after evals hold. Check current Claude API docs before changing model params.
 - Superseded: Next.js → Vite SPA (ADR-006); LangGraph → explicit Postgres state machine (ADR-002).
@@ -85,6 +85,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-20: M09a ingest done (upload, parsers, storage, ingest worker, Redis Streams consumer, ADR-013, migration 0006). 1,551 tests. PR #16 (base `feat/T603-db-replay-cache`, branch `feat/M09-ingest-graph`). **Next: M09b.**
 - 2026-11-20: T-603 done (Postgres replay cache, `model_call` recorder, budget, costs API, migration 0005). 1,522 tests. PR #15 (base `feat/M08c-orchestrator`, branch `feat/T603-db-replay-cache`). **Next: M09.**
 - 2026-11-20: M08c orchestrator done (machine, engine, guards, relay, recovery, pipeline API, ADR-012, migration 0004). 1,517 tests, 100% coverage. PR #14 (base `feat/M08b-auth-api`, branch `feat/M08c-orchestrator`). **Next: T-603, then M09.**
 - 2026-11-20: M08b auth + projects API done (`apps/api/auth/`, `apps/api/routers/`), migration 0003. 231 tests, 100% coverage. PR #13 (base `feat/M08a-db-models`, branch `feat/M08b-auth-api`). **Next: M08c.**
