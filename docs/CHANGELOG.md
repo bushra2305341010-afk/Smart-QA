@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- T-202 read-only Git import: `POST /projects/{id}/sources/repo`; worker shallow-clones (https only, no prompts, symlinks as plain files, token via git env config never argv, 120 s timeout), reads only regular text files inside the clone (size/count caps), extracts code facts (routes for FastAPI/Flask/Express/Django, HTML forms and inputs with limits, Pydantic `Field` limits, each with `file:line`) and Markdown docs into one citable source. SSRF guard in API and worker. `git` added to the image. Setting `GIT_READ_TOKEN`.
+
+### Added
 - T-105a two-factor sign-in: RFC 6238 TOTP, secrets encrypted with AES-256-GCM (`SAQ_ENCRYPTION_KEY`), `/auth/totp/setup|enable|disable`, login challenge with a 5-minute purpose-bound `mfa_token`, `/auth/login/mfa`; replayed codes refused; wrong codes count towards lockout. Migration `0007`.
 
 ### Added

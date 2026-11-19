@@ -18,7 +18,7 @@ from apps.workers.analyst import handle_understand_job
 from apps.workers.consumer import Handler, JobConsumer
 from apps.workers.designer import handle_design_job
 from apps.workers.gateway import gateway_factory
-from apps.workers.ingest import handle_ingest_job
+from apps.workers.ingest import GitOptions, handle_ingest_job
 from apps.workers.planner import handle_plan_job
 from apps.workers.reporter import handle_report_job
 
@@ -36,9 +36,11 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
         settings.s3_secret_key.get_secret_value() if settings.s3_secret_key else "",
     )
     client = redis.Redis.from_url(settings.redis_url)
+    token = settings.git_read_token.get_secret_value() if settings.git_read_token else None
+    git = GitOptions(token=token)
     make_gateway = gateway_factory(factory, settings)
     handlers: dict[str, dict[str, Handler]] = {
-        "ingest": {"job.ingest": functools.partial(handle_ingest_job, factory, store)},
+        "ingest": {"job.ingest": lambda m: handle_ingest_job(factory, store, m, git)},
         "understand": {
             "job.understand": functools.partial(handle_understand_job, factory, store, make_gateway)
         },
