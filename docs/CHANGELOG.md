@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- T-603: `PostgresReplayCache` (per project, first write wins, `approved_only` for zero-call regression replays, `approve()`), `PostgresRecorder` (one `model_call` row per gateway call, including cache hits and budget refusals), `project_budget()` (cap includes this month's spend from every process). Cost meter `GET /projects/{id}/costs` and `PUT /projects/{id}/budget`. Migration `0005`.
+
+### Added
 - M08c orchestrator: explicit state machine (`apps/orchestrator/machine.py`, every stage × event tested), `engine.transition` (per-project lock; state + audit + outbox in one transaction), server-side gate guards (approved graph, approved plan, no pending case, no bug draft; Gate 3 auto-skip only with `gate3_auto`), monthly budget guard for model stages, retry/cancel/restart, outbox relay to Redis streams, crash recovery that re-dispatches with the same job key and `resume_after_case_id`. `python -m apps.orchestrator` + Compose `orchestrator` service. Pipeline API (`GET /projects/{id}/pipeline`, `POST …/pipeline/events`). Migration `0004` + ADR-012 (`saq_system` role, `saq_worker` login). New permission `pipeline.manage`, setting `WORKER_DATABASE_URL`.
 
 ### Fixed

@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from apps.api.db.models import Bug, GraphVersion, ModelCall, Plan, Project, TestCase
+from apps.api.db.model_store import budget_cap, month_spend
+from apps.api.db.models import Bug, GraphVersion, Plan, Project, TestCase
 
 
 @dataclass
@@ -62,19 +62,10 @@ def check_gate(s: Session, gate: int, event: str) -> None:
             raise _gate(4, f"{drafts} bug draft(s) still need a decision")
 
 
-def month_spend(s: Session) -> Decimal:
-    spent = s.scalar(
-        select(func.coalesce(func.sum(ModelCall.cost_usd), 0)).where(
-            ModelCall.created_at >= func.date_trunc("month", func.now())
-        )
-    )
-    return Decimal(spent or 0)
-
-
 def check_budget(s: Session, project_id: uuid.UUID, default_usd: float) -> None:
     """Refuse to dispatch a model stage once this month's spend reaches the cap."""
-    settings = s.scalar(select(Project.settings).where(Project.id == project_id)) or {}
-    cap = Decimal(str(settings.get("budget_monthly_usd", default_usd)))
+    settings = s.scalar(select(Project.settings).where(Project.id == project_id))
+    cap = budget_cap(settings, default_usd)
     spent = month_spend(s)
     if spent >= cap:
         raise GuardError(

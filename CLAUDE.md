@@ -14,7 +14,7 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all` to see which of PRs #6–#11 were merged.
    - If merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
    - If not merged: branch from the top of the stack (see the latest Status line for the branch). Note: PR #10 was merged into the M06 branch (not main); the rest of the stack is open.
-3. **Next task: T-603** (Postgres replay cache + `model_call` recorder on the M08 tables), then **M09** (ingest + Product Understanding Graph). Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
+3. **Next task: M09** (ingest: parsers with offsets → `source`/`chunk`; Product Understanding Graph: analyst + explorer, graph API + Gate 1 endpoint). Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
 4. Before each PR: `make test` (ruff, mypy --strict, pytest; keep 100% coverage on `packages/`), web `pnpm test && pnpm typecheck`, update docs/CHANGELOG/task board/dev log/this file, push branch to `upstream`, open PR with `--base <previous module branch>`.
 5. **Waiting on the user:** merge #6 → #11 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; Stuti starts M03 policy / M05 verdicts (don't build her modules: M03, M05, M07, M10, M12 UI).
 
@@ -85,6 +85,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-20: T-603 done (Postgres replay cache, `model_call` recorder, budget, costs API, migration 0005). 1,522 tests. PR #15 (base `feat/M08c-orchestrator`, branch `feat/T603-db-replay-cache`). **Next: M09.**
 - 2026-11-20: M08c orchestrator done (machine, engine, guards, relay, recovery, pipeline API, ADR-012, migration 0004). 1,517 tests, 100% coverage. PR #14 (base `feat/M08b-auth-api`, branch `feat/M08c-orchestrator`). **Next: T-603, then M09.**
 - 2026-11-20: M08b auth + projects API done (`apps/api/auth/`, `apps/api/routers/`), migration 0003. 231 tests, 100% coverage. PR #13 (base `feat/M08a-db-models`, branch `feat/M08b-auth-api`). **Next: M08c.**
 - 2026-11-20: M08a database done: 30 models, Alembic 0001/0002, forced RLS + composite FKs, audit hash chain + verifier, outbox, ADR-011. 185 tests, 100% coverage. PR #12 (base `fix/dev-s3-seaweedfs`). **Next: M08b.**

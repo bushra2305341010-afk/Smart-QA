@@ -11,7 +11,7 @@ from apps.api import errors
 from apps.api.auth.tokens import JwtSigner
 from apps.api.db.session import make_engine, make_session_factory
 from apps.api.health import check_dependencies
-from apps.api.routers import auth, pipeline, projects
+from apps.api.routers import auth, costs, pipeline, projects
 from apps.api.settings import Settings, get_settings
 
 API_PREFIX = "/api/v1"
@@ -65,6 +65,7 @@ def create_app(
     app.include_router(auth.router, prefix=API_PREFIX)
     app.include_router(projects.router, prefix=API_PREFIX)
     app.include_router(pipeline.router, prefix=API_PREFIX)
+    app.include_router(costs.router, prefix=API_PREFIX)
 
     @app.get(f"{API_PREFIX}/healthz", tags=["ops"])
     async def healthz() -> dict[str, str]:

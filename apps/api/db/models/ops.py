@@ -65,6 +65,11 @@ class ModelCall(ProjectScoped, Base):
     input_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     output_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     cache_read_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    cache_write_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    status: Mapped[str] = mapped_column(Text, default="ok", server_default="ok")
+    attempts: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    from_cache: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    redactions: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     cost_usd: Mapped[Decimal] = mapped_column(Numeric(12, 6), default=0, server_default="0")
     latency_ms: Mapped[int | None] = mapped_column(Integer)
     run_id: Mapped[uuid.UUID | None]
