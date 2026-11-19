@@ -13,6 +13,10 @@ dependencies = [
     "structlog>=24.4",
     "httpx>=0.27",
     "anthropic>=1.0",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14",
+    "psycopg[binary]>=3.2",
+    "pgvector>=0.3.6",
 ]
 
 [dependency-groups]
@@ -44,6 +48,8 @@ ignore = ["S101"]  # assert is fine in tests
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "N802"]
+# Migrations build DDL from module constants (no user input).
+"apps/api/alembic/**" = ["S608", "E501"]
 
 # ---------- mypy ----------
 [tool.mypy]
@@ -70,3 +76,4 @@ filterwarnings = ["error"]
 [tool.coverage.run]
 source = ["apps", "packages"]
 branch = true
+omit = ["apps/api/alembic/*"]

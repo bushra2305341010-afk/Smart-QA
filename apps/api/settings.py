@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     saq_env: Literal["dev", "test", "prod"] = "dev"
     database_url: str | None = None
+    migration_database_url: str | None = None
     redis_url: str | None = None
     s3_endpoint: str | None = None
     anthropic_api_key: SecretStr | None = None

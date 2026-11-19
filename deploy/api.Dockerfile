@@ -6,6 +6,7 @@ COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY apps ./apps
 COPY packages ./packages
+COPY alembic.ini ./
 RUN uv sync --frozen --no-dev
 RUN useradd --create-home --uid 10001 saq
 USER saq

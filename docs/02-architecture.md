@@ -121,5 +121,6 @@ smart-autonomous-qa/
 | 007 | Evidence content-addressed by SHA-256 |
 | 008 | Audit ledger hash-chained in Postgres |
 | 010 | SeaweedFS as the local S3-compatible evidence store (MinIO image no longer published) |
+| 011 | Project isolation: forced RLS, composite foreign keys, separate migrator/app roles |
 
 Template: `docs/adr/NNN-title.md` with Context, Decision, Consequences, Status.

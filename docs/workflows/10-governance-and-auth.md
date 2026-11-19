@@ -17,7 +17,9 @@ gate / filing / MCP call ─▶ audit_event (hash chain)
 |---|---|
 | Auth | `apps/api/auth/` |
 | Permissions | `packages/policy/permissions.py` |
-| Audit | `apps/api/audit/` + DB trigger |
+| DB roles, RLS, composite FKs | `apps/api/alembic/versions/0002_rls_audit_chain.py`, `apps/api/db/base.py` (ADR-011) |
+| Project scope per transaction | `apps/api/db/session.py` (`project_session`, `set_scope`) |
+| Audit | `apps/api/db/audit.py` (`record`, `verify_chain`) + `audit_event_chain` trigger |
 | Redaction | `packages/model_gateway/redact.py` |
 | Budget/cost | `packages/model_gateway/cost.py`, `apps/api/routers/costs.py` |
 
@@ -27,7 +29,9 @@ gate / filing / MCP call ─▶ audit_event (hash chain)
 |---|---|---|
 | 403 for correct role | `permissions.py` matrix | Permission name mismatch |
 | Data from another project visible | **Critical** → RLS policy / `require()` | Missing `project_id` filter |
-| Audit verify fails | Trigger / canonical JSON | Key ordering, timestamp precision |
+| Audit verify fails | `audit_event_chain` trigger vs `audit.py:canonical` | Field order, `payload::text`, UTC µs timestamp format must match |
+| Row links to another project's row | Composite FK missing → `scoped_fk()` in model + migration | Never a single-column FK to a project table |
+| RLS tests pass for nobody / app sees everything | App connected as superuser or owner | Use `saq_app` (not superuser); recreate old dev volume |
 | PII reached model | **Critical** → `redact.py` | Add pattern + test |
 | Budget exceeded silently | `cost.py` pre-check | Check before call, not after |
 
@@ -35,4 +39,5 @@ gate / filing / MCP call ─▶ audit_event (hash chain)
 
 - [ ] `make test-auth test-policy` (100% branches)
 - [ ] ZAP baseline + ASVS items for the area
-- [ ] Any new table → RLS policy + test
+- [ ] Any new table → `project_id`, RLS policy in a migration, composite FKs; `tests/db` invariant tests pass
+- [ ] `make test-int` (RLS, audit chain, outbox) and `uv run alembic check`

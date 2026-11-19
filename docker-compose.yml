@@ -5,13 +5,16 @@ services:
   db:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: saq_app
+      # Owner/migrator role. The runtime role saq_app is created by deploy/postgres/init (docs/07 §4).
+      POSTGRES_USER: saq_migrator
       POSTGRES_PASSWORD: saq_dev_password
       POSTGRES_DB: saq
     ports: ["5432:5432"]
-    volumes: [db-data:/var/lib/postgresql/data]
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U saq_app -d saq"]
+      test: ["CMD-SHELL", "pg_isready -U saq_migrator -d saq"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -41,6 +44,7 @@ services:
     env_file: [.env]
     environment:
       DATABASE_URL: postgresql+psycopg://saq_app:saq_dev_password@db:5432/saq
+      MIGRATION_DATABASE_URL: postgresql+psycopg://saq_migrator:saq_dev_password@db:5432/saq
       REDIS_URL: redis://redis:6379/0
       S3_ENDPOINT: http://s3:8333
     ports: ["8000:8000"]
