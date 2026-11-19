@@ -49,3 +49,20 @@ def test_costs_and_budget(project, make_user, app) -> None:  # type: ignore[no-u
     assert Decimal(month["cap_usd"]) == 5
     actions = [e["action"] for e in owner.client.get(f"{V1}/projects/{pid}/audit").json()["items"]]
     assert actions[-1] == "budget.changed"
+
+
+def test_budget_is_read_from_the_right_project(project) -> None:  # type: ignore[no-untyped-def]
+    """A user in two projects must never see the other project's settings (RLS lets a user see
+    all their projects' rows in `project`, so every lookup filters by id)."""
+    owner, first = project
+    second = owner.post(f"{V1}/projects", json={"name": "Second"}).json()["id"]
+    owner.client.put(
+        f"{V1}/projects/{second}/budget",
+        json={"monthly_usd": 1},
+        headers={"X-CSRF-Token": owner.csrf},
+    )
+    caps = {
+        pid: Decimal(owner.client.get(f"{V1}/projects/{pid}/costs").json()["month"]["cap_usd"])
+        for pid in (first, second)
+    }
+    assert caps[second] == 1 and caps[first] != 1

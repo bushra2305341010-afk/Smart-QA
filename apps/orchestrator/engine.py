@@ -117,7 +117,7 @@ def transition(
         rule = plan_step(stage, status, event)
         _check_actor(actor, rule.actor, rule.permission)
         if rule.gate:
-            guards.check_gate(s, rule.gate, event)
+            guards.check_gate(s, project_id, rule.gate, event)
         new_stage, new_status, gate = rule.target, status_on_entry(rule.target), rule.gate
 
     dispatch = new_status == Status.QUEUED and new_stage in WORK_STAGES

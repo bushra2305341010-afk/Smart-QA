@@ -58,7 +58,9 @@ class BudgetIn(BaseModel):
 def get_costs(ctx: ProjectContext = Depends(require("project.view"))) -> CostsOut:
     default = get_settings().saq_budget_monthly_usd
     with ctx.session() as s:
-        cap = budget_cap(s.scalar(select(Project.settings)), default)
+        cap = budget_cap(
+            s.scalar(select(Project.settings).where(Project.id == ctx.project_id)), default
+        )
         spent = month_spend(s)
         stages = s.execute(
             select(

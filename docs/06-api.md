@@ -82,10 +82,10 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 ### Plans & cases
 | Method | Path | Role | Purpose |
 |---|---|---|---|
-| POST | `/projects/{id}/plans` | QA Lead+ | Generate plan → 202 |
-| GET | `/plans/{id}` | Viewer+ | Segments, counts, reasons, cost |
-| PATCH | `/plans/{id}/segments/{sid}` | QA Lead | Edit approved count / scope |
-| POST | `/plans/{id}/approve` | QA Lead | **Gate 2** |
+| GET | `/projects/{id}/plans` | Viewer+ | Plans (the planner stage creates them; re-plan with pipeline event `plan_edited`) |
+| GET | `/projects/{id}/plans/{pln}` | Viewer+ | Segments (riskiest first) with technique rows + reasons, counts, priority, cost estimate, totals |
+| PATCH | `/projects/{id}/plans/{pln}/segments/{seg}` | QA Lead | `{approved_count}` (0–500, draft only) |
+| POST | `/projects/{id}/plans/{pln}/approve` | QA Lead | **Gate 2**: 409 if total = 0 or graph no longer approved, 402 if estimate > remaining budget, 409 `STATE_CONFLICT` if the pipeline is not at plan approval |
 | POST | `/plans/{id}/design` | QA Lead+ | Generate cases → 202 |
 | GET | `/plans/{id}/cases` | Viewer+ | Cases (filter by status, segment) |
 | PATCH | `/cases/{id}` | Tester+ | Edit case |

@@ -33,7 +33,7 @@ def _gate(n: int, message: str) -> GuardError:
     return GuardError(409, "GATE_NOT_APPROVED", message, {"gate": n})
 
 
-def check_gate(s: Session, gate: int, event: str) -> None:
+def check_gate(s: Session, project_id: uuid.UUID, gate: int, event: str) -> None:
     if gate == 1:
         approved = s.scalar(select(func.count()).where(GraphVersion.status == "approved"))
         if not approved:
@@ -49,7 +49,7 @@ def check_gate(s: Session, gate: int, event: str) -> None:
             raise _gate(2, "Approve the plan (on an approved graph) before Gate 2")
     elif gate == 3:
         if event == "cases_auto_approved":
-            settings = s.scalar(select(Project.settings)) or {}
+            settings = s.scalar(select(Project.settings).where(Project.id == project_id)) or {}
             if settings.get("gate3_auto") is not True:
                 raise _gate(3, "Gate 3 can only be skipped when the project enables gate3_auto")
             return
