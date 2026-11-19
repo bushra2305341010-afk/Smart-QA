@@ -66,6 +66,21 @@ services:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
 
+  # Job consumers on Redis Streams (ADR-013): ingest now, more stages as they land.
+  worker:
+    build:
+      context: .
+      dockerfile: deploy/api.Dockerfile
+    command: ["/app/.venv/bin/python", "-m", "apps.workers"]
+    env_file: [.env]
+    environment:
+      WORKER_DATABASE_URL: postgresql+psycopg://saq_worker:saq_dev_password@db:5432/saq
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT: http://s3:8333
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
 volumes:
   db-data:
   s3-data:

@@ -6,6 +6,12 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- M09a ingest: `POST /projects/{id}/sources/upload` (≤ 50 MB, type from magic bytes, sha256 dedupe), parsers for PDF (pypdf), DOCX (paragraphs + tables in order), Markdown and OpenAPI JSON/YAML (stable text rendering), content-addressed object store (`apps/api/storage.py`, S3 + in-memory), ingest worker (normalised text stored, chunks with offsets/page/line, failed files flagged with a reason, `sources_parsed` / `job_failed` transitions), Redis Streams job consumer with consumer groups, idempotent `job_key`, reclaim of failed jobs (ADR-013), `python -m apps.workers` + Compose `worker` service. Migration `0006`.
+
+### Changed
+- Job dispatch uses Redis Streams consumer groups instead of Celery (ADR-013).
+
+### Added
 - T-603: `PostgresReplayCache` (per project, first write wins, `approved_only` for zero-call regression replays, `approve()`), `PostgresRecorder` (one `model_call` row per gateway call, including cache hits and budget refusals), `project_budget()` (cap includes this month's spend from every process). Cost meter `GET /projects/{id}/costs` and `PUT /projects/{id}/budget`. Migration `0005`.
 
 ### Added

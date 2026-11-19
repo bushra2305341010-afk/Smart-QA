@@ -41,8 +41,8 @@ flowchart LR
 |---|---|---|---|
 | Web App | Setup wizard, graph review, plan, case review, run dashboard, bug review, reports, settings | React 18 + TypeScript + Vite, Tailwind, shadcn/ui (Radix), TanStack Query/Table, React Flow, Recharts | `apps/web` |
 | API Gateway | REST, auth, RBAC, rate limits, SSE | Python 3.12, FastAPI, Pydantic v2 | `apps/api` |
-| Orchestrator | Stage state machine, gates, retries, budgets | Python, state stored in Postgres, Celery on Redis | `apps/orchestrator` |
-| Stage Workers | Analyst, Explorer, Planner, Designer, Compiler, Judge, Reporter, Healer | Python Celery workers | `apps/workers` |
+| Orchestrator | Stage state machine, gates, retries, budgets | Python, state stored in Postgres, outbox relay to Redis Streams (ADR-013) | `apps/orchestrator` |
+| Stage Workers | Analyst, Explorer, Planner, Designer, Compiler, Judge, Reporter, Healer | Python workers on Redis Streams consumer groups (ADR-013) | `apps/workers` |
 | Model Gateway | Provider adapters, structured output, citations, caching, replay cache, cost, redaction | `anthropic` SDK, local adapter | `packages/model_gateway` |
 | Code Analyzer | Routes, forms, validation, endpoints | tree-sitter (JS/TS, Python, PHP, Java), OpenAPI parser | `packages/analyzers/code` |
 | Document Analyzer | Citable chunks with page + line offsets | PyMuPDF, python-docx, markdown-it | `packages/citations` |
@@ -123,5 +123,6 @@ smart-autonomous-qa/
 | 010 | SeaweedFS as the local S3-compatible evidence store (MinIO image no longer published) |
 | 011 | Project isolation: forced RLS, composite foreign keys, separate migrator/app roles |
 | 012 | System role with narrow RLS policies for cross-project background work |
+| 013 | Redis Streams consumer groups for job dispatch instead of Celery |
 
 Template: `docs/adr/NNN-title.md` with Context, Decision, Consequences, Status.

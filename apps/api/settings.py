@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     jwt_private_key: SecretStr | None = None  # Ed25519 PEM; required when SAQ_ENV=prod
     redis_url: str | None = None
     s3_endpoint: str | None = None
+    s3_bucket: str = "evidence"
+    s3_access_key: str | None = None
+    s3_secret_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
     saq_default_model: str = "claude-opus-5-5"
     saq_model_policy: Literal["local-only", "external-redacted", "external-code"] = (

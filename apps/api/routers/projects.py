@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response, UploadFile
 from pydantic import BaseModel, EmailStr, Field, HttpUrl
 from sqlalchemy import Select, select
 from sqlalchemy.exc import IntegrityError
@@ -24,6 +24,7 @@ from apps.api.auth.deps import (
     ProjectContext,
     current_principal,
     get_factory,
+    get_store,
     require,
 )
 from apps.api.auth.permissions import Role
@@ -40,7 +41,9 @@ from apps.api.db.models import (
     Source,
 )
 from apps.api.db.session import project_session, set_user_scope
-from apps.api.errors import conflict, forbidden, not_found
+from apps.api.errors import ApiError, conflict, forbidden, not_found
+from apps.api.storage import ObjectStore, sha256_hex, source_key
+from packages.citations.parsers import MAX_BYTES, UnsupportedSourceError, detect_kind
 
 router = APIRouter(tags=["projects"])
 
@@ -209,6 +212,9 @@ class SourceOut(BaseModel):
     uri: str
     sha256: str
     status: str
+    filename: str | None = None
+    size: int | None = None
+    error: str | None = None
     created_at: datetime
 
 
@@ -219,8 +225,69 @@ def _source_out(src: Source) -> SourceOut:
         uri=src.uri,
         sha256=src.sha256,
         status=src.status,
+        filename=src.filename,
+        size=src.size,
+        error=src.error,
         created_at=src.created_at,
     )
+
+
+CONTENT_TYPES = {
+    "pdf": "application/pdf",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "md": "text/markdown; charset=utf-8",
+    "openapi": "application/yaml; charset=utf-8",
+}
+
+
+@router.post("/projects/{project_id}/sources/upload", status_code=201)
+def upload_source(
+    file: UploadFile,
+    response: Response,
+    ctx: ProjectContext = Depends(require("sources.manage")),
+    store: ObjectStore = Depends(get_store),
+) -> SourceOut:
+    """Upload a document (PDF, DOCX, Markdown, OpenAPI; at most 50 MB). The type is read from
+    the bytes, never the filename. The same bytes uploaded twice return the existing source."""
+    data = file.file.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        raise ApiError(413, "PAYLOAD_TOO_LARGE", "File is larger than 50 MB")
+    try:
+        kind = detect_kind(data)
+    except UnsupportedSourceError as exc:
+        raise ApiError(415, "UNSUPPORTED_TYPE", str(exc)) from None
+    sha = sha256_hex(data)
+    filename = (file.filename or "upload")[:255]
+    with ctx.session() as s:
+        existing = s.scalar(select(Source).where(Source.sha256 == sha))
+        if existing is not None:
+            response.status_code = 200
+            return _source_out(existing)
+    store.put(source_key(sha), data, CONTENT_TYPES[kind])
+    with ctx.session() as s:
+        src = Source(
+            project_id=ctx.project_id,
+            kind=kind,
+            uri=f"upload:{filename}",
+            sha256=sha,
+            filename=filename,
+            size=len(data),
+        )
+        s.add(src)
+        s.flush()
+        audit.record(
+            s,
+            project_id=ctx.project_id,
+            actor=_actor(ctx.principal),
+            action="source.uploaded",
+            entity=ids.encode("src", src.id),
+            payload={"kind": kind, "sha256": sha, "size": len(data), "filename": filename},
+        )
+        outbox.enqueue(
+            s, project_id=ctx.project_id, topic="source.added", payload={"source_id": str(src.id)}
+        )
+        s.refresh(src)
+        return _source_out(src)
 
 
 @router.post("/projects/{project_id}/sources", status_code=201)

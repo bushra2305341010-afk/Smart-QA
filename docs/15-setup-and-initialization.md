@@ -68,7 +68,7 @@ Generate secrets: `python -c "import secrets,base64;print(base64.b64encode(secre
 |---|---|---|
 | `web` | 5173 | Vite dev server (nginx in prod) |
 | `api` | 8000 | FastAPI |
-| `worker` | — | Celery workers (all queues in dev) |
+| `worker` | — | Job consumers on Redis Streams (`python -m apps.workers`; ingest in M09a) |
 | `orchestrator` | — | State machine + scheduler + outbox relay |
 | `runner` | — | Playwright runner (registers itself in dev) |
 | `db` | 5432 | Postgres 16 + pgvector |

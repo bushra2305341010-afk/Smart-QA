@@ -99,6 +99,10 @@ class Source(ProjectScoped, Base):
         default="pending",
         server_default="pending",
     )
+    filename: Mapped[str | None] = mapped_column(Text)
+    size: Mapped[int | None] = mapped_column(Integer)
+    text_key: Mapped[str | None] = mapped_column(Text)  # normalised text in object storage
+    error: Mapped[str | None] = mapped_column(Text)
 
 
 class Chunk(ProjectScoped, Base):

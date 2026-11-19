@@ -168,3 +168,13 @@ def test_validation_and_unknown_route_use_the_envelope(monkeypatch) -> None:  # 
     body = res.json()["error"]
     assert body["code"] == "VALIDATION_ERROR" and body["details"]["fields"] and body["trace_id"]
     assert client.get("/api/v1/nope").json()["error"]["code"] == "NOT_FOUND"
+
+
+def test_object_store_only_when_s3_is_configured() -> None:
+    from apps.api.storage import S3ObjectStore
+
+    assert main._store(Settings(s3_endpoint=None)) is None
+    configured = Settings(
+        s3_endpoint="http://localhost:1", s3_access_key="k", s3_secret_key=SecretStr("s")
+    )
+    assert isinstance(main._store(configured), S3ObjectStore)

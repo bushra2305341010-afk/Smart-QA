@@ -17,7 +17,7 @@
 |---|---|---|
 | API replica crash | LB health check | Traffic shifts; stateless, no data loss |
 | Worker crash mid-job | `acks_late` + visibility timeout | Job re-delivered; idempotency key prevents duplicate writes |
-| Redis restart | Connection error | Outbox republishes unpublished events; Celery reconnects |
+| Redis restart | Connection error | Outbox republishes unpublished events; consumers reconnect and re-claim pending jobs (ADR-013) |
 | Postgres down | `/readyz` fails | API returns 503; workers pause; runner buffers results (≤ 15 min) |
 | Runner disconnect | 3 missed heartbeats | Shard re-queued; partially done cases skipped via `last_completed_case_id` |
 | Model provider 429/5xx | Gateway | Backoff + jitter, circuit breaker, fallback model if project allows |
