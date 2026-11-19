@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     model_price_input_per_mtok: float | None = None
     model_price_output_per_mtok: float | None = None
     model_price_cache_read_per_mtok: float | None = None
+    github_token: SecretStr | None = None  # tracker filing (N21); never stored in the DB
     saq_telemetry: Literal["off", "on"] = "off"
     saq_budget_monthly_usd: float = Field(default=20.0, ge=0)
     log_level: str = "info"

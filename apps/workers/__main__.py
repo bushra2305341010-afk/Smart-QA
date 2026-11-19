@@ -1,4 +1,4 @@
-"""`uv run python -m apps.workers`: run the job consumers (ingest, understand, plan, design)."""
+"""`uv run python -m apps.workers`: run the job consumers for every worker stage."""
 
 from __future__ import annotations
 
@@ -13,12 +13,14 @@ import redis
 from apps.api.db.session import make_engine, make_session_factory
 from apps.api.settings import get_settings
 from apps.api.storage import S3ObjectStore
+from apps.api.trackers import tracker_factory
 from apps.workers.analyst import handle_understand_job
 from apps.workers.consumer import Handler, JobConsumer
 from apps.workers.designer import handle_design_job
 from apps.workers.gateway import gateway_factory
 from apps.workers.ingest import handle_ingest_job
 from apps.workers.planner import handle_plan_job
+from apps.workers.reporter import handle_report_job
 
 
 def main() -> None:  # pragma: no cover - process wiring; parts are tested separately
@@ -43,6 +45,11 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
         "plan": {"job.plan": functools.partial(handle_plan_job, factory, settings)},
         "design": {
             "job.design": functools.partial(handle_design_job, factory, store, make_gateway)
+        },
+        "report": {
+            "job.report": functools.partial(
+                handle_report_job, factory, store, tracker_factory(settings)
+            )
         },
     }
     consumers = [

@@ -40,6 +40,13 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (M11 reporter)
+**Goal:** US-08/US-09: confirmed bugs filed with evidence after Gate 4; a run workbook.
+**Done:** Bug template, workbook, GitHub adapter, reporter worker, bugs API + Gate 4 + export.
+**Tests:** 1,592 passed, 100% coverage; workbook checked cell by cell (formula injection, redaction, colours, traceability).
+**Decisions:** Only Fail verdicts become drafts; tracker token only from the environment; a filing error fails the stage (retry files the rest, filed bugs are never re-filed).
+**Next:** evidence pack (HTML with hashes), then support Stuti's M10 runner/judge integration (`draft_bugs` before `verdicts_ready`).
+
 ### Week 3 — 2026-11-20 (Designer stage + Gate 3)
 **Goal:** US-05: test cases whose expected results cite the source; unverifiable ones are flagged, never approved.
 **Done:** Case contract, dedupe/codes, designer worker, case API, Gate 3; first end-to-end test from upload through Gates 1–3.

@@ -16,13 +16,15 @@ Run finished ─▶ exporters/excel.py (6 sheets) · exporters/evidence_pack (HT
 
 | Concern | Path |
 |---|---|
-| Worker | `apps/workers/reporter/` |
-| Bug template | `apps/workers/reporter/templates/bug.md.j2` |
-| Excel | `packages/exporters/excel.py` |
-| Evidence pack | `packages/exporters/evidence_pack/` |
-| Trackers | `packages/exporters/trackers/{github,jira}.py` |
-| Gate 4 | `apps/api/routers/bugs.py::confirm` |
+| Worker (`draft_bugs`, `job.report`) | `apps/workers/reporter.py` |
+| Bug template (redacted markdown) | `packages/exporters/bug.py` (`draft_bug`) |
+| Excel (6 sheets, formula-safe, redacted, verdict colours) | `packages/exporters/excel.py`, data from `apps/api/reports.py` |
+| Evidence pack | `packages/exporters/evidence_pack/` (not yet) |
+| Trackers | `packages/exporters/trackers/github.py` (Jira later); project setting `{"tracker": {"kind": "github", "repo": "owner/name"}}`, token `GITHUB_TOKEN` env only (`apps/api/trackers.py`) |
+| Bug review, duplicates, Gate 4, export | `apps/api/routers/bugs.py` |
 | UI | `apps/web/src/features/bugs/`, `features/reports/` |
+
+**Implementation (M11).** `draft_bugs(run)` drafts one bug per **Fail** verdict (never Flaky, Blocked, Test Error or Unable to Verify) with steps, test data, expected result + its source quote, actual result, environment and evidence SHA-256s; everything is redacted. The Judge stage calls it before `verdicts_ready`. A QA Lead edits, confirms or dismisses each draft (each decision is a `feedback` label); `GET …/bugs/{id}/duplicates` shows similar open tracker issues and other bugs of the same case before confirming. Gate 4 refuses while drafts remain. The report stage stores the run workbook at `reports/<run>.xlsx` and files confirmed bugs (labels `smart-qa`, `severity:<x>`), setting `filed` + `tracker_ref`; a filing error fails the stage so `retry` can file the rest.
 
 ## Bug locator
 
