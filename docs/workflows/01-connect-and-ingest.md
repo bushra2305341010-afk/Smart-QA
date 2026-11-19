@@ -25,7 +25,7 @@ Identities ─▶ vault (encrypted) — model only sees {{secret:name}}
 | Ingest worker (`job.ingest`) | `apps/workers/ingest.py`, consumer `apps/workers/consumer.py` |
 | Chunker | `packages/citations/chunker.py` |
 | Embeddings | `packages/citations/embed.py` (not yet; `chunk.embedding` stays NULL until then) |
-| Git import | `packages/analyzers/code/git_source.py` |
+| Git import (read-only, shallow, SSRF-guarded) | `apps/workers/git_source.py` (clone + safe file walk), URL rules `packages/analyzers/code/repo_url.py`, code facts `packages/analyzers/code/facts.py` |
 | Vault | `apps/api/vault.py` |
 | UI | `apps/web/src/features/setup/` |
 
@@ -44,7 +44,9 @@ Identities ─▶ vault (encrypted) — model only sees {{secret:name}}
 | Page/line wrong in UI | `parsers/pdf.py` | Line counting per page; hyphenation joins |
 | DOCX tables missing | `parsers/docx.py` | Iterate tables, not only paragraphs |
 | Quote check fails right after ingest | `chunker.py` normalisation | Whitespace/Unicode NFC mismatch between stored text and offsets |
-| Repo clone hangs | `git_source.py` | Timeout, depth=1, auth token |
+| Repo clone hangs | `git_source.py` | 120 s timeout, depth 1, single branch; token from `GIT_READ_TOKEN` |
+| Repo source `failed` "Only https …" | `repo_url.py` | Only https; no credentials in the URL; loopback / link-local hosts are refused |
+| Few code facts | `facts.py` patterns | Add the framework's route/form pattern + a test (tree-sitter later) |
 | Runner "unreachable env" | Env `allowed_hosts`, runner logs | Host missing, DNS inside container |
 | Secret visible in log | `vault.py`, logging filters | Redaction filter; never `repr()` secrets |
 

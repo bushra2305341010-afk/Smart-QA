@@ -43,6 +43,7 @@ from apps.api.db.models import (
 from apps.api.db.session import project_session, set_user_scope
 from apps.api.errors import ApiError, conflict, forbidden, not_found
 from apps.api.storage import ObjectStore, sha256_hex, source_key
+from packages.analyzers.code.repo_url import GitImportError, check_repo_url
 from packages.citations.parsers import MAX_BYTES, UnsupportedSourceError, detect_kind
 
 router = APIRouter(tags=["projects"])
@@ -307,6 +308,41 @@ def add_source(
             action="source.added",
             entity=public,
             payload={"kind": body.kind, "sha256": body.sha256},
+        )
+        outbox.enqueue(
+            s, project_id=ctx.project_id, topic="source.added", payload={"source_id": str(src.id)}
+        )
+        s.refresh(src)
+        return _source_out(src)
+
+
+class RepoIn(BaseModel):
+    url: str = Field(min_length=8, max_length=2048, description="https URL of the repository")
+    ref: str | None = Field(default=None, max_length=200, pattern=r"^[\w./-]+$")
+
+
+@router.post("/projects/{project_id}/sources/repo", status_code=201)
+def add_repo(body: RepoIn, ctx: ProjectContext = Depends(require("sources.manage"))) -> SourceOut:
+    """Connect a Git repository read-only (T-202). The ingest worker clones it shallowly and
+    extracts code facts; a token for private repos comes from the worker's environment."""
+    try:
+        url = check_repo_url(body.url)
+    except GitImportError as exc:
+        raise ApiError(400, "VALIDATION_ERROR", str(exc), {"field": "url"}) from None
+    uri = f"{url}#{body.ref}" if body.ref else url
+    with ctx.session() as s:
+        src = Source(
+            project_id=ctx.project_id, kind="repo", uri=uri, sha256="pending", filename=url
+        )
+        s.add(src)
+        s.flush()
+        audit.record(
+            s,
+            project_id=ctx.project_id,
+            actor=_actor(ctx.principal),
+            action="source.repo_added",
+            entity=ids.encode("src", src.id),
+            payload={"url": url, "ref": body.ref},
         )
         outbox.enqueue(
             s, project_id=ctx.project_id, topic="source.added", payload={"source_id": str(src.id)}

@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     model_price_input_per_mtok: float | None = None
     model_price_output_per_mtok: float | None = None
     model_price_cache_read_per_mtok: float | None = None
+    git_read_token: SecretStr | None = None  # read-only token for private repo import (T-202)
     github_token: SecretStr | None = None  # tracker filing (N21); never stored in the DB
     rate_limit_backend: Literal["memory", "redis"] = "memory"
     rate_login_per_ip_per_min: int = Field(default=20, ge=1)

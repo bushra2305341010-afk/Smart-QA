@@ -105,7 +105,7 @@ def test_no_parsable_source_fails_the_stage(setup, app) -> None:  # type: ignore
     client, store, pid, puid = setup
     client.post(
         f"{V1}/projects/{pid}/sources",
-        json={"kind": "repo", "uri": "git@x:y.git", "sha256": "a" * 64},
+        json={"kind": "pdf", "uri": "s3://never-uploaded.pdf", "sha256": "a" * 64},
     )
     client.post(f"{V1}/projects/{pid}/pipeline/events", json={"event": "start"})
     handle_ingest_job(app, store, {"project_id": str(puid)})
@@ -137,3 +137,44 @@ def test_upload_errors(setup, monkeypatch, app) -> None:  # type: ignore[no-unty
     res = nostore.post(f"{V1}/projects/{pid}/sources/upload", files={"file": ("a.md", b"x")},
                        headers={"X-CSRF-Token": nostore.cookies.get("saq_csrf") or ""})  # fmt: skip
     assert res.status_code == 503
+
+
+def test_repo_source_end_to_end(setup, app, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    from apps.workers.ingest import GitOptions
+    from tests.workers.test_git_import import make_repo
+
+    client, store, pid, puid = setup
+    origin = make_repo(tmp_path)
+    bad = client.post(f"{V1}/projects/{pid}/sources/repo", json={"url": "http://github.com/a/b"})
+    assert bad.status_code == 400 and bad.json()["error"]["details"] == {"field": "url"}
+    ok = client.post(
+        f"{V1}/projects/{pid}/sources/repo",
+        json={"url": "https://github.com/acme/shop.git", "ref": "main"},
+    )
+    assert ok.status_code == 201 and ok.json()["uri"] == "https://github.com/acme/shop.git#main"
+    # A local repository stands in for the remote one (no network in tests).
+    with project_session(app, puid) as s:
+        src = s.get_one(Source, ids.decode("src", ok.json()["id"]))
+        src.uri = f"file://{origin}#release"
+    client.post(f"{V1}/projects/{pid}/pipeline/events", json={"event": "start"})
+    handle_ingest_job(app, store, {"project_id": str(puid)}, GitOptions(protocols=("file",)))
+    [repo] = client.get(f"{V1}/projects/{pid}/sources").json()["items"]
+    assert repo["status"] == "ready" and len(repo["sha256"]) == 64
+    chunks = client.get(f"{V1}/projects/{pid}/sources/{repo['id']}/chunks").json()["items"]
+    text = "\n".join(c["text"] for c in chunks)
+    assert "Endpoint: POST /orders (api/orders.py:1)" in text
+    assert (
+        "Field: email <input> (required=true)" in text and "Coupons expire after 30 days." in text
+    )
+
+
+def test_repo_with_disallowed_protocol_is_flagged(setup, app, tmp_path) -> None:  # type: ignore[no-untyped-def]
+    client, store, pid, puid = setup
+    client.post(
+        f"{V1}/projects/{pid}/sources",
+        json={"kind": "repo", "uri": "file:///etc", "sha256": "b" * 64},
+    )
+    client.post(f"{V1}/projects/{pid}/pipeline/events", json={"event": "start"})
+    handle_ingest_job(app, store, {"project_id": str(puid)})  # default: https only
+    [src] = client.get(f"{V1}/projects/{pid}/sources").json()["items"]
+    assert src["status"] == "failed" and "Only https" in src["error"]

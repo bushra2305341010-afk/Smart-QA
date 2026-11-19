@@ -40,6 +40,12 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (T-202 Git import)
+**Done:** URL guard, safe shallow clone, file walk, code facts, repo ingest path, API endpoint, git in the image. 1,644 tests, 100% coverage (real local repos; no network).
+**Bugs found & fixed:** CI failures on #22–#25: tests read the developer's `.env` and used the local SeaweedFS; CI has no S3 → API fixtures now inject in-memory storage, and pre-push runs use empty S3 vars.
+**Decisions:** Pattern-based code facts now (deterministic, cited by `file:line`); tree-sitter can replace them behind `extract_facts`.
+**Next:** T-204 embeddings (local model), golden project 1 (T-004).
+
 ### Week 4 — 2026-11-20 (T-105a TOTP)
 **Done:** TOTP (RFC vectors), AES-GCM secret box, MFA login step, enrol/disable, replay protection, lockout. 1,618 tests, 100% coverage.
 **Decisions:** No TOTP library: the algorithm is 30 lines and testable against RFC 6238 directly. MFA token is a separate JWT purpose, so it can never act as an access token (and vice versa).
