@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- T-105a two-factor sign-in: RFC 6238 TOTP, secrets encrypted with AES-256-GCM (`SAQ_ENCRYPTION_KEY`), `/auth/totp/setup|enable|disable`, login challenge with a 5-minute purpose-bound `mfa_token`, `/auth/login/mfa`; replayed codes refused; wrong codes count towards lockout. Migration `0007`.
+
+### Added
 - T-105c rate limits: 20 logins/min per IP, 600 requests/min per user, 30 job starts/min per project; 429 `RATE_LIMITED` with `Retry-After`. Memory backend (per process) or Redis (`RATE_LIMIT_BACKEND=redis`, shared across replicas). Limits configurable in settings.
 
 ### Added

@@ -46,7 +46,10 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | Method | Path | Role | Purpose |
 |---|---|---|---|
 | POST | `/auth/register` | public | Create account |
-| POST | `/auth/login` | public | Password (+ TOTP) → session |
+| POST | `/auth/login` | public | Password → session cookies, or `{mfa_required, mfa_token}` when two-factor is on |
+| POST | `/auth/login/mfa` | public | `{mfa_token, code}` → session cookies; 400 `INVALID_CODE` (wrong or reused), 429 when locked |
+| POST | `/auth/totp/setup` | any | New secret + `otpauth://` URI (shown once); 503 without `SAQ_ENCRYPTION_KEY` |
+| POST | `/auth/totp/enable` / `disable` | any | `{code}` confirms the authenticator / turns two-factor off |
 | POST | `/auth/logout` | any | End session |
 | POST | `/auth/refresh` | any | Rotate refresh token |
 | GET | `/me` | any | Profile, roles, feature flags |
