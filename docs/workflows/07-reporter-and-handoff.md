@@ -19,7 +19,7 @@ Run finished ─▶ exporters/excel.py (6 sheets) · exporters/evidence_pack (HT
 | Worker (`draft_bugs`, `job.report`) | `apps/workers/reporter.py` |
 | Bug template (redacted markdown) | `packages/exporters/bug.py` (`draft_bug`) |
 | Excel (6 sheets, formula-safe, redacted, verdict colours) | `packages/exporters/excel.py`, data from `apps/api/reports.py` |
-| Evidence pack | `packages/exporters/evidence_pack/` (not yet) |
+| Evidence pack (self-contained HTML, no script, redacted + escaped, SHA-256 index) | `packages/exporters/evidence_pack.py`; stored at `reports/<run>-evidence.html` by the report stage |
 | Trackers | `packages/exporters/trackers/github.py` (Jira later); project setting `{"tracker": {"kind": "github", "repo": "owner/name"}}`, token `GITHUB_TOKEN` env only (`apps/api/trackers.py`) |
 | Bug review, duplicates, Gate 4, export | `apps/api/routers/bugs.py` |
 | UI | `apps/web/src/features/bugs/`, `features/reports/` |

@@ -27,7 +27,7 @@ from apps.api.main import create_app
 from apps.api.settings import Settings
 from apps.api.storage import MemoryObjectStore
 from apps.api.trackers import tracker_factory
-from apps.workers.reporter import draft_bugs, handle_report_job, report_key
+from apps.workers.reporter import draft_bugs, handle_report_job, pack_key, report_key
 from packages.exporters.trackers.github import GitHubTracker, Issue, TrackerError
 from tests.api.conftest import PASSWORD
 from tests.orchestrator.seed import seed
@@ -181,7 +181,12 @@ def test_drafts_gate4_filing_and_workbook(env, app) -> None:  # type: ignore[no-
     tracker = trackers["t"]
     handle_report_job(app, store, lambda s: tracker, {"project_id": str(puid)})
     assert [labels for _, labels in tracker.filed] == [["smart-qa", "severity:critical"]]
-    assert report_key(data.run.id) in store.objects
+    assert report_key(data.run.id) in store.objects and pack_key(data.run.id) in store.objects
+    pack = client.get(f"{V1}/projects/{pid}/runs/{new['run_id']}/evidence-pack")
+    assert (
+        pack.headers["content-disposition"].startswith("attachment") and "<script" not in pack.text
+    )
+    assert client.get(f"{V1}/projects/{pid}/runs/run_{'0' * 32}/evidence-pack").status_code == 404
     filed = client.get(f"{V1}/projects/{pid}/bugs?status=filed").json()
     assert filed[0]["tracker_ref"].endswith("/issues/9")
     current = client.get(f"{V1}/projects/{pid}/pipeline").json()["current"]

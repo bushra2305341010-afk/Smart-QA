@@ -136,3 +136,23 @@ def test_github_errors() -> None:
     with pytest.raises(ValueError, match="owner/name"):
         GitHubTracker("bad", "t")
     assert GitHubTracker("a/b", "t").repo == "a/b"
+
+
+def test_evidence_pack_is_escaped_redacted_and_scriptless() -> None:
+    from packages.exporters.evidence_pack import build_evidence_pack
+
+    data = _export(
+        cases=[CASE],
+        results=[
+            ResultRow("run_1", "TC-SIG-001", "fail", 0.9,
+                      "<script>alert(1)</script> for x@gmail.com", 10, "chromium",
+                      ["screenshot ab12"], 1, "J3"),
+            ResultRow("run_1", "TC-UNKNOWN", "weird", None, "r", None, None, [], 1, None),
+        ],
+        bugs=[BugRow("TC-SIG-001:b", "Sign up 500", "high", [], "", "", "", [], "", None, "draft")],
+        evidence=[EvidenceRow("ev_1", "screenshot", "ab" * 32, "s3://e/ab", "2026-11-20")],
+    )  # fmt: skip
+    html = build_evidence_pack(data)
+    assert "<script>" not in html and "&lt;script&gt;" in html and "gmail.com" not in html
+    assert "#FEE2E2" in html and "ab" * 32 in html and "Password must be 8 to 64" in html
+    assert "No results" in build_evidence_pack(_export())

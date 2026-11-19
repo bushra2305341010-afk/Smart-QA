@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (N23 evidence pack)
+**Done:** HTML evidence pack + endpoint + stored by the report stage. 1,593 tests, 100% coverage.
+**Decisions:** Served as an attachment, never rendered on the app origin (it contains untrusted page text, escaped anyway).
+**Next:** CLI (`saq`, Typer) for CI and the MCP preview (M12, shared).
+
 ### Week 4 — 2026-11-20 (M11 reporter)
 **Goal:** US-08/US-09: confirmed bugs filed with evidence after Gate 4; a run workbook.
 **Done:** Bug template, workbook, GitHub adapter, reporter worker, bugs API + Gate 4 + export.

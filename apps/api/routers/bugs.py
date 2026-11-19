@@ -23,6 +23,7 @@ from apps.api.reports import collect_run_export
 from apps.api.trackers import TrackerFactory
 from apps.orchestrator import engine
 from apps.orchestrator.machine import TransitionError
+from packages.exporters.evidence_pack import build_evidence_pack
 from packages.exporters.excel import build_workbook
 from packages.exporters.trackers.github import TrackerError
 
@@ -231,4 +232,19 @@ def export_run(run_id: str, ctx: ProjectContext = Depends(require("project.view"
         data,
         media_type=XLSX,
         headers={"Content-Disposition": f'attachment; filename="smart-qa-{run_id}.xlsx"'},
+    )
+
+
+@router.get("/projects/{project_id}/runs/{run_id}/evidence-pack")
+def evidence_pack(run_id: str, ctx: ProjectContext = Depends(require("project.view"))) -> Response:
+    """Self-contained HTML (no script), downloaded as a file so it never renders in the app."""
+    with ctx.session() as s:
+        run = s.get(Run, ids.decode("run", run_id, "Run"))
+        if run is None:
+            raise not_found("Run")
+        html = build_evidence_pack(collect_run_export(s, run))
+    return Response(
+        html,
+        media_type="text/html; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="evidence-{run_id}.html"'},
     )
