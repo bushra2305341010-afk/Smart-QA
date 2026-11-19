@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- M08b auth + projects API: register/login/refresh/logout, `/me`, personal API tokens (`apps/api/auth/`, `routers/auth.py`); Argon2id, per-account lockout with backoff, EdDSA access JWT (15 min), rotating refresh tokens with reuse detection, CSRF double-submit, security headers. RBAC matrix (docs/10 §4) + `require()` (404 for non-members, 403 with the missing permission). Projects, members, sources (+ chunks), environments (production needs Owner), write-only identities, audit with `?verify=true` (`routers/projects.py`). Error envelope and prefixed IDs for every route. Migration `0003` (`auth_session`, `api_token`, lockout columns). New setting `JWT_PRIVATE_KEY`.
+
+### Added
 - M08a database: SQLAlchemy 2 models for all 30 tables in docs/07 (`apps/api/db/models/`), Alembic migrations `0001` (schema) and `0002` (grants, forced row-level security, audit hash-chain and append-only triggers, HNSW indexes). Composite `(id, project_id)` foreign keys block cross-project links (ADR-011). `apps/api/db/session.py` (transaction-local project scope), `audit.py` (`record`, `verify_chain`), `outbox.py` (`enqueue`, `claim_unpublished`, `mark_published`). 26 new tests (21 integration on a throwaway `saq_test` DB), 100% coverage.
 
 ### Changed

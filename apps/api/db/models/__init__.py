@@ -1,5 +1,6 @@
 """All ORM models. Importing this package registers every table on `Base.metadata`."""
 
+from apps.api.db.models.auth import ApiToken, AuthSession
 from apps.api.db.models.core import (
     AppUser,
     Chunk,
@@ -26,8 +27,10 @@ from apps.api.db.models.plan import Plan, Segment, Step, TestCase
 from apps.api.db.models.run import Bug, Evidence, Result, Run, Verdict
 
 __all__ = [
+    "ApiToken",
     "AppUser",
     "AuditEvent",
+    "AuthSession",
     "Bug",
     "Chunk",
     "Edge",

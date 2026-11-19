@@ -15,8 +15,8 @@ gate / filing / MCP call ─▶ audit_event (hash chain)
 
 | Concern | Path |
 |---|---|
-| Auth | `apps/api/auth/` |
-| Permissions | `packages/policy/permissions.py` |
+| Auth | `apps/api/auth/` (service, deps, tokens, passwords) + `apps/api/routers/auth.py` |
+| Permissions | `apps/api/auth/permissions.py` (matrix), `apps/api/auth/deps.py:require` |
 | DB roles, RLS, composite FKs | `apps/api/alembic/versions/0002_rls_audit_chain.py`, `apps/api/db/base.py` (ADR-011) |
 | Project scope per transaction | `apps/api/db/session.py` (`project_session`, `set_scope`) |
 | Audit | `apps/api/db/audit.py` (`record`, `verify_chain`) + `audit_event_chain` trigger |
@@ -28,6 +28,9 @@ gate / filing / MCP call ─▶ audit_event (hash chain)
 | Symptom | Go to | What to fix |
 |---|---|---|
 | 403 for correct role | `permissions.py` matrix | Permission name mismatch |
+| 404 on a project the user belongs to | `require()` membership query / RLS `app.user_id` | Wrong prefix in ID, membership row missing |
+| 403 `CSRF_FAILED` from the web app | `deps.py:check_csrf` | Send `X-CSRF-Token` = `saq_csrf` cookie on POST/PATCH/DELETE |
+| Everyone logged out after refresh | `service.rotate` reuse detection | Two tabs refreshing with the same token; client must use the newest cookie |
 | Data from another project visible | **Critical** → RLS policy / `require()` | Missing `project_id` filter |
 | Audit verify fails | `audit_event_chain` trigger vs `audit.py:canonical` | Field order, `payload::text`, UTC µs timestamp format must match |
 | Row links to another project's row | Composite FK missing → `scoped_fk()` in model + migration | Never a single-column FK to a project table |

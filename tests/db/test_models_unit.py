@@ -7,11 +7,11 @@ from apps.api.db import models
 from apps.api.db.audit import GENESIS_HASH, canonical, chain_hash
 from apps.api.db.base import Base
 
-GLOBAL_TABLES = {"app_user"}
+GLOBAL_TABLES = {"app_user", "auth_session", "api_token"}
 
 
 def test_all_docs_tables_are_modelled():
-    assert len(models.__all__) == len(Base.metadata.tables) == 30
+    assert len(models.__all__) == len(Base.metadata.tables) == 32
 
 
 def test_every_table_except_user_is_project_scoped():
@@ -30,7 +30,7 @@ def test_references_between_scoped_tables_are_composite():
     for name, table in Base.metadata.tables.items():
         for fk in table.foreign_key_constraints:
             target = fk.referred_table.name
-            if target in {"project", "app_user"}:
+            if target in {"project", *GLOBAL_TABLES}:
                 assert len(fk.columns) == 1, (name, target)
             else:
                 assert {c.name for c in fk.columns} >= {"project_id"}, (name, target)

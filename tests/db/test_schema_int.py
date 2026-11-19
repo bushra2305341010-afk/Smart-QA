@@ -38,7 +38,7 @@ def test_every_table_has_rls_forced_with_a_policy(owner: sessionmaker[Session]) 
         ).all()
     found = {r.relname: r for r in rows}
     for name in Base.metadata.tables:
-        if name == "app_user":
+        if name in {"app_user", "auth_session", "api_token"}:
             continue
         row = found[name]
         assert row.relrowsecurity and row.relforcerowsecurity and row.policies == 1, name

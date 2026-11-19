@@ -2,22 +2,68 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, Response, status
+from collections.abc import Awaitable, Callable
 
+from fastapi import FastAPI, Request, Response, status
+from sqlalchemy.orm import Session, sessionmaker
+
+from apps.api import errors
+from apps.api.auth.tokens import JwtSigner
+from apps.api.db.session import make_engine, make_session_factory
 from apps.api.health import check_dependencies
-from apps.api.settings import get_settings
+from apps.api.routers import auth, projects
+from apps.api.settings import Settings, get_settings
 
 API_PREFIX = "/api/v1"
 
+# docs/10-authentication-and-security.md §7
+SECURITY_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src 'self'; img-src 'self' blob: data:; frame-src 'self'; connect-src 'self'; "
+        "object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+    ),
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
 
-def create_app() -> FastAPI:
-    """Build the FastAPI application."""
+
+def _signer(settings: Settings) -> JwtSigner:
+    if settings.jwt_private_key is not None:
+        return JwtSigner.from_pem(settings.jwt_private_key.get_secret_value())
+    if settings.saq_env == "prod":
+        raise RuntimeError("JWT_PRIVATE_KEY (Ed25519 PEM) is required when SAQ_ENV=prod")
+    return JwtSigner.ephemeral()
+
+
+def create_app(
+    session_factory: sessionmaker[Session] | None = None, jwt_signer: JwtSigner | None = None
+) -> FastAPI:
+    """Build the FastAPI application. Tests inject a session factory and signer."""
+    settings = get_settings()
     app = FastAPI(
         title="Smart Autonomous QA API",
         version="0.1.0",
         openapi_url=f"{API_PREFIX}/openapi.json",
         docs_url=f"{API_PREFIX}/docs",
     )
+    if session_factory is None and settings.database_url:
+        session_factory = make_session_factory(make_engine(settings.database_url))
+    app.state.session_factory = session_factory
+    app.state.jwt_signer = jwt_signer or _signer(settings)
+    errors.install(app)
+
+    @app.middleware("http")
+    async def security_headers(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        response = await call_next(request)
+        response.headers.update(SECURITY_HEADERS)
+        return response
+
+    app.include_router(auth.router, prefix=API_PREFIX)
+    app.include_router(projects.router, prefix=API_PREFIX)
 
     @app.get(f"{API_PREFIX}/healthz", tags=["ops"])
     async def healthz() -> dict[str, str]:
