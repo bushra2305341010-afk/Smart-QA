@@ -86,10 +86,11 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | GET | `/projects/{id}/plans/{pln}` | Viewer+ | Segments (riskiest first) with technique rows + reasons, counts, priority, cost estimate, totals |
 | PATCH | `/projects/{id}/plans/{pln}/segments/{seg}` | QA Lead | `{approved_count}` (0–500, draft only) |
 | POST | `/projects/{id}/plans/{pln}/approve` | QA Lead | **Gate 2**: 409 if total = 0 or graph no longer approved, 402 if estimate > remaining budget, 409 `STATE_CONFLICT` if the pipeline is not at plan approval |
-| POST | `/plans/{id}/design` | QA Lead+ | Generate cases → 202 |
-| GET | `/plans/{id}/cases` | Viewer+ | Cases (filter by status, segment) |
-| PATCH | `/cases/{id}` | Tester+ | Edit case |
-| POST | `/cases/approve` | QA Lead / Tester | **Gate 3** (batch ids) |
+| GET | `/projects/{id}/cases` | Viewer+ | Cases of the approved plan (`?review_status=`, `?segment_id=`, paginated), with steps and citation |
+| GET | `/projects/{id}/cases/{tc}` | Viewer+ | One case |
+| PATCH | `/projects/{id}/cases/{tc}` | Tester+ | Edit title / preconditions / steps / data of a pending case (→ `edited`); expected result is not editable |
+| POST | `/projects/{id}/cases/review` | Tester+ | `{case_ids, decision: approved|rejected}`; 422 `CITATION_UNVERIFIED` if any case to approve lacks a verified quote |
+| POST | `/projects/{id}/cases/approve` | Tester+ | **Gate 3**: 409 while any case is pending or none is approved |
 
 ### Runs, verdicts, bugs
 | Method | Path | Role | Purpose |

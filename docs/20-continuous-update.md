@@ -40,6 +40,13 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 3 — 2026-11-20 (Designer stage + Gate 3)
+**Goal:** US-05: test cases whose expected results cite the source; unverifiable ones are flagged, never approved.
+**Done:** Case contract, dedupe/codes, designer worker, case API, Gate 3; first end-to-end test from upload through Gates 1–3.
+**Tests:** 1,582 passed, 100% coverage.
+**Bugs found & fixed:** Gate 3 guard counted pending cases of superseded plans (would block forever) → scoped to the approved plan. Tests learned that the replay cache (correctly) answers identical requests and that cached answers ignore the budget (they cost nothing).
+**Next:** M11 reporter (bug drafts, Gate 4 API, Excel, evidence pack); compile/execute/judge belong to Stuti (M10) and the M05 verdict rules.
+
 ### Week 3 — 2026-11-20 (Planner stage + Gate 2)
 **Goal:** US-04: suggested counts with reasons from the approved graph; human sets approved counts at Gate 2.
 **Done:** `from_graph`, planner worker, plan API, Gate 2 with budget check, pricing module.

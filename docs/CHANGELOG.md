@@ -6,6 +6,12 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- Designer stage: case contract (`packages/contracts/case.py`), dedupe + case codes (`packages/cases`), `job.design` worker (approved facts only, exact count with one shortfall re-request, code quote check → `verified` or `unable_to_verify`), case API with edits, batch review (422 `CITATION_UNVERIFIED` for unverified cases) and Gate 3.
+
+### Changed
+- Gate 3 guard counts only cases of the approved plan and requires at least one approved case.
+
+### Added
 - Planner stage: `packages/planning/from_graph.py` (approved graph → `JourneySpec` + `RiskInputs`), `job.plan` worker (deterministic counts, no model call, cost estimate from settings prices), plan API with segment edits (feedback rows) and Gate 2 (refuses empty plans, stale graphs, estimates above the remaining budget; transition in the same transaction).
 
 ### Fixed
