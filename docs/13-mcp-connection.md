@@ -64,11 +64,16 @@ coding agent edits code
 ## 6. CLI (same capabilities)
 
 ```bash
-saq login --url http://localhost:8000
-saq plan --project prj_1 --journeys Checkout --json
-saq run  --project prj_1 --env local --wait --json
-saq report --run run_42 --xlsx out/run_42.xlsx
-saq mcp serve --project prj_1
+saq login --url http://localhost:8000 --token saq_pat_...   # or set SAQ_URL + SAQ_TOKEN
+saq status  --project prj_1 [--json]
+saq upload  --project prj_1 prd.pdf api.yaml
+saq event   --project prj_1 start            # retry, cancel, or a gate decision
+saq plan    --project prj_1 --json
+saq cases   --project prj_1
+saq bugs    --project prj_1
+saq report  --project prj_1 --run run_42 --xlsx out/run_42.xlsx --pack out/run_42.html
+saq audit verify --project prj_1             # exit 1 if the hash chain is broken
+# planned: saq run --wait (needs the M10 runs API), saq mcp serve (M12 MCP preview)
 ```
 Exit codes: 0 all pass, 1 confirmed fail, 2 blocked/unverified only, 3 tool error.
 

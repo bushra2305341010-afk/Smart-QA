@@ -27,7 +27,11 @@ dependencies = [
     "python-docx>=1.1",
     "pyyaml>=6.0",
     "openpyxl>=3.1",
+    "typer>=0.15",
 ]
+
+[project.scripts]
+saq = "apps.cli.main:main"
 
 [dependency-groups]
 dev = [
@@ -61,7 +65,7 @@ ignore = ["S101"]  # assert is fine in tests
 
 [tool.ruff.lint.flake8-bugbear]
 # FastAPI dependency markers are evaluated once at import, by design.
-extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "apps.api.auth.deps.require"]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "apps.api.auth.deps.require", "typer.Option", "typer.Argument"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "N802", "N803"]
