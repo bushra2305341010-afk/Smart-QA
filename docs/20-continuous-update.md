@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (T-105a TOTP)
+**Done:** TOTP (RFC vectors), AES-GCM secret box, MFA login step, enrol/disable, replay protection, lockout. 1,618 tests, 100% coverage.
+**Decisions:** No TOTP library: the algorithm is 30 lines and testable against RFC 6238 directly. MFA token is a separate JWT purpose, so it can never act as an access token (and vice versa).
+**Next:** T-204 embeddings or golden project 1 (T-004).
+
 ### Week 4 — 2026-11-20 (T-105c rate limits)
 **Done:** `apps/api/ratelimit.py` (fixed window, memory/Redis), login per IP, requests per user, job starts per project. 1,607 tests, 100% coverage.
 **Decisions:** Memory backend by default so the shared test Redis and single-process laptops behave predictably; Redis for multi-replica team mode.

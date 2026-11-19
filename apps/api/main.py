@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api import errors
 from apps.api.auth.tokens import JwtSigner
+from apps.api.crypto import SecretBox
 from apps.api.db.session import make_engine, make_session_factory
 from apps.api.health import check_dependencies
 from apps.api.ratelimit import MemoryRateLimiter, RateLimiter, RedisRateLimiter
@@ -81,6 +82,11 @@ def create_app(
     app.state.object_store = object_store or _store(settings)
     app.state.tracker_factory = trackers or tracker_factory(settings)
     app.state.rate_limiter = rate_limiter or _limiter(settings)
+    app.state.secret_box = (
+        SecretBox.from_b64(settings.saq_encryption_key.get_secret_value())
+        if settings.saq_encryption_key
+        else None
+    )
     errors.install(app)
 
     @app.middleware("http")

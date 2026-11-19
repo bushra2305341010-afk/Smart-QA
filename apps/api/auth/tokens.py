@@ -16,6 +16,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 ACCESS_TTL = timedelta(minutes=15)
+MFA_TTL = timedelta(minutes=5)
 REFRESH_TTL = timedelta(days=7)
 PAT_PREFIX = "saq_pat_"
 ISSUER = "smart-qa"
@@ -85,5 +86,32 @@ class JwtSigner:
                 options={"require": ["exp", "iat", "sub", "sid", "iss"]},
             )
             return AccessClaims(uuid.UUID(data["sub"]), uuid.UUID(data["sid"]))
+        except (jwt.PyJWTError, ValueError) as exc:
+            raise InvalidTokenError(str(exc)) from exc
+
+    def issue_mfa(self, user_id: uuid.UUID, now: datetime | None = None) -> str:
+        """Short-lived proof that the password step passed; only good for /auth/login/mfa."""
+        issued = now or datetime.now(UTC)
+        payload = {
+            "iss": ISSUER,
+            "sub": str(user_id),
+            "purpose": "mfa",
+            "iat": issued,
+            "exp": issued + MFA_TTL,
+        }
+        return jwt.encode(payload, self._private, algorithm=_ALG, headers={"kid": self.kid})
+
+    def verify_mfa(self, token: str) -> uuid.UUID:
+        try:
+            data = jwt.decode(
+                token,
+                self._public,
+                algorithms=[_ALG],
+                issuer=ISSUER,
+                options={"require": ["exp", "sub", "purpose"]},
+            )
+            if data["purpose"] != "mfa":
+                raise InvalidTokenError("not an MFA token")
+            return uuid.UUID(data["sub"])
         except (jwt.PyJWTError, ValueError) as exc:
             raise InvalidTokenError(str(exc)) from exc

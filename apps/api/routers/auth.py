@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api import ids
-from apps.api.auth import service
+from apps.api.auth import mfa, service
 from apps.api.auth.deps import (
     ACCESS_COOKIE,
     CSRF_COOKIE,
@@ -22,10 +22,18 @@ from apps.api.auth.deps import (
     get_factory,
     get_signer,
 )
-from apps.api.auth.tokens import ACCESS_TTL, REFRESH_TTL, AccessClaims, JwtSigner, new_secret
+from apps.api.auth.tokens import (
+    ACCESS_TTL,
+    REFRESH_TTL,
+    AccessClaims,
+    InvalidTokenError,
+    JwtSigner,
+    new_secret,
+)
+from apps.api.crypto import SecretBox
 from apps.api.db.models import AppUser, AuthSession, Membership, Project
 from apps.api.db.session import set_user_scope
-from apps.api.errors import unauthenticated
+from apps.api.errors import ApiError, unauthenticated
 from apps.api.ratelimit import enforce
 from apps.api.settings import get_settings
 
@@ -46,6 +54,25 @@ class UserOut(BaseModel):
 class SessionOut(BaseModel):
     user: UserOut
     csrf_token: str
+
+
+class MfaRequiredOut(BaseModel):
+    mfa_required: bool = True
+    mfa_token: str = Field(description="Send to /auth/login/mfa with the 6-digit code (5 min)")
+
+
+class MfaIn(BaseModel):
+    mfa_token: str = Field(min_length=1, max_length=2000)
+    code: str = Field(min_length=6, max_length=8)
+
+
+class CodeIn(BaseModel):
+    code: str = Field(min_length=6, max_length=8)
+
+
+class TotpSetupOut(BaseModel):
+    secret: str = Field(description="Shown once; add it to an authenticator app")
+    otpauth_uri: str
 
 
 class MembershipOut(BaseModel):
@@ -119,17 +146,13 @@ def register(body: Credentials, factory: sessionmaker[Session] = Depends(get_fac
     return _user_out(service.register(factory, body.email, body.password))
 
 
-@router.post("/auth/login")
-def login(
-    body: Credentials,
+def _start(
     request: Request,
     response: Response,
-    factory: sessionmaker[Session] = Depends(get_factory),
-    signer: JwtSigner = Depends(get_signer),
+    factory: sessionmaker[Session],
+    signer: JwtSigner,
+    user: AppUser,
 ) -> SessionOut:
-    ip = request.client.host if request.client else "unknown"
-    enforce(request.app.state.rate_limiter, f"login:{ip}", get_settings().rate_login_per_ip_per_min)
-    user = service.authenticate(factory, body.email, body.password)
     with factory.begin() as s:
         issued = service.start_session(
             s,
@@ -139,6 +162,83 @@ def login(
         )
     csrf = _set_cookies(response, signer, issued)
     return SessionOut(user=_user_out(user), csrf_token=csrf)
+
+
+def get_box(request: Request) -> SecretBox:
+    box: SecretBox | None = request.app.state.secret_box
+    if box is None:
+        raise ApiError(503, "UNAVAILABLE", "Set SAQ_ENCRYPTION_KEY to use two-factor sign-in")
+    return box
+
+
+@router.post("/auth/login")
+def login(
+    body: Credentials,
+    request: Request,
+    response: Response,
+    factory: sessionmaker[Session] = Depends(get_factory),
+    signer: JwtSigner = Depends(get_signer),
+) -> SessionOut | MfaRequiredOut:
+    ip = request.client.host if request.client else "unknown"
+    enforce(request.app.state.rate_limiter, f"login:{ip}", get_settings().rate_login_per_ip_per_min)
+    user = service.authenticate(factory, body.email, body.password)
+    if user.totp_enabled:
+        return MfaRequiredOut(mfa_token=signer.issue_mfa(user.id))
+    return _start(request, response, factory, signer, user)
+
+
+@router.post("/auth/login/mfa")
+def login_mfa(
+    body: MfaIn,
+    request: Request,
+    response: Response,
+    factory: sessionmaker[Session] = Depends(get_factory),
+    signer: JwtSigner = Depends(get_signer),
+) -> SessionOut:
+    ip = request.client.host if request.client else "unknown"
+    enforce(request.app.state.rate_limiter, f"login:{ip}", get_settings().rate_login_per_ip_per_min)
+    try:
+        user_id = signer.verify_mfa(body.mfa_token)
+    except InvalidTokenError:
+        raise unauthenticated("Sign in again") from None
+    user = mfa.complete_login(factory, get_box(request), user_id, body.code)
+    return _start(request, response, factory, signer, user)
+
+
+@router.post("/auth/totp/setup")
+def totp_setup(
+    request: Request,
+    principal: Principal = Depends(current_principal),
+    factory: sessionmaker[Session] = Depends(get_factory),
+) -> TotpSetupOut:
+    box = get_box(request)
+    with factory.begin() as s:
+        enrolment = mfa.setup(s, box, principal.user_id)
+    return TotpSetupOut(secret=enrolment.secret, otpauth_uri=enrolment.otpauth_uri)
+
+
+@router.post("/auth/totp/enable", status_code=204)
+def totp_enable(
+    body: CodeIn,
+    request: Request,
+    principal: Principal = Depends(current_principal),
+    factory: sessionmaker[Session] = Depends(get_factory),
+) -> None:
+    box = get_box(request)
+    with factory.begin() as s:
+        mfa.enable(s, box, principal.user_id, body.code)
+
+
+@router.post("/auth/totp/disable", status_code=204)
+def totp_disable(
+    body: CodeIn,
+    request: Request,
+    principal: Principal = Depends(current_principal),
+    factory: sessionmaker[Session] = Depends(get_factory),
+) -> None:
+    box = get_box(request)
+    with factory.begin() as s:
+        mfa.disable(s, box, principal.user_id, body.code)
 
 
 @router.post("/auth/refresh")

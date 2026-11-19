@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     database_url: str | None = None
     migration_database_url: str | None = None
     worker_database_url: str | None = None  # saq_worker login (system role, ADR-012)
+    saq_encryption_key: SecretStr | None = None  # base64 32 bytes; AES-256-GCM for secrets at rest
     jwt_private_key: SecretStr | None = None  # Ed25519 PEM; required when SAQ_ENV=prod
     redis_url: str | None = None
     s3_endpoint: str | None = None
