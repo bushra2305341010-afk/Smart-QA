@@ -23,7 +23,7 @@ make test-fast        # unit (py + web) ~1 min
 make test-<sector>    # e.g. test-judge, test-planner
 make test-affected    # changed packages + dependents
 make test-contract
-make test-int         # compose-based integration
+make test-int         # compose-based integration (docker compose up -d db; tests use a throwaway saq_test DB)
 make e2e              # Playwright UI tests
 make evals-small      # PR eval set (~10 min)
 make evals-full       # nightly

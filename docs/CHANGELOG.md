@@ -5,6 +5,12 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 
 ## [Unreleased]
 
+### Added
+- M08a database: SQLAlchemy 2 models for all 30 tables in docs/07 (`apps/api/db/models/`), Alembic migrations `0001` (schema) and `0002` (grants, forced row-level security, audit hash-chain and append-only triggers, HNSW indexes). Composite `(id, project_id)` foreign keys block cross-project links (ADR-011). `apps/api/db/session.py` (transaction-local project scope), `audit.py` (`record`, `verify_chain`), `outbox.py` (`enqueue`, `claim_unpublished`, `mark_published`). 26 new tests (21 integration on a throwaway `saq_test` DB), 100% coverage.
+
+### Changed
+- Postgres roles: Compose now runs as owner `saq_migrator` and creates runtime role `saq_app` (not superuser) via `deploy/postgres/init/01-roles.sql`; new `MIGRATION_DATABASE_URL`. Old dev volumes need `docker compose down -v` once. The `user` table is named `app_user` (`user` is reserved in PostgreSQL).
+
 ### Fixed
 - Local dev S3: the `minio/minio` image is no longer published on Docker Hub or quay.io; Compose now runs SeaweedFS 4.00 (`s3` service, port 8333, keys in `deploy/seaweedfs/s3.json`). Verified with boto3: bucket create, put, head, get (hash match), list, presigned GET, wrong-key rejection (ADR-010).
 - Removed the Starlette TestClient warning filter (T-007): the official SDK brings `httpx2`, so tests run with warnings as errors and no exceptions.

@@ -15,7 +15,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
 | M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
-| M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | todo — **next: M08a** | |
+| M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | M08a review — **next: M08b** | M08a #12 |
 | M09 | Ingest + Product Understanding Graph (analyst, explorer) | Nadia | todo | |
 | M10 | Runner + Judge worker | Stuti | todo | |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | todo | |

@@ -15,17 +15,18 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_USER: saq_app
+          POSTGRES_USER: saq_migrator
           POSTGRES_PASSWORD: saq_dev_password
           POSTGRES_DB: saq
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U saq_app -d saq" --health-interval 5s --health-retries 20
+          --health-cmd "pg_isready -U saq_migrator -d saq" --health-interval 5s --health-retries 20
       redis:
         image: redis:7-alpine
         ports: ["6379:6379"]
     env:
       DATABASE_URL: postgresql+psycopg://saq_app:saq_dev_password@localhost:5432/saq
+      MIGRATION_DATABASE_URL: postgresql+psycopg://saq_migrator:saq_dev_password@localhost:5432/saq
       REDIS_URL: redis://localhost:6379/0
     steps:
       - uses: actions/checkout@v4

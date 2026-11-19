@@ -32,7 +32,7 @@ git clone git@github.com:<org>/smart-autonomous-qa.git && cd smart-autonomous-qa
 cp .env.example .env
 # edit .env (see §4)
 docker compose up -d --build
-docker compose exec api alembic upgrade head
+docker compose exec api alembic upgrade head   # uses MIGRATION_DATABASE_URL (owner role)
 docker compose exec api python -m scripts.seed --demo
 open http://localhost:5173
 ```
@@ -43,6 +43,8 @@ Login: `owner@demo.local` / password printed by the seed script.
 | Variable | Example | Notes |
 |---|---|---|
 | `SAQ_ENV` | `dev` | dev / test / prod |
+| `DATABASE_URL` | `postgresql+psycopg://saq_app:…@localhost:5432/saq` | Runtime role: DML only, row-level security applies |
+| `MIGRATION_DATABASE_URL` | `postgresql+psycopg://saq_migrator:…@localhost:5432/saq` | Owner role for Alembic and integration tests. A DB volume created before 2026-11-20 has `saq_app` as superuser: run `docker compose down -v` once (ADR-011) |
 | `DATABASE_URL` | `postgresql+psycopg://saq_app:***@db:5432/saq` | |
 | `REDIS_URL` | `redis://redis:6379/0` | |
 | `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY` / `S3_SECRET_KEY` | `http://localhost:8333` / `evidence` / `saq_s3` / dev password | Local SeaweedFS keys live in `deploy/seaweedfs/s3.json`; companies point these at their own S3 |
@@ -78,7 +80,7 @@ Generate secrets: `python -c "import secrets,base64;print(base64.b64encode(secre
 ```bash
 docker compose up -d db redis s3        # infra only
 uv sync                                  # Python deps
-uv run alembic upgrade head
+uv run alembic upgrade head              # needs MIGRATION_DATABASE_URL (see .env.example)
 uv run uvicorn apps.api.main:app --reload
 uv run celery -A apps.workers worker -Q q.understand,q.plan,q.design,q.judge,q.report -l info
 uv run python -m apps.orchestrator

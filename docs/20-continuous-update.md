@@ -40,6 +40,13 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 1 — 2026-11-20 (M08a database)
+**Goal:** Persist everything in docs/07 with project isolation and a tamper-evident audit ledger.
+**Done:** 30 SQLAlchemy models, Alembic `0001` (schema) + `0002` (grants, forced RLS on 29 tables, audit chain + append-only triggers, HNSW indexes). Composite `(id, project_id)` FKs, transaction-local project scope, `audit.verify_chain`, outbox helpers. Separate `saq_migrator` / `saq_app` roles (ADR-011).
+**Tests:** 185 passed (26 new: 5 unit, 21 integration on a throwaway `saq_test` DB), 100% line+branch coverage; ruff, mypy --strict and `alembic check` clean; API image runs `alembic`.
+**Bugs found & fixed:** (1) Dev Compose ran the app as the bootstrap superuser, which silently bypasses RLS and cannot be demoted → owner/app role split; old volumes must be recreated. (2) Postgres checks FKs without RLS, so a child row could reference another project's parent → composite FKs + invariant test. (3) Alembic 1.20 deprecation warning (no `path_separator`) failed `-W error` runs → set `path_separator = os`.
+**Next:** M08b auth + RBAC + projects/sources/environments API; T-603 replay cache/`model_call` recorder on the new tables.
+
 ### Week 0 — 2026-11-17 (Docker verification + ADR-010)
 **Goal:** Verify `docker compose up` from M01 now that Docker Desktop runs.
 **Done:** API, Postgres + pgvector and Redis start; `/readyz` ready; API runs as uid 10001. CI fixed (pnpm esbuild approval, gitleaks allowlist for fake fixtures). PRs moved to the main repo as Lokkhita (#6–#10, stacked), Claude attribution removed.
