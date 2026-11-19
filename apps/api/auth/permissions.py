@@ -24,6 +24,7 @@ Permission = Literal[
     "bug.confirm",
     "heal.approve",
     "env.mark_production",
+    "pipeline.manage",
 ]
 
 _LEAD: frozenset[Permission] = frozenset(
@@ -38,6 +39,7 @@ _LEAD: frozenset[Permission] = frozenset(
         "run.start",
         "bug.confirm",
         "heal.approve",
+        "pipeline.manage",
     }
 )
 

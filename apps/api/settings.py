@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     saq_env: Literal["dev", "test", "prod"] = "dev"
     database_url: str | None = None
     migration_database_url: str | None = None
+    worker_database_url: str | None = None  # saq_worker login (system role, ADR-012)
     jwt_private_key: SecretStr | None = None  # Ed25519 PEM; required when SAQ_ENV=prod
     redis_url: str | None = None
     s3_endpoint: str | None = None

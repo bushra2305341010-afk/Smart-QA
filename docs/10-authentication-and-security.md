@@ -56,6 +56,7 @@ sequenceDiagram
 | Gate 4 confirm & file bug | ✔ | ✔ | | | |
 | Approve heal diff | ✔ | ✔ | | | |
 | Mark env production-safe | ✔ | | | | |
+| Start / retry / cancel pipeline (`pipeline.manage`) | ✔ | ✔ | | | |
 | View everything | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 Implementation:

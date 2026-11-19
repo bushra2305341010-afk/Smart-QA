@@ -6,6 +6,12 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- M08c orchestrator: explicit state machine (`apps/orchestrator/machine.py`, every stage × event tested), `engine.transition` (per-project lock; state + audit + outbox in one transaction), server-side gate guards (approved graph, approved plan, no pending case, no bug draft; Gate 3 auto-skip only with `gate3_auto`), monthly budget guard for model stages, retry/cancel/restart, outbox relay to Redis streams, crash recovery that re-dispatches with the same job key and `resume_after_case_id`. `python -m apps.orchestrator` + Compose `orchestrator` service. Pipeline API (`GET /projects/{id}/pipeline`, `POST …/pipeline/events`). Migration `0004` + ADR-012 (`saq_system` role, `saq_worker` login). New permission `pipeline.manage`, setting `WORKER_DATABASE_URL`.
+
+### Fixed
+- Outbox events written in one transaction shared `now()` and could be relayed out of order; `enqueue` now stamps the wall clock.
+
+### Added
 - M08b auth + projects API: register/login/refresh/logout, `/me`, personal API tokens (`apps/api/auth/`, `routers/auth.py`); Argon2id, per-account lockout with backoff, EdDSA access JWT (15 min), rotating refresh tokens with reuse detection, CSRF double-submit, security headers. RBAC matrix (docs/10 §4) + `require()` (404 for non-members, 403 with the missing permission). Projects, members, sources (+ chunks), environments (production needs Owner), write-only identities, audit with `?verify=true` (`routers/projects.py`). Error envelope and prefixed IDs for every route. Migration `0003` (`auth_session`, `api_token`, lockout columns). New setting `JWT_PRIVATE_KEY`.
 
 ### Added

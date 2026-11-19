@@ -31,7 +31,9 @@ stateDiagram-v2
     Report --> [*]
 ```
 
-Stored in table `pipeline_state (project_id, run_id, stage, status, entered_at, payload_ref)`. Every transition writes an `audit_event` and an SSE event.
+Stored in table `pipeline_state (project_id, run_id, stage, status, entered_at, payload_ref)` as append-only history (newest row = current). Every transition writes an `audit_event` and an outbox `stage.changed` event (SSE), and entering a work stage also writes `job.<stage>`, all in one transaction (`apps/orchestrator/engine.py:transition`).
+
+**Implementation (M08c).** The table above is `TRANSITIONS` in `apps/orchestrator/machine.py`; each rule names the actor (`user` or `system`), the permission and the gate. Statuses: `queued` → `running` (worker started) → next stage, or `failed` (`retry` re-dispatches, attempt + 1); gate stages are `awaiting_approval`; `cancel` ends any active pipeline; `start` begins a new one after `done`/`cancelled`. Gate 3 may be skipped only by the system event `cases_auto_approved` when project settings have `gate3_auto: true`. Guards (`guards.py`) check the database: Gate 1 approved graph version, Gate 2 approved plan on an approved graph, Gate 3 no pending case, Gate 4 no bug draft; model stages (understand, plan, design, judge) need month spend < budget (`402 BUDGET_EXCEEDED`).
 
 ## 3. Stage table
 

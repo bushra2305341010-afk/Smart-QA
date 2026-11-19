@@ -20,6 +20,7 @@ dependencies = [
     "argon2-cffi>=23.1",
     "pyjwt[crypto]>=2.10",
     "email-validator>=2.2",
+    "redis>=5.2",
 ]
 
 [dependency-groups]
@@ -83,4 +84,4 @@ filterwarnings = ["error"]
 [tool.coverage.run]
 source = ["apps", "packages"]
 branch = true
-omit = ["apps/api/alembic/*"]
+omit = ["apps/api/alembic/*", "apps/*/__main__.py"]

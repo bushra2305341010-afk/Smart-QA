@@ -40,6 +40,13 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 1 — 2026-11-20 (M08c orchestrator)
+**Goal:** Drive the pipeline with gates enforced in the server, reliable job dispatch and resume after a crash.
+**Done:** State machine table, engine, DB-backed gate and budget guards, outbox relay to Redis streams, recovery with stable job keys and resume point, pipeline API, `saq_system` role (ADR-012), orchestrator process + Compose service.
+**Tests:** 1,517 passed (1,269 table cases for every stage × status × event), 100% line+branch coverage; real process relayed the test DB's outbox to Redis as `saq_worker`.
+**Bugs found & fixed:** (1) Several outbox rows in one transaction share `now()` → relay order not guaranteed → wall-clock `created_at`. (2) Permission was checked after the stage, so a Tester got 409 instead of 403 → actor/permission first. (3) SQLAlchemy 2.1 deprecates `.distinct(cols)` → `postgresql.distinct_on`.
+**Next:** T-603 (Postgres replay cache + `model_call` recorder), then M09 ingest + graph.
+
 ### Week 1 — 2026-11-20 (M08b auth + projects API)
 **Goal:** Sign-in, roles and the first project endpoints, all enforced server-side.
 **Done:** Auth (Argon2id, lockout, EdDSA access JWT, rotating refresh with reuse detection, CSRF, API tokens), RBAC matrix + `require()`, projects/members/sources/chunks/environments/identities/audit endpoints, error envelope, prefixed IDs, security headers, migration 0003.

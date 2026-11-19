@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import func, select, update
@@ -19,8 +20,14 @@ from apps.api.db.models import Outbox
 def enqueue(
     session: Session, *, project_id: uuid.UUID, topic: str, payload: dict[str, Any]
 ) -> Outbox:
-    """Add an event to the caller's transaction. It is only visible if that transaction commits."""
-    event = Outbox(project_id=project_id, topic=topic, payload=payload)
+    """Add an event to the caller's transaction. It is only visible if that transaction commits.
+
+    `created_at` is the wall clock, not the transaction start, so several events written in one
+    transaction keep their order when relayed.
+    """
+    event = Outbox(
+        project_id=project_id, topic=topic, payload=payload, created_at=datetime.now(UTC)
+    )
     session.add(event)
     session.flush()
     return event

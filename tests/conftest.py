@@ -74,6 +74,26 @@ def app_engine(alembic_cfg: Config, test_url: str) -> Iterator[Engine]:
     engine.dispose()
 
 
+@pytest.fixture(scope="session")
+def system_engine(alembic_cfg: Config, test_url: str) -> Iterator[Engine]:
+    """Connections that act as the system role (outbox relay, recovery; ADR-012)."""
+    engine = create_engine(test_url)
+
+    @event.listens_for(engine, "connect")
+    def _as_system(dbapi_conn, _record):  # type: ignore[no-untyped-def]
+        with dbapi_conn.cursor() as cur:
+            cur.execute("SET ROLE saq_system")
+        dbapi_conn.commit()
+
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture
+def system(system_engine: Engine) -> sessionmaker[Session]:
+    return make_session_factory(system_engine)
+
+
 @pytest.fixture
 def owner(owner_engine: Engine) -> sessionmaker[Session]:
     return make_session_factory(owner_engine)
