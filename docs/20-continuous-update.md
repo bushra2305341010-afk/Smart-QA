@@ -40,6 +40,14 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 3 — 2026-11-20 (M09b Product Understanding Graph)
+**Goal:** US-02/US-03: a reviewable graph whose rules all cite a verified quote, with conflicts and vague requirements surfaced.
+**Done:** Graph contract and package, analyst worker, gateway factory, graph API, node review with feedback, Gate 1.
+**Tests:** 1,562 passed; scripted-model end-to-end: 2 sources → conflict citing both, vague-word Question, invented rule demoted, Gate 1 blocked then approved, pipeline at `plan`; 100% coverage.
+**Bugs found & fixed:** (1) Citation line showed the chunk's first line, not the quote's → line = chunk line + newlines before the quote. (2) Approving a second draft while the pipeline was elsewhere must roll back the version flip too → approve and transition share one transaction (tested).
+**Decisions:** One schema-bound call + code quote check instead of two model calls; graph routes nested under the project.
+**Next:** M11 reporter (bug drafts, Excel, evidence pack), M09c explorer after M03 policy lands.
+
 ### Week 2 — 2026-11-20 (M09a ingest)
 **Goal:** US-01: upload documents and get citable chunks with page and line.
 **Done:** Upload API, magic-byte detection, PDF/DOCX/MD/OpenAPI parsers, content-addressed storage, ingest worker, Redis Streams consumer (ADR-013), worker process + Compose service, migration 0006.

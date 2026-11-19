@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     )
     local_model_url: str | None = None
     local_model_name: str = "qwen3:8b"
+    # USD per million tokens for SAQ_DEFAULT_MODEL; verify on the provider's price page.
+    model_price_input_per_mtok: float | None = None
+    model_price_output_per_mtok: float | None = None
+    model_price_cache_read_per_mtok: float | None = None
     saq_telemetry: Literal["off", "on"] = "off"
     saq_budget_monthly_usd: float = Field(default=20.0, ge=0)
     log_level: str = "info"

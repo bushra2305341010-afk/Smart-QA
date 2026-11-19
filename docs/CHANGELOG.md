@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- M09b Product Understanding Graph: extraction contract (`packages/contracts/graph.py`), `packages/graph` (merge by type + label, code quote verification that demotes uncited rules to Questions, conflict finder citing both sources, ambiguity Questions), Analyst worker on `job.understand` through the ModelGateway (`analyst@1.0.0`), gateway wiring from settings (`MODEL_PRICE_*` required for external models), graph API with node review (feedback rows for learning) and Gate 1 approve (refuses with pending node IDs, supersedes the old version, moves the pipeline in the same transaction).
+
+### Added
 - M09a ingest: `POST /projects/{id}/sources/upload` (≤ 50 MB, type from magic bytes, sha256 dedupe), parsers for PDF (pypdf), DOCX (paragraphs + tables in order), Markdown and OpenAPI JSON/YAML (stable text rendering), content-addressed object store (`apps/api/storage.py`, S3 + in-memory), ingest worker (normalised text stored, chunks with offsets/page/line, failed files flagged with a reason, `sources_parsed` / `job_failed` transitions), Redis Streams job consumer with consumer groups, idempotent `job_key`, reclaim of failed jobs (ADR-013), `python -m apps.workers` + Compose `worker` service. Migration `0006`.
 
 ### Changed

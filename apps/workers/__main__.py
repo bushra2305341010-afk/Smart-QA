@@ -1,4 +1,4 @@
-"""`uv run python -m apps.workers`: run the job consumers (ingest for now)."""
+"""`uv run python -m apps.workers`: run the job consumers (ingest, understand)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,9 @@ import redis
 from apps.api.db.session import make_engine, make_session_factory
 from apps.api.settings import get_settings
 from apps.api.storage import S3ObjectStore
-from apps.workers.consumer import JobConsumer
+from apps.workers.analyst import handle_understand_job
+from apps.workers.consumer import Handler, JobConsumer
+from apps.workers.gateway import gateway_factory
 from apps.workers.ingest import handle_ingest_job
 
 
@@ -29,18 +31,26 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
         settings.s3_access_key or "",
         settings.s3_secret_key.get_secret_value() if settings.s3_secret_key else "",
     )
-    consumer = JobConsumer(
-        redis.Redis.from_url(settings.redis_url),
-        group="ingest",
-        consumer=socket.gethostname(),
-        handlers={"job.ingest": functools.partial(handle_ingest_job, factory, store)},
-    )
-    consumer.ensure_group()
+    client = redis.Redis.from_url(settings.redis_url)
+    make_gateway = gateway_factory(factory, settings)
+    handlers: dict[str, dict[str, Handler]] = {
+        "ingest": {"job.ingest": functools.partial(handle_ingest_job, factory, store)},
+        "understand": {
+            "job.understand": functools.partial(handle_understand_job, factory, store, make_gateway)
+        },
+    }
+    consumers = [
+        JobConsumer(client, group=group, consumer=socket.gethostname(), handlers=h)
+        for group, h in handlers.items()
+    ]
+    for consumer in consumers:
+        consumer.ensure_group()
     stop = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
     signal.signal(signal.SIGINT, lambda *_: stop.set())
     while not stop.is_set():
-        consumer.poll_once()
+        for consumer in consumers:
+            consumer.poll_once(block_ms=200)
 
 
 if __name__ == "__main__":  # pragma: no cover
