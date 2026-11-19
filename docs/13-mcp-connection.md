@@ -75,7 +75,8 @@ saq report  --project prj_1 --run run_42 --xlsx out/run_42.xlsx --pack out/run_4
 saq audit verify --project prj_1             # exit 1 if the hash chain is broken
 # planned: saq run --wait (needs the M10 runs API), saq mcp serve (M12 MCP preview)
 ```
-Exit codes: 0 all pass, 1 confirmed fail, 2 blocked/unverified only, 3 tool error.
+Implemented in `apps/cli/main.py` (Typer, console script `saq`). The token is a personal API token (`POST /tokens`); `saq login` checks it against `/me` and stores it in `~/.config/saq/config.json` with mode 0600 (`SAQ_CONFIG` overrides the path). API errors print `error <CODE>: <message>` and exit 1.
+Planned exit codes for `saq run --wait`: 0 all pass, 1 confirmed fail, 2 blocked/unverified only, 3 tool error.
 
 ## 7. Using external MCP servers inside Smart QA (v2)
 

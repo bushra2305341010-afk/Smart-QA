@@ -21,7 +21,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | F11 | Designer stage: cited cases, review, Gate 3 | Nadia | review | #19 |
 | M10 | Runner + Judge worker | Stuti | todo | |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | review | #20, evidence pack #21 |
-| M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | todo | |
+| M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | CLI review (#22); MCP preview next; UI is Stuti | #22 |
 
 ## Week 0 — Setup
 

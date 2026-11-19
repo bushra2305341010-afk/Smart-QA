@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (CLI)
+**Done:** `saq` CLI with JSON output and API-error exit codes; tested through Typer's runner against the real API. 1,597 tests, 100% coverage.
+**Bugs found & fixed:** A doc-update script asserted on a heading that did not exist and stopped after the commit step; docs followed in a second commit. Lesson: run doc edits before `git commit`, in a separate step.
+**Next:** MCP preview (read-only tools: plan_tests, get_verdicts, get_brief; runs disabled by default).
+
 ### Week 4 — 2026-11-20 (N23 evidence pack)
 **Done:** HTML evidence pack + endpoint + stored by the report stage. 1,593 tests, 100% coverage.
 **Decisions:** Served as an attachment, never rendered on the app origin (it contains untrusted page text, escaped anyway).
