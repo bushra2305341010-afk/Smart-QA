@@ -40,6 +40,13 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (MCP preview)
+**Goal:** P5: coding agents can ask Smart QA which journeys a change touches and what to test, without any power over gates.
+**Done:** Brief endpoint, impact analysis, MCP server with three read-only tools over the API, `saq mcp serve`; real stdio handshake checked (initialize + tools/list).
+**Tests:** 1,602 passed, 100% coverage.
+**Bugs found & fixed:** (1) Empty-string membership (`"" in "+-"`) made blank lines "changed". (2) MCP SDK 2.x renamed FastMCP → `MCPServer` and uses snake_case annotation fields.
+**Next:** waiting on Stuti's M03 / M05 / M10 to connect compile → execute → judge; meanwhile T-105a TOTP and T-105c rate limits are open shared tasks.
+
 ### Week 4 — 2026-11-20 (CLI)
 **Done:** `saq` CLI with JSON output and API-error exit codes; tested through Typer's runner against the real API. 1,597 tests, 100% coverage.
 **Bugs found & fixed:** A doc-update script asserted on a heading that did not exist and stopped after the commit step; docs followed in a second commit. Lesson: run doc edits before `git commit`, in a separate step.

@@ -6,6 +6,12 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- MCP preview (P5): `apps/mcp/server.py` with read-only tools `get_brief`, `plan_tests`, `understand_change` (diff → affected journeys with reasons), `saq mcp serve` (stdio); product brief `GET /projects/{id}/brief` (`packages/graph/brief.py`), change impact `packages/graph/impact.py`. MCP Python SDK 2.x.
+
+### Fixed
+- Diff parsing: `"" in "+-"` is true in Python, so blank lines were treated as changed lines; prefixes are now compared as a tuple.
+
+### Added
 - `saq` CLI (FR-17, `apps/cli/main.py`, Typer): `login` (token checked, config file 0600), `status`, `upload`, `event`, `plan`, `cases`, `bugs`, `report` (workbook / evidence pack), `audit verify` (exit 1 if broken); `--json` everywhere; `SAQ_URL` / `SAQ_TOKEN` env.
 
 ### Added

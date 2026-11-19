@@ -16,6 +16,8 @@ Code: `apps/mcp/` (official MCP Python SDK). Transport: `stdio` (local) and stre
 
 Not exposed: approving gates, filing bugs, changing settings. **Humans keep the gates.**
 
+**Implemented (MCP preview, `apps/mcp/server.py`, MCP Python SDK 2.x `MCPServer`, stdio via `saq mcp serve`):** `get_brief`, `plan_tests`, `understand_change` — all annotated read-only. The server calls the Smart QA API with the user's API token (a `read`-scoped token is enough), so roles, row-level security and budgets are enforced by the API. Document-derived text is returned inside `<untrusted_data>`. `understand_change` matches changed diff lines against approved Endpoint / Field / Screen / Step / Rule / Journey labels (all words of the label or `subject` in one line) and traces them to journeys with the matching line as the reason (`packages/graph/impact.py`). `get_verdicts` and `run_journeys` wait for the M10 runs API; resources and the HTTP transport come later. Per-call audit events are not written yet.
+
 ## 2. Resources
 
 | URI | Content |
