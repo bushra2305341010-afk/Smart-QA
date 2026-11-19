@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- M11 reporter: bug drafts from Fail verdicts (`packages/exporters/bug.py`, redacted, quote-cited), six-sheet run workbook (`packages/exporters/excel.py`: frozen headers, autofilter, verdict colours, formula-injection escaping, redaction), GitHub tracker adapter with duplicate search, bugs API (edit, duplicates, confirm, dismiss, Gate 4, `export.xlsx`), `job.report` worker (workbook to object storage, filing confirmed bugs). Setting `GITHUB_TOKEN`.
+
+### Added
 - Designer stage: case contract (`packages/contracts/case.py`), dedupe + case codes (`packages/cases`), `job.design` worker (approved facts only, exact count with one shortfall re-request, code quote check → `verified` or `unable_to_verify`), case API with edits, batch review (422 `CITATION_UNVERIFIED` for unverified cases) and Gate 3.
 
 ### Changed

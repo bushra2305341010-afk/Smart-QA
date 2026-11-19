@@ -11,9 +11,10 @@ from apps.api import errors
 from apps.api.auth.tokens import JwtSigner
 from apps.api.db.session import make_engine, make_session_factory
 from apps.api.health import check_dependencies
-from apps.api.routers import auth, cases, costs, graph, pipeline, plans, projects
+from apps.api.routers import auth, bugs, cases, costs, graph, pipeline, plans, projects
 from apps.api.settings import Settings, get_settings
 from apps.api.storage import ObjectStore, S3ObjectStore
+from apps.api.trackers import TrackerFactory, tracker_factory
 
 API_PREFIX = "/api/v1"
 
@@ -53,6 +54,7 @@ def create_app(
     session_factory: sessionmaker[Session] | None = None,
     jwt_signer: JwtSigner | None = None,
     object_store: ObjectStore | None = None,
+    trackers: TrackerFactory | None = None,
 ) -> FastAPI:
     """Build the FastAPI application. Tests inject a session factory and signer."""
     settings = get_settings()
@@ -67,6 +69,7 @@ def create_app(
     app.state.session_factory = session_factory
     app.state.jwt_signer = jwt_signer or _signer(settings)
     app.state.object_store = object_store or _store(settings)
+    app.state.tracker_factory = trackers or tracker_factory(settings)
     errors.install(app)
 
     @app.middleware("http")
@@ -84,6 +87,7 @@ def create_app(
     app.include_router(graph.router, prefix=API_PREFIX)
     app.include_router(plans.router, prefix=API_PREFIX)
     app.include_router(cases.router, prefix=API_PREFIX)
+    app.include_router(bugs.router, prefix=API_PREFIX)
 
     @app.get(f"{API_PREFIX}/healthz", tags=["ops"])
     async def healthz() -> dict[str, str]:

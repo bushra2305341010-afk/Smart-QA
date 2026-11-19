@@ -100,11 +100,13 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | GET | `/runs/{id}/results` | Viewer+ | Per-case results |
 | GET | `/results/{id}/evidence` | Viewer+ | Signed evidence URLs + hashes |
 | POST | `/results/{id}/heal/approve` | QA Lead | Accept locator diff |
-| GET | `/runs/{id}/bugs` | Viewer+ | Bug drafts |
-| PATCH | `/bugs/{id}` | Tester+ | Edit draft |
-| POST | `/bugs/{id}/confirm` | QA Lead | **Gate 4** + file to tracker |
-| POST | `/bugs/{id}/dismiss` | QA Lead | Reject (feeds project rules) |
-| GET | `/runs/{id}/export.xlsx` | Viewer+ | Excel workbook |
+| GET | `/projects/{id}/bugs` | Viewer+ | Bugs (`?status=`, `?run_id=`) |
+| PATCH | `/projects/{id}/bugs/{bug}` | Tester+ | Edit a draft's title / severity / body |
+| GET | `/projects/{id}/bugs/{bug}/duplicates` | Viewer+ | Similar open tracker issues + same-case bugs (502 `UPSTREAM_ERROR` if the tracker fails) |
+| POST | `/projects/{id}/bugs/{bug}/confirm` | QA Lead | Confirm a draft |
+| POST | `/projects/{id}/bugs/{bug}/dismiss` | QA Lead | `{reason}`; a learning label |
+| POST | `/projects/{id}/bugs/approve` | QA Lead | **Gate 4**: 409 with `bug_ids` while drafts remain; the report stage then files confirmed bugs |
+| GET | `/projects/{id}/runs/{run}/export.xlsx` | Viewer+ | Six-sheet workbook |
 | GET | `/runs/{id}/evidence-pack` | Viewer+ | HTML evidence pack |
 
 ### Pipeline
