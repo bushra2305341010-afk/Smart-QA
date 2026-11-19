@@ -14,7 +14,7 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all` to see which of PRs #6–#11 were merged.
    - If merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
    - If not merged: branch from the top of the stack (see the latest Status line for the branch). Note: PR #10 was merged into the M06 branch (not main); the rest of the stack is open.
-3. **Next task:** shared open items: T-105c rate limits (Redis), T-105a TOTP, T-204 embeddings, golden project 1 (T-004). The runner/judge chain is Stuti's (M03, M05, M10); when it lands, wire `draft_bugs` before `verdicts_ready` and add MCP `get_verdicts`.
+3. **Next task:** shared open items: T-105a TOTP, T-204 embeddings, golden project 1 (T-004). The runner/judge chain is Stuti's (M03, M05, M10); when it lands, wire `draft_bugs` before `verdicts_ready` and add MCP `get_verdicts`.
    - MCP SDK is 2.x: `from mcp.server.mcpserver import MCPServer` (FastMCP was renamed). Compile/execute/judge are Stuti's (M10 runner, M05 verdicts): her judge must call `apps.workers.reporter.draft_bugs` before `verdicts_ready`. M09c explorer waits for her M03 policy.
    - Gotcha: in a user-scoped session RLS shows every project the user belongs to in `project`/`membership`; always filter those by project id. Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
 4. Before each PR: `make test` (ruff, mypy --strict, pytest; keep 100% coverage on `packages/`), web `pnpm test && pnpm typecheck`, update docs/CHANGELOG/task board/dev log/this file, push branch to `upstream`, open PR with `--base <previous module branch>`.
@@ -87,6 +87,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-20: T-105c rate limits done (PR #24, branch `feat/T105c-rate-limits`, base `feat/M12-mcp-preview`). 1,607 tests.
 - 2026-11-20: MCP preview done (PR #23, branch `feat/M12-mcp-preview`, base `feat/M12-cli`). 1,602 tests, 100% coverage.
 - 2026-11-20: `saq` CLI done (PR #22, branch `feat/M12-cli`, base `feat/N23-evidence-pack`). 1,597 tests.
 - 2026-11-20: N23 evidence pack done (PR #21, branch `feat/N23-evidence-pack`, base `feat/M11-reporter`). 1,593 tests.

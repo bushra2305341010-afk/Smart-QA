@@ -14,7 +14,7 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | Long jobs | Return `202 Accepted` + `{ job_id }`; progress over SSE |
 | Idempotency | `Idempotency-Key` header on all POSTs that start jobs |
 | Versioning | Breaking change → `/api/v2`; additive changes allowed in v1 |
-| Rate limits | 600 req/min per user, 30 job starts/min per project; `429` with `Retry-After` |
+| Rate limits | 600 req/min per user, 30 job starts/min per project (`start`, `retry`, `graph_rejected`, `plan_edited`), 20 logins/min per IP; `429 RATE_LIMITED` with `Retry-After` (`apps/api/ratelimit.py`; memory backend per process, `RATE_LIMIT_BACKEND=redis` shares counters across replicas) |
 
 ## 2. Error format
 

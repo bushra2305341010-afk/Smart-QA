@@ -9,19 +9,21 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from apps.api import ids
 from apps.api.auth.deps import ProjectContext, require
 from apps.api.db.models import PipelineState
 from apps.api.errors import ApiError
+from apps.api.ratelimit import enforce
 from apps.api.settings import get_settings
 from apps.orchestrator import engine
 from apps.orchestrator.guards import GuardError
 from apps.orchestrator.machine import USER_EVENTS, TransitionError
 
 router = APIRouter(tags=["pipeline"])
+JOB_STARTS = frozenset({"start", "retry", "graph_rejected", "plan_edited"})
 
 
 class StateOut(BaseModel):
@@ -53,13 +55,21 @@ def get_pipeline(ctx: ProjectContext = Depends(require("project.view"))) -> Pipe
 
 
 @router.post("/projects/{project_id}/pipeline/events")
-def send_event(body: EventIn, ctx: ProjectContext = Depends(require("project.view"))) -> StateOut:
+def send_event(
+    body: EventIn, request: Request, ctx: ProjectContext = Depends(require("project.view"))
+) -> StateOut:
     if body.event not in USER_EVENTS:
         raise ApiError(
             400,
             "VALIDATION_ERROR",
             "Unknown or system-only event",
             {"allowed": sorted(USER_EVENTS)},
+        )
+    if body.event in JOB_STARTS:
+        enforce(
+            request.app.state.rate_limiter,
+            f"jobs:{ctx.project_id}",
+            get_settings().rate_job_starts_per_project_per_min,
         )
     actor = engine.Actor("user", ids.encode("usr", ctx.principal.user_id), ctx.role)
     try:

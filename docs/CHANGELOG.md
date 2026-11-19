@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- T-105c rate limits: 20 logins/min per IP, 600 requests/min per user, 30 job starts/min per project; 429 `RATE_LIMITED` with `Retry-After`. Memory backend (per process) or Redis (`RATE_LIMIT_BACKEND=redis`, shared across replicas). Limits configurable in settings.
+
+### Added
 - MCP preview (P5): `apps/mcp/server.py` with read-only tools `get_brief`, `plan_tests`, `understand_change` (diff → affected journeys with reasons), `saq mcp serve` (stdio); product brief `GET /projects/{id}/brief` (`packages/graph/brief.py`), change impact `packages/graph/impact.py`. MCP Python SDK 2.x.
 
 ### Fixed

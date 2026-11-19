@@ -25,6 +25,8 @@ from apps.api.auth.tokens import PAT_PREFIX, InvalidTokenError, JwtSigner
 from apps.api.db.models import Membership
 from apps.api.db.session import project_session, set_scope
 from apps.api.errors import ApiError, forbidden, not_found, unauthenticated
+from apps.api.ratelimit import enforce
+from apps.api.settings import get_settings
 from apps.api.storage import ObjectStore
 
 ACCESS_COOKIE = "saq_access"
@@ -86,6 +88,16 @@ def current_principal(
     factory: sessionmaker[Session] = Depends(get_factory),
     signer: JwtSigner = Depends(get_signer),
 ) -> Principal:
+    principal = _authenticate(request, factory, signer)
+    enforce(
+        request.app.state.rate_limiter,
+        f"user:{principal.user_id}",
+        get_settings().rate_requests_per_user_per_min,
+    )
+    return principal
+
+
+def _authenticate(request: Request, factory: sessionmaker[Session], signer: JwtSigner) -> Principal:
     unsafe = request.method not in SAFE_METHODS
     header = request.headers.get("authorization")
     if header:

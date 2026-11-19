@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     model_price_output_per_mtok: float | None = None
     model_price_cache_read_per_mtok: float | None = None
     github_token: SecretStr | None = None  # tracker filing (N21); never stored in the DB
+    rate_limit_backend: Literal["memory", "redis"] = "memory"
+    rate_login_per_ip_per_min: int = Field(default=20, ge=1)
+    rate_requests_per_user_per_min: int = Field(default=600, ge=1)
+    rate_job_starts_per_project_per_min: int = Field(default=30, ge=1)
     saq_telemetry: Literal["off", "on"] = "off"
     saq_budget_monthly_usd: float = Field(default=20.0, ge=0)
     log_level: str = "info"
