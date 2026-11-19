@@ -114,8 +114,8 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/projects/{id}/audit` | Audit ledger (verify chain with `?verify=true`) |
-| GET | `/projects/{id}/costs` | Cost per run / stage / month |
-| PUT | `/projects/{id}/budget` | Budget caps |
+| GET | `/projects/{id}/costs` | Viewer+: this month spent/cap/remaining, per stage (calls, replay-cache hits, cost), top 50 runs, last 12 months |
+| PUT | `/projects/{id}/budget` | Owner (`budget.manage`): `{monthly_usd}`; audited as `budget.changed` |
 | GET | `/healthz`, `/readyz` | Liveness / readiness |
 | GET | `/metrics` | Prometheus (internal network only) |
 

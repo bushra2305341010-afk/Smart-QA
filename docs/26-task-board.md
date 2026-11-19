@@ -33,7 +33,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | T-006 | QA lead interview script + schedule 10–15 interviews | — | Shared | todo | |
 | T-007 | Replace Starlette TestClient httpx warning filter: verify the recommended replacement package is legitimate, then switch | — | Nadia | done | `httpx2` confirmed as the official anthropic SDK 2.x HTTP library; installed via `anthropic`, filter removed in M06 |
 | T-602 | Local-model adapter for the Model Gateway (air-gapped mode, P4) + quality shown on the eval set | — | Nadia | review | adapter + policy factory done; eval-set quality comparison needs evals (M09+) |
-| T-603 | Postgres-backed replay cache + `model_call` recorder | — | Shared | todo | with M08 DB |
+| T-603 | Postgres-backed replay cache + `model_call` recorder | — | Nadia | review | #15: `apps/api/db/model_store.py`, cost/budget API, migration 0005 |
 | T-008 | Contributor guide for Stuti (`stuti.md`) + CONTRIBUTING.md | — | Nadia | done | M01 |
 
 ## Week 1 — Skeleton

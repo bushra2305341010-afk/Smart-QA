@@ -21,7 +21,7 @@ gate / filing / MCP call ─▶ audit_event (hash chain)
 | Project scope per transaction | `apps/api/db/session.py` (`project_session`, `set_scope`) |
 | Audit | `apps/api/db/audit.py` (`record`, `verify_chain`) + `audit_event_chain` trigger |
 | Redaction | `packages/model_gateway/redact.py` |
-| Budget/cost | `packages/model_gateway/cost.py`, `apps/api/routers/costs.py` |
+| Budget/cost | `packages/model_gateway/cost.py` (pre-call check), `apps/api/db/model_store.py` (`project_budget`, `PostgresRecorder`, `PostgresReplayCache`, `month_spend`), `apps/api/routers/costs.py`, orchestrator `guards.check_budget` |
 
 ## Bug locator
 

@@ -40,6 +40,12 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 1 — 2026-11-20 (T-603 model gateway on Postgres)
+**Goal:** Pay for a model answer once, across processes; record every call for cost reports and budgets.
+**Done:** Postgres replay cache, `model_call` recorder, shared month-spend budget (orchestrator guard reuses it), costs/budget endpoints, migration 0005.
+**Tests:** 1,522 passed; a second gateway with an empty provider was served from Postgres with zero calls; 100% coverage.
+**Next:** M09 ingest + Product Understanding Graph.
+
 ### Week 1 — 2026-11-20 (M08c orchestrator)
 **Goal:** Drive the pipeline with gates enforced in the server, reliable job dispatch and resume after a crash.
 **Done:** State machine table, engine, DB-backed gate and budget guards, outbox relay to Redis streams, recovery with stable job keys and resume point, pipeline API, `saq_system` role (ADR-012), orchestrator process + Compose service.
