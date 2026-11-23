@@ -40,6 +40,10 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-24 (scoped design context)
+**Done:** `journey_scope` + designer context per journey. 1,668 tests, 100% coverage.
+**Next:** waiting on Stuti's runner/judge; model-key eval on golden project 1.
+
 ### Week 5 — 2026-11-24 (N26 learning L2-lite)
 **Done:** `apps/api/learning.py`, decision hooks (bugs, plans, graph), consumers (draft_bugs, planner, designer, analyst), lessons API, migration 0008. 1,665 tests, 100% coverage.
 **Decisions:** Count hints are shown, not applied (no eval gate yet, docs/21 A5); suppression is a code rule keyed on case code + normalised failure, so the model cannot override it.

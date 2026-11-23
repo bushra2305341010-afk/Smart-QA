@@ -18,7 +18,6 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 3. **What is built (Nadia's side, all in review):** DB + RLS + audit (M08a), auth/RBAC/2FA/rate limits (M08b, T-105a/c), orchestrator + gates 1–4 (M08c), model gateway on Postgres (T-603), ingest + Git import + embeddings (M09a, T-202, T-204), Product Understanding Graph (M09b), planner (F08), designer (F11), reporter + Excel + evidence pack (M11, N23), `saq` CLI + MCP preview (M12), golden project 1 + scorer (T-004).
 4. **Next tasks:**
    - With `ANTHROPIC_API_KEY` + `MODEL_PRICE_*` set, run the analyst on `evals/golden_projects/shop` and record precision / recall / citation accuracy in `docs/20` §4 (`python -m evals.run_graph_eval --project … --golden evals/golden_projects/shop`).
-   - Use `apps/api/db/retrieval.py::similar_chunks` in the analyst/designer for documents longer than one window.
    - When Stuti's runner/judge lands (M03, M05, M10): her judge must call `apps.workers.reporter.draft_bugs` before `verdicts_ready`; then add MCP `get_verdicts` / `run_journeys` and `saq run --wait`; M09c explorer needs her M03 policy.
    - Open: T-203 encrypted identity vault (Stuti), M12 UI (Stuti).
 5. **Waiting on the user:** recreate the old dev DB volume (`docker compose down -v`); merge #6 → #28 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; remove the throwaway test DB with `docker rm -f saq-testdb` once the volume is recreated.
@@ -99,6 +98,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-24: Designer context scoped per journey (PR #31, branch `feat/F11-scoped-design-context`, base `feat/N26-lessons`). 1,668 tests.
 - 2026-11-24: N26 learning L2-lite done (PR #30, branch `feat/N26-lessons`, base `feat/T105b-breached-passwords`). 1,665 tests.
 - 2026-11-24: T-105b breached-password check done (PR #29, branch `feat/T105b-breached-passwords`, base `feat/T004-golden-shop`). 1,662 tests.
 - 2026-11-24: Resume notes consolidated. No new merges; open PRs #6–#28, all green. 1,657 tests, 100% coverage.
