@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from apps.api import ids
+from apps.api import ids, learning
 from apps.api.auth.deps import ProjectContext, require
 from apps.api.db import audit
 from apps.api.db.models import (
@@ -217,17 +217,19 @@ def review_node(
         decision = {"approved": "confirm", "rejected": "reject", "edited": "edit"}[
             body.review_status
         ]
-        s.add(
-            Feedback(
-                project_id=ctx.project_id,
-                entity="node",
-                entity_id=node.id,
-                decision=decision,
-                before=before,
-                after=after,
-                actor_id=ctx.principal.user_id,
-            )
+        feedback = Feedback(
+            project_id=ctx.project_id,
+            entity="node",
+            entity_id=node.id,
+            decision=decision,
+            before=before,
+            after=after,
+            actor_id=ctx.principal.user_id,
         )
+        s.add(feedback)
+        s.flush()
+        if body.review_status == "rejected":
+            learning.learn_node_rejection(s, ctx.project_id, node, feedback.id)
         audit.record(
             s,
             project_id=ctx.project_id,

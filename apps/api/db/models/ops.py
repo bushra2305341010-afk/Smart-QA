@@ -130,6 +130,7 @@ class ProjectRule(ProjectScoped, Base):
     condition: Mapped[JsonDict]
     action: Mapped[JsonDict]
     source_feedback_id: Mapped[uuid.UUID | None]
+    active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
 
 class Lesson(ProjectScoped, Base):

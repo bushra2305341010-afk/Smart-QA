@@ -9,7 +9,7 @@ from apps.api.errors import not_found
 
 Kind = Literal[
     "usr", "prj", "src", "env", "idn", "chk", "gv", "nod", "pln", "seg", "tc", "run", "res",
-    "ver", "bug", "tok", "evt",
+    "ver", "bug", "tok", "evt", "les", "rul",
 ]  # fmt: skip
 
 

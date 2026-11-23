@@ -119,6 +119,13 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | GET | `/projects/{id}/pipeline` | Viewer+ | Current stage/status + history |
 | POST | `/projects/{id}/pipeline/events` | per event | `{event}`: `start`/`retry`/`cancel` (QA Lead+), gate decisions `graph_approved`, `graph_rejected`, `plan_approved`, `plan_edited`, `cases_approved`, `bugs_confirmed` (permission per docs/10 §4). Worker events are not accepted over HTTP. Errors: 409 `STATE_CONFLICT`, 409 `GATE_NOT_APPROVED`, 402 `BUDGET_EXCEEDED`, 403 `FORBIDDEN` |
 
+### Learning
+| Method | Path | Role | Purpose |
+|---|---|---|---|
+| GET | `/projects/{id}/lessons` | Viewer+ | Lessons and learned rules |
+| POST | `/projects/{id}/lessons/{les}/deactivate` | QA Lead+ | Switch a lesson (and rules from the same decision) off |
+| POST | `/projects/{id}/rules/{rul}/deactivate` | QA Lead+ | Switch one rule off |
+
 ### Admin & ops
 | Method | Path | Purpose |
 |---|---|---|

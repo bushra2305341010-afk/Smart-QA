@@ -14,12 +14,14 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
+from apps.api import learning
 from apps.api.db.models import Edge, GraphVersion, Node, Plan, Segment
 from apps.api.db.session import project_session
 from apps.api.pricing import cost_estimate
 from apps.api.settings import Settings
 from apps.orchestrator import engine
 from apps.orchestrator.machine import TransitionError
+from packages.graph.model import norm_label
 from packages.planning.counts import suggest_segment
 from packages.planning.from_graph import EdgeView, NodeView, journeys_from_graph
 
@@ -58,6 +60,7 @@ def plan_from_graph(
         plan = Plan(project_id=pid, graph_version_id=gv.id, status="draft")
         s.add(plan)
         s.flush()
+        hints = learning.count_hints(s)
         total = 0
         for spec, risk in journeys:
             seg = suggest_segment(spec, risk)
@@ -73,6 +76,8 @@ def plan_from_graph(
                         "base_count": seg.base_count,
                         "multiplier": seg.multiplier,
                         "risk_inputs": risk.model_dump(),
+                        # Shown to reviewers only; counts still come from code (docs/21 A5).
+                        "previous_decision": hints.get(norm_label(spec.name)),
                     },
                     suggested_count=seg.suggested_count,
                     risk_score=seg.risk_score,

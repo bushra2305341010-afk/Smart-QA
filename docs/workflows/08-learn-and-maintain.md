@@ -51,3 +51,7 @@ gate decision ─▶ feedback row ─▶ lesson (pgvector)        ─▶ retriev
 
 - [ ] `make test-learn`
 - [ ] Impact change → run on golden projects with known diffs (expected journey lists in `evals/impact/`)
+
+## Implementation status (2026-11-24)
+- L2-lite lessons and rules: `apps/api/learning.py` (writers + `suppression_for`, `count_hints`, `active_lessons`), API `apps/api/routers/learning.py`. Used by `apps/workers/reporter.py::draft_bugs`, `planner.py`, `designer.py`, `analyst.py`.
+- Bug locator: a bug keeps coming back after dismissal → check the rule's `condition.failure` equals the normalised verdict reason and the rule is `active`; a lesson ignored by the designer → its `applies_to` node label must match the journey name.

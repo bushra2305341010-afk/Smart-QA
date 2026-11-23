@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- N26 learning L2-lite (US-10): human decisions become lessons and code-enforced rules — dismissed bugs suppress the same failure's next draft (audited, citing the lesson), edited counts become hints on the next plan (never applied automatically), rejected graph nodes are told to the analyst, expected-behaviour lessons go to the designer. Lessons API with deactivate. Migration `0008`.
+
+### Added
 - T-105b breached-password check at sign-up: `BREACH_CHECK_MODE` off / online (HIBP range API with k-anonymity and padding, fails open on outage) / offline (local SHA-1 file for air-gapped installs).
 
 ### Added
