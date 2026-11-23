@@ -99,6 +99,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-24: N26 learning L2-lite done (PR #30, branch `feat/N26-lessons`, base `feat/T105b-breached-passwords`). 1,665 tests.
 - 2026-11-24: T-105b breached-password check done (PR #29, branch `feat/T105b-breached-passwords`, base `feat/T004-golden-shop`). 1,662 tests.
 - 2026-11-24: Resume notes consolidated. No new merges; open PRs #6–#28, all green. 1,657 tests, 100% coverage.
 - 2026-11-20: T-004 golden project 1 + eval scorer done (PR #28, branch `feat/T004-golden-shop`, base `feat/T204-embeddings`). 1,657 tests.

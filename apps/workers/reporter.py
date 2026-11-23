@@ -16,7 +16,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
-from apps.api import ids
+from apps.api import ids, learning
 from apps.api.db import audit
 from apps.api.db.models import Bug, Project, Result, Run, Verdict
 from apps.api.db.session import project_session
@@ -47,7 +47,19 @@ def draft_bugs(factory: sessionmaker[Session], pid: uuid.UUID, run_id: uuid.UUID
             .order_by(Verdict.created_at)
         ).all()
         for verdict in verdicts:
-            draft = draft_bug(bug_facts(s, verdict))
+            facts = bug_facts(s, verdict)
+            rule = learning.suppression_for(s, facts.case_code, verdict.reason)
+            if rule is not None:  # a reviewer said this exact failure is expected (US-10)
+                audit.record(
+                    s,
+                    project_id=pid,
+                    actor=WORKER.id,
+                    action="bug.suppressed",
+                    entity=f"verdict:{verdict.id}",
+                    payload={"rule_id": str(rule.id), "lesson": rule.action.get("lesson")},
+                )
+                continue
+            draft = draft_bug(facts)
             s.add(
                 Bug(
                     project_id=pid,
@@ -96,9 +108,13 @@ def file_confirmed(
             bug = s.get_one(Bug, bug_id)
             bug.status, bug.tracker, bug.tracker_ref = "filed", "github", issue.url
             audit.record(
-                s, project_id=pid, actor=WORKER.id, action="bug.filed",
-                entity=ids.encode("bug", bug_id), payload={"tracker_ref": issue.url},
-            )  # fmt: skip
+                s,
+                project_id=pid,
+                actor=WORKER.id,
+                action="bug.filed",
+                entity=ids.encode("bug", bug_id),
+                payload={"tracker_ref": issue.url},
+            )
         filed += 1
     return filed, failed
 

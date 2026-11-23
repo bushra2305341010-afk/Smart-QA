@@ -19,6 +19,7 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from apps.api import learning
 from apps.api.db.models import Chunk, Edge, GraphVersion, Node, NodeCitation, Source
 from apps.api.db.session import project_session
 from apps.api.storage import ObjectStore
@@ -174,8 +175,10 @@ def understand(
             .where(Source.status == "ready", Source.text_key.is_not(None))
             .order_by(Source.created_at, Source.id)
         ).all()
+        rejected = [x.text for x in learning.active_lessons(s, ("not_a_fact",))]
     if not rows:
         raise AnalystError("No parsed sources to analyse")
+    extra = {"facts reviewers rejected before (do not extract them again)": "\n".join(rejected)}
     gateway = make_gateway(pid)
     texts: dict[str, str] = {}
     sources: dict[str, uuid.UUID] = {}
@@ -189,7 +192,7 @@ def understand(
             request = ModelRequest(
                 system=SYSTEM,
                 user=f"Extract the product graph from source {label} ({filename or uri}).",
-                untrusted={f"{label}: {filename or uri}": piece},
+                untrusted={f"{label}: {filename or uri}": piece} | (extra if rejected else {}),
             )
             result = gateway.generate(TASK, request, Extraction)
             if result.status == "budget_exceeded":

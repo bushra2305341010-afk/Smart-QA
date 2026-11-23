@@ -15,7 +15,17 @@ from apps.api.crypto import SecretBox
 from apps.api.db.session import make_engine, make_session_factory
 from apps.api.health import check_dependencies
 from apps.api.ratelimit import MemoryRateLimiter, RateLimiter, RedisRateLimiter
-from apps.api.routers import auth, bugs, cases, costs, graph, pipeline, plans, projects
+from apps.api.routers import (
+    auth,
+    bugs,
+    cases,
+    costs,
+    graph,
+    learning,
+    pipeline,
+    plans,
+    projects,
+)
 from apps.api.settings import Settings, get_settings
 from apps.api.storage import ObjectStore, S3ObjectStore
 from apps.api.trackers import TrackerFactory, tracker_factory
@@ -119,6 +129,7 @@ def create_app(
     app.include_router(plans.router, prefix=API_PREFIX)
     app.include_router(cases.router, prefix=API_PREFIX)
     app.include_router(bugs.router, prefix=API_PREFIX)
+    app.include_router(learning.router, prefix=API_PREFIX)
 
     @app.get(f"{API_PREFIX}/healthz", tags=["ops"])
     async def healthz() -> dict[str, str]:

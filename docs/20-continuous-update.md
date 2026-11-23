@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-24 (N26 learning L2-lite)
+**Done:** `apps/api/learning.py`, decision hooks (bugs, plans, graph), consumers (draft_bugs, planner, designer, analyst), lessons API, migration 0008. 1,665 tests, 100% coverage.
+**Decisions:** Count hints are shown, not applied (no eval gate yet, docs/21 A5); suppression is a code rule keyed on case code + normalised failure, so the model cannot override it.
+**Next:** embedding-based lesson retrieval (v1); retrieval for long documents in the analyst.
+
 ### Week 5 — 2026-11-24 (T-105b breached passwords)
 **Done:** online / offline / off checker, sign-up refusal, settings, docs; task board tidied (T-102 delivered in M06). 1,662 tests, 100% coverage.
 **Decisions:** Default `off` because air-gapped installs must not call out; `online` sends only a 5-character hash prefix and fails open.

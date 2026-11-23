@@ -22,6 +22,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
+from apps.api import learning
 from apps.api.db.models import (
     Chunk,
     GraphVersion,
@@ -41,6 +42,7 @@ from apps.workers.gateway import GatewayFactory
 from packages.cases.dedup import code_prefix, dedupe, next_codes
 from packages.citations.verify import verify_quote
 from packages.contracts.case import CaseBatch, DesignedCase
+from packages.graph.model import norm_label
 from packages.model_gateway.gateway import ModelGateway
 from packages.model_gateway.types import ModelRequest, TaskSpec
 
@@ -123,7 +125,12 @@ def _context(s: Session, store: ObjectStore, gv: GraphVersion) -> Context:
 
 
 def _ask(
-    gateway: ModelGateway, ctx: Context, journey: str, count: int, rows: list[dict[str, Any]]
+    gateway: ModelGateway,
+    ctx: Context,
+    journey: str,
+    count: int,
+    rows: list[dict[str, Any]],
+    lessons: list[str] | None = None,
 ) -> list[DesignedCase]:
     techniques = "\n".join(f"- {r['technique']}: {r['count']} ({r['reason']})" for r in rows)
     request = ModelRequest(
@@ -132,7 +139,8 @@ def _ask(
             f"Design exactly {count} test case(s) for the journey '{journey}'.\n"
             f"Techniques (suggested split):\n{techniques}"
         ),
-        untrusted={"approved product graph": ctx.facts},
+        untrusted={"approved product graph": ctx.facts}
+        | ({"reviewer lessons (human decisions)": "\n".join(lessons)} if lessons else {}),
     )
     result = gateway.generate(TASK, request, CaseBatch)
     if result.status == "budget_exceeded":
@@ -171,6 +179,7 @@ def design(
             raise DesignerError("No approved plan")
         gv = s.get_one(GraphVersion, plan.graph_version_id)
         ctx = _context(s, store, gv)
+        lessons = learning.active_lessons(s, ("expected_behaviour",))
         approved = s.scalars(
             select(Segment).where(Segment.plan_id == plan.id).order_by(Segment.id)
         ).all()
@@ -188,9 +197,10 @@ def design(
     gateway = make_gateway(pid)
     totals = {"cases": 0, "uv": 0, "short": 0, "dups": 0}
     for seg_id, journey, count, rows, priority in segments:
-        cases = _ask(gateway, ctx, journey, count, rows)
+        notes = [x.text for x in lessons if x.applies_to == norm_label(journey)]
+        cases = _ask(gateway, ctx, journey, count, rows, notes)
         if len(cases) < count:
-            cases += _ask(gateway, ctx, journey, count - len(cases), rows)
+            cases += _ask(gateway, ctx, journey, count - len(cases), rows, notes)
         cases, dups = dedupe(cases)
         cases = cases[:count]
         totals["dups"] += dups

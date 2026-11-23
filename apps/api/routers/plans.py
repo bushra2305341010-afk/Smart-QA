@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apps.api import ids
+from apps.api import ids, learning
 from apps.api.auth.deps import ProjectContext, require
 from apps.api.db import audit
 from apps.api.db.model_store import budget_cap, month_spend
@@ -40,6 +40,7 @@ class SegmentOut(BaseModel):
     priority: str
     suggested_count: int
     approved_count: int | None
+    previous_decision: dict[str, int] | None = None  # last human edit for this journey (hint)
 
 
 class PlanOut(BaseModel):
@@ -86,6 +87,7 @@ def _segment_out(seg: Segment) -> SegmentOut:
         priority=seg.priority,
         suggested_count=seg.suggested_count,
         approved_count=seg.approved_count,
+        previous_decision=t.get("previous_decision"),
     )
 
 
@@ -134,16 +136,24 @@ def edit_segment(
             raise not_found("Segment")
         before = {"approved_count": seg.approved_count, "suggested_count": seg.suggested_count}
         seg.approved_count = body.approved_count
-        s.add(
-            Feedback(
-                project_id=ctx.project_id,
-                entity="segment",
-                entity_id=seg.id,
-                decision="edit",
-                before=before,
-                after={"approved_count": body.approved_count},
-                actor_id=ctx.principal.user_id,
-            )
+        feedback = Feedback(
+            project_id=ctx.project_id,
+            entity="segment",
+            entity_id=seg.id,
+            decision="edit",
+            before=before,
+            after={"approved_count": body.approved_count},
+            actor_id=ctx.principal.user_id,
+        )
+        s.add(feedback)
+        s.flush()
+        learning.learn_count_edit(
+            s,
+            ctx.project_id,
+            journey=str(seg.techniques.get("journey", "")),
+            suggested=seg.suggested_count,
+            approved=body.approved_count,
+            feedback_id=feedback.id,
         )
         audit.record(
             s,

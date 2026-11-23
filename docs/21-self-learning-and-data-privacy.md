@@ -66,6 +66,8 @@ These are small classical models. They train in minutes on a CPU, and the team's
 
 Lessons are embedded in pgvector and retrieved per task (top-k by similarity and the same graph node). Hard rules are enforced in code, not left to the prompt.
 
+**Implemented (L2-lite, `apps/api/learning.py`):** a dismissed bug with a reason → lesson `expected_behaviour` + rule `suppress_bug` (same case + same normalised failure → `draft_bugs` writes no draft and an audit event `bug.suppressed` citing the lesson); an edited plan count → rule `count_hint`, shown as `previous_decision` on the next plan's segment, never applied to the suggested number (no eval gate yet, A5 rule 2); a rejected graph node → lesson `not_a_fact`, passed to the analyst as untrusted context. Expected-behaviour lessons for a journey are passed to the designer. All are written in the same transaction as the human decision, listed at `GET /projects/{id}/lessons`, and can be switched off (`POST …/lessons/{id}/deactivate` also switches off rules from the same decision; `POST …/rules/{id}/deactivate`). Lesson retrieval is by journey label for now; embedding-based top-k comes with v1.
+
 ### A5. Safety rules for learning
 
 1. **Only human-confirmed labels train anything.** The system never learns from its own unconfirmed verdicts, which avoids self-reinforcing mistakes.

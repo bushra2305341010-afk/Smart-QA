@@ -14,10 +14,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apps.api import ids
+from apps.api import ids, learning
 from apps.api.auth.deps import ProjectContext, require
 from apps.api.db import audit
-from apps.api.db.models import Bug, Feedback, Project, Result, Run, Verdict
+from apps.api.db.models import Bug, Feedback, Project, Result, Run, Segment, TestCase, Verdict
 from apps.api.errors import ApiError, conflict, not_found
 from apps.api.reports import collect_run_export
 from apps.api.trackers import TrackerFactory
@@ -92,17 +92,31 @@ def _decide(ctx: ProjectContext, bug_id: str, status: str, reason: str | None) -
         if bug.status != "draft":
             raise conflict("Only a draft can be confirmed or dismissed")
         bug.status = status
-        s.add(
-            Feedback(
-                project_id=ctx.project_id,
-                entity="bug",
-                entity_id=bug.id,
-                decision="confirm" if status == "confirmed" else "reject",
-                before={"status": "draft"},
-                after={"status": status, "reason": reason},
-                actor_id=ctx.principal.user_id,
-            )
+        feedback = Feedback(
+            project_id=ctx.project_id,
+            entity="bug",
+            entity_id=bug.id,
+            decision="confirm" if status == "confirmed" else "reject",
+            before={"status": "draft"},
+            after={"status": status, "reason": reason},
+            actor_id=ctx.principal.user_id,
         )
+        s.add(feedback)
+        s.flush()
+        if status == "dismissed" and reason:
+            verdict = s.get_one(Verdict, bug.verdict_id)
+            case = s.get_one(TestCase, case_id)
+            segment = s.get_one(Segment, case.segment_id)
+            learning.learn_bug_dismissal(
+                s,
+                ctx.project_id,
+                case_code=case.code,
+                case_title=str((case.preconditions or {}).get("title", case.code)),
+                failure=verdict.reason,
+                reason=reason,
+                journey_node_id=segment.journey_node_id,
+                feedback_id=feedback.id,
+            )
         audit.record(
             s,
             project_id=ctx.project_id,
