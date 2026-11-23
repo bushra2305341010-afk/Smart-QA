@@ -6,6 +6,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Added
+- T-105b breached-password check at sign-up: `BREACH_CHECK_MODE` off / online (HIBP range API with k-anonymity and padding, fails open on outage) / offline (local SHA-1 file for air-gapped installs).
+
+### Added
 - T-004 golden project 1 (shop): `PRD.md`, `openapi.yaml` (seeded PRD/API conflict on password length), hand-made `expected_graph.json`; `evals/scoring.py` (precision, recall, citation accuracy, conflict and vague-term checks) and `evals/run_graph_eval.py` (scores a live project through the API; exit 0 when docs/08 §6 targets are met).
 
 ### Changed

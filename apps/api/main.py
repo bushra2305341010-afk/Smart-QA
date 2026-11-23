@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Response, status
 from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api import errors
+from apps.api.auth.breached import BreachChecker, NoCheck, OfflineChecker, OnlineChecker
 from apps.api.auth.tokens import JwtSigner
 from apps.api.crypto import SecretBox
 from apps.api.db.session import make_engine, make_session_factory
@@ -60,12 +62,23 @@ def _limiter(settings: Settings) -> RateLimiter:
     return MemoryRateLimiter()
 
 
+def _breach(settings: Settings) -> BreachChecker:
+    if settings.breach_check_mode == "online":
+        return OnlineChecker()
+    if settings.breach_check_mode == "offline":
+        if not settings.breach_hash_file:
+            raise RuntimeError("BREACH_HASH_FILE is required for offline checks")
+        return OfflineChecker(Path(settings.breach_hash_file))
+    return NoCheck()
+
+
 def create_app(
     session_factory: sessionmaker[Session] | None = None,
     jwt_signer: JwtSigner | None = None,
     object_store: ObjectStore | None = None,
     trackers: TrackerFactory | None = None,
     rate_limiter: RateLimiter | None = None,
+    breach_checker: BreachChecker | None = None,
 ) -> FastAPI:
     """Build the FastAPI application. Tests inject a session factory and signer."""
     settings = get_settings()
@@ -82,6 +95,7 @@ def create_app(
     app.state.object_store = object_store or _store(settings)
     app.state.tracker_factory = trackers or tracker_factory(settings)
     app.state.rate_limiter = rate_limiter or _limiter(settings)
+    app.state.breach_checker = breach_checker or _breach(settings)
     app.state.secret_box = (
         SecretBox.from_b64(settings.saq_encryption_key.get_secret_value())
         if settings.saq_encryption_key

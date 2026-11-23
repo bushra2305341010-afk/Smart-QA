@@ -42,12 +42,12 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | ID | Task | Story | Owner | Status | Notes |
 |---|---|---|---|---|---|
-| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, s3, web | — | Nadia | doing | db, redis, api done in M01; s3 = SeaweedFS (MinIO image no longer published, ADR-010); worker/orchestrator/runner added with their modules |
-| T-102 | Model Gateway: Claude adapter, schema output, cost log | — | Nadia | todo | |
+| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, s3, web | — | Nadia | doing | db, redis, api done in M01; s3 = SeaweedFS (MinIO image no longer published, ADR-010); worker (M09a) and orchestrator (M08c) added; runner and web come with Stuti's M10 / M07 |
+| T-102 | Model Gateway: Claude adapter, schema output, cost log | — | Nadia | done | Delivered in M06 (#9) + T-603 (#15) |
 | T-103 | Runner registration over mTLS | US-06 | Stuti | todo | |
 | T-104 | Auth: register/login/session, RBAC skeleton | US-11 | Nadia | review | Done in M08b (#13) because the API needed it; TOTP → T-105a, breached-password check → T-105b, per-IP/user rate limits → T-105c |
 | T-105a | TOTP second factor (`/auth/login/mfa`) | US-11 | Nadia | review | #25 |
-| T-105b | Breached-password check (k-anonymity) in `check_password_rule` | US-11 | Shared | todo | |
+| T-105b | Breached-password check (k-anonymity) in `check_password_rule` | US-11 | Nadia | review | #29: `BREACH_CHECK_MODE` off / online (HIBP range API, 5-char prefix only) / offline file |
 | T-105c | Rate limits: 600 req/min per user, 30 job starts/min per project, per-IP login backoff (Redis) | — | Nadia | review | #24; memory or Redis backend |
 | T-105 | Web shell: layout, stage stepper, tokens | — | Stuti | doing | Vite+React+TS scaffold, tokens and VerdictBadge in M01; layout/stepper in M07 |
 
