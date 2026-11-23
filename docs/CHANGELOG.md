@@ -5,6 +5,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+- Designer prompts carry only the segment's journey neighbourhood of the approved graph (`packages/graph/scope.py`) instead of the whole graph: smaller, cheaper prompts on big products; unlinked rules are always included.
+
 ### Added
 - N26 learning L2-lite (US-10): human decisions become lessons and code-enforced rules — dismissed bugs suppress the same failure's next draft (audited, citing the lesson), edited counts become hints on the next plan (never applied automatically), rejected graph nodes are told to the analyst, expected-behaviour lessons go to the designer. Lessons API with deactivate. Migration `0008`.
 

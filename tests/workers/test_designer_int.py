@@ -242,3 +242,22 @@ def test_designer_failures(env, app, owner) -> None:  # type: ignore[no-untyped-
     assert audit[-1]["payload"]["reason"] == "Monthly model budget reached"
     client.post(f"{V1}/projects/{pid}/pipeline/events", json={"event": "cancel"})
     _design(app, store, puid)  # pipeline cancelled: nothing breaks
+
+
+def test_context_is_scoped_to_the_journey() -> None:
+    import uuid
+
+    from apps.workers.designer import Context
+    from packages.planning.from_graph import EdgeView, NodeView
+
+    j1, j2, r1, r2 = (str(uuid.uuid4()) for _ in range(4))
+    ctx = Context(
+        texts={}, sources={},
+        lines={j1: "[Journey] Sign up", j2: "[Journey] Checkout",
+               r1: "[Rule] Password", r2: "[Rule] Coupon"},
+        views=[NodeView(j1, "Journey", "Sign up"), NodeView(j2, "Journey", "Checkout"),
+               NodeView(r1, "Rule", "Password"), NodeView(r2, "Rule", "Coupon")],
+        edges=[EdgeView(r1, j1, "governs"), EdgeView(r2, j2, "governs")],
+    )  # fmt: skip
+    facts = ctx.facts_for(uuid.UUID(j1))
+    assert "Password" in facts and "Coupon" not in facts and "Checkout" not in facts

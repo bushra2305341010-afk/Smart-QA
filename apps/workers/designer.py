@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from sqlalchemy import select
@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from apps.api import learning
 from apps.api.db.models import (
     Chunk,
+    Edge,
     GraphVersion,
     Node,
     NodeCitation,
@@ -43,8 +44,10 @@ from packages.cases.dedup import code_prefix, dedupe, next_codes
 from packages.citations.verify import verify_quote
 from packages.contracts.case import CaseBatch, DesignedCase
 from packages.graph.model import norm_label
+from packages.graph.scope import journey_scope
 from packages.model_gateway.gateway import ModelGateway
 from packages.model_gateway.types import ModelRequest, TaskSpec
+from packages.planning.from_graph import EdgeView, NodeView
 
 log = logging.getLogger(__name__)
 WORKER = engine.Actor("system", "worker:designer")
@@ -86,9 +89,16 @@ class DesignResult:
 
 @dataclass(frozen=True)
 class Context:
-    facts: str
     texts: dict[str, str]
     sources: dict[str, uuid.UUID]
+    lines: dict[str, str] = field(default_factory=dict)
+    views: list[NodeView] = field(default_factory=list)
+    edges: list[EdgeView] = field(default_factory=list)
+
+    def facts_for(self, journey_id: uuid.UUID) -> str:
+        """Only the journey's part of the graph (roles, steps, screens, fields, its rules)."""
+        keep = journey_scope(self.views, self.edges, str(journey_id))
+        return "\n".join(line for node_id, line in self.lines.items() if node_id in keep)
 
 
 def _context(s: Session, store: ObjectStore, gv: GraphVersion) -> Context:
@@ -117,16 +127,27 @@ def _context(s: Session, store: ObjectStore, gv: GraphVersion) -> Context:
     by_node: dict[uuid.UUID, list[str]] = {}
     for node_id, quote, sid in cites:
         by_node.setdefault(node_id, []).append(f'{labels[sid]}: "{quote}"')
-    lines = []
+    lines: dict[str, str] = {}
     for n in nodes:
         quoted = "; ".join(by_node.get(n.id, [])) or "(no quote)"
-        lines.append(f"[{n.type}] {n.label} — {quoted}")
-    return Context("\n".join(lines), texts, {v: k for k, v in labels.items()})
+        lines[str(n.id)] = f"[{n.type}] {n.label} — {quoted}"
+    node_ids = [n.id for n in nodes]
+    edges = s.scalars(
+        select(Edge).where(Edge.from_node_id.in_(node_ids), Edge.to_node_id.in_(node_ids))
+    ).all()
+    return Context(
+        texts,
+        {v: k for k, v in labels.items()},
+        lines,
+        [NodeView(str(n.id), n.type, n.label) for n in nodes],
+        [EdgeView(str(e.from_node_id), str(e.to_node_id), e.kind) for e in edges],
+    )
 
 
 def _ask(
     gateway: ModelGateway,
     ctx: Context,
+    journey_id: uuid.UUID,
     journey: str,
     count: int,
     rows: list[dict[str, Any]],
@@ -139,7 +160,7 @@ def _ask(
             f"Design exactly {count} test case(s) for the journey '{journey}'.\n"
             f"Techniques (suggested split):\n{techniques}"
         ),
-        untrusted={"approved product graph": ctx.facts}
+        untrusted={"approved product graph (this journey)": ctx.facts_for(journey_id)}
         | ({"reviewer lessons (human decisions)": "\n".join(lessons)} if lessons else {}),
     )
     result = gateway.generate(TASK, request, CaseBatch)
@@ -186,6 +207,7 @@ def design(
         segments = [
             (
                 seg.id,
+                seg.journey_node_id,
                 str(seg.techniques.get("journey", "")),
                 seg.approved_count or 0,
                 list(seg.techniques.get("rows", [])),
@@ -196,11 +218,11 @@ def design(
         ]
     gateway = make_gateway(pid)
     totals = {"cases": 0, "uv": 0, "short": 0, "dups": 0}
-    for seg_id, journey, count, rows, priority in segments:
+    for seg_id, node_id, journey, count, rows, priority in segments:
         notes = [x.text for x in lessons if x.applies_to == norm_label(journey)]
-        cases = _ask(gateway, ctx, journey, count, rows, notes)
+        cases = _ask(gateway, ctx, node_id, journey, count, rows, notes)
         if len(cases) < count:
-            cases += _ask(gateway, ctx, journey, count - len(cases), rows, notes)
+            cases += _ask(gateway, ctx, node_id, journey, count - len(cases), rows, notes)
         cases, dups = dedupe(cases)
         cases = cases[:count]
         totals["dups"] += dups
