@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 4 — 2026-11-20 (T-004 golden project 1)
+**Done:** Shop PRD + OpenAPI, expected graph, scorer, eval runner, docs. 1,657 tests, 100% coverage.
+**Bugs found & fixed:** The seeded conflict (API `maxLength 128`) was invisible to the analyst because the OpenAPI renderer skipped body schemas → body fields with constraints are rendered now.
+**Next:** run the real analyst on the golden project with a model key and record precision/recall in §4; Stuti's runner for the seeded-bug app.
+
 ### Week 4 — 2026-11-20 (T-204 embeddings)
 **Done:** Local embedder, ingest wiring, retrieval helper. 1,651 tests, 100% coverage.
 **Decisions:** Embedding server must be internal (documents never leave the network for retrieval); embeddings are optional for correctness because every quote is still verified exactly.

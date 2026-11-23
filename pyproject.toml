@@ -77,7 +77,7 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "apps.api.auth.dep
 [tool.mypy]
 python_version = "3.12"
 strict = true
-packages = ["packages", "apps"]
+packages = ["packages", "apps", "evals"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]

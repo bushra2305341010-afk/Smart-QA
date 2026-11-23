@@ -79,3 +79,7 @@ Same two golden projects, UI changed between runs. Compare with Playwright Test 
 2. Find the sector with [workflows/00-bug-triage-map.md](workflows/00-bug-triage-map.md).
 3. Write a failing test first, then fix.
 4. Add the case to the sector's regression list.
+
+## Golden project 1 (implemented)
+
+`evals/golden_projects/shop/` (PRD, OpenAPI, expected graph) and `evals/scoring.py` (deterministic precision / recall / citation accuracy, conflict and vague-term checks). Run `python -m evals.run_graph_eval --project … --golden evals/golden_projects/shop` against a live project; `tests/evals/` keeps the golden data honest (every expected quote verifies against the ingested PRD).

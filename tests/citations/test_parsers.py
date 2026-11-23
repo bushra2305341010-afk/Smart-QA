@@ -53,7 +53,10 @@ def test_openapi_yaml_rendering_is_stable() -> None:
     assert "Parameter coupon (query, optional, string): Discount code" in text
     assert "Parameter X-Trace (header, required, any)" in text
     assert "Request body (required): application/json" in text
-    assert "Request body (optional): any" in text
+    assert "Request body (optional): application/json" in text  # $ref body: no fields listed
+    assert "Body field total (number, required, minimum 0)" in text
+    assert "Body field note (string, optional, maxLength 200)" in text
+    assert "Body field weird (any, optional)" in text
     assert "Response 422: Coupon expired" in text and "Response default\n" not in text
     assert text.endswith("Response default:")
     assert parse("openapi", OPENAPI_YAML) == [text]

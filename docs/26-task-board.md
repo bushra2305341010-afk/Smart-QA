@@ -30,7 +30,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | T-001 | Create repo, branch protection, issue/PR templates | — | Nadia | done | PR template + CI added in M01; branch protection to be set by repo owner |
 | T-002 | CI skeleton (lint, types, unit) | — | Nadia | done | `.github/workflows/ci.yml` (python, web, secrets) |
 | T-003 | Write ADR-001…008 | — | Shared | done | `docs/adr/` |
-| T-004 | Golden project 1 (shop) requirements + seeded bugs | — | Nadia | todo | bug list private |
+| T-004 | Golden project 1 (shop) requirements + seeded bugs | — | Nadia | review | #28: PRD, OpenAPI with a seeded conflict, expected graph, scorer; seeded-bug app + private bug list wait for the runner (M10) |
 | T-005 | Golden project 2 (school) requirements + seeded bugs | — | Stuti | todo | |
 | T-006 | QA lead interview script + schedule 10–15 interviews | — | Shared | todo | |
 | T-007 | Replace Starlette TestClient httpx warning filter: verify the recommended replacement package is legitimate, then switch | — | Nadia | done | `httpx2` confirmed as the official anthropic SDK 2.x HTTP library; installed via `anthropic`, filter removed in M06 |
