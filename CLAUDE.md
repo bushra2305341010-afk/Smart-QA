@@ -9,17 +9,28 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 - Mentor: Md. Mahedi Hassan, Lecturer (Senior Scale), Dept. of SWE, DIU
 - Course: SE331 Design Capstone · 12-week MVP
 
-## ▶ Resume here (last session ended 2026-11-20)
-1. **Start Docker Desktop** (`open -a Docker`), then `cd capstone/Smart-QA`.
-2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all` to see which of PRs #6–#11 were merged.
-   - If merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
-   - If not merged: branch from the top of the stack (see the latest Status line for the branch). Note: PR #10 was merged into the M06 branch (not main); the rest of the stack is open.
-3. **Next task:** with a model key, run the analyst on `evals/golden_projects/shop` and record precision/recall/citation accuracy in `docs/20` §4 (`python -m evals.run_graph_eval`); use `similar_chunks` in the analyst/designer for long documents; the runner/judge chain is Stuti's.
-   - Before pushing, also run `S3_ENDPOINT= S3_ACCESS_KEY= S3_SECRET_KEY= uv run pytest -o addopts=""` (CI has no S3; tests must inject `MemoryObjectStore`). The runner/judge chain is Stuti's (M03, M05, M10); when it lands, wire `draft_bugs` before `verdicts_ready` and add MCP `get_verdicts`.
-   - MCP SDK is 2.x: `from mcp.server.mcpserver import MCPServer` (FastMCP was renamed). Compile/execute/judge are Stuti's (M10 runner, M05 verdicts): her judge must call `apps.workers.reporter.draft_bugs` before `verdicts_ready`. M09c explorer waits for her M03 policy.
-   - Gotcha: in a user-scoped session RLS shows every project the user belongs to in `project`/`membership`; always filter those by project id. Build model calls with `ModelGateway(provider, prices, PostgresReplayCache, project_budget(...), PostgresRecorder)` from `apps/api/db/model_store.py`. Workers report job completion by calling `apps.orchestrator.engine.transition` with a `system` actor. DB integration tests: `docker compose up -d db` then `make test-int` (fixtures create a throwaway `saq_test` DB).
-4. Before each PR: `make test` (ruff, mypy --strict, pytest; keep 100% coverage on `packages/`), web `pnpm test && pnpm typecheck`, update docs/CHANGELOG/task board/dev log/this file, push branch to `upstream`, open PR with `--base <previous module branch>`.
-5. **Waiting on the user:** merge #6 → #11 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; Stuti starts M03 policy / M05 verdicts (don't build her modules: M03, M05, M07, M10, M12 UI).
+## ▶ Resume here (last session ended 2026-11-24)
+1. **Start Docker Desktop** (`open -a Docker`), `cd capstone/Smart-QA`, then `docker compose up -d db redis s3`.
+2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all`.
+   - Open stacked PRs **#6 → #28** (PR #10 was merged into the M06 branch, not main). All CI green as of 2026-11-20.
+   - If they are merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
+   - If not: branch from the top of the stack, **`feat/T004-golden-shop`** (PR #28).
+3. **What is built (Nadia's side, all in review):** DB + RLS + audit (M08a), auth/RBAC/2FA/rate limits (M08b, T-105a/c), orchestrator + gates 1–4 (M08c), model gateway on Postgres (T-603), ingest + Git import + embeddings (M09a, T-202, T-204), Product Understanding Graph (M09b), planner (F08), designer (F11), reporter + Excel + evidence pack (M11, N23), `saq` CLI + MCP preview (M12), golden project 1 + scorer (T-004).
+4. **Next tasks:**
+   - With `ANTHROPIC_API_KEY` + `MODEL_PRICE_*` set, run the analyst on `evals/golden_projects/shop` and record precision / recall / citation accuracy in `docs/20` §4 (`python -m evals.run_graph_eval --project … --golden evals/golden_projects/shop`).
+   - Use `apps/api/db/retrieval.py::similar_chunks` in the analyst/designer for documents longer than one window.
+   - When Stuti's runner/judge lands (M03, M05, M10): her judge must call `apps.workers.reporter.draft_bugs` before `verdicts_ready`; then add MCP `get_verdicts` / `run_journeys` and `saq run --wait`; M09c explorer needs her M03 policy.
+   - Open: T-203 encrypted identity vault (Stuti), M12 UI (Stuti).
+5. **Waiting on the user:** recreate the old dev DB volume (`docker compose down -v`); merge #6 → #28 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; remove the throwaway test DB with `docker rm -f saq-testdb` once the volume is recreated.
+6. **Before each PR:** `make test` (ruff, mypy --strict, pytest; 100% coverage), plus a CI-like run `S3_ENDPOINT= S3_ACCESS_KEY= S3_SECRET_KEY= uv run pytest -o addopts=""` with `MIGRATION_DATABASE_URL` set; web `pnpm test && pnpm typecheck`; update docs/CHANGELOG/task board/dev log/this file **in a separate step before `git commit`**; push to `upstream`; open the PR with `--base <previous branch>`. CI fixes on a lower branch are merged up the stack (no force-push).
+
+### Code conventions learned
+- Build model calls with `apps/workers/gateway.py::gateway_factory` (provider by policy, `PostgresReplayCache`, `project_budget`, `PostgresRecorder`); prices only from `MODEL_PRICE_*`.
+- Workers finish stages by calling `apps.orchestrator.engine.transition` with a `system` actor; API gate endpoints call it in the same transaction as the data change.
+- In a user-scoped session RLS shows all of the user's projects in `project` / `membership`: always filter those by project id.
+- API routes are nested under `/projects/{project_id}` so `require()` scopes RLS first; `apps/api` must not import `apps/workers` (shared pure code goes in `packages/`).
+- Tests: inject `MemoryObjectStore()`; DB tests create a throwaway `saq_test` DB; the replay cache answers identical requests (clear `replay_cache` in tests that script different answers).
+- MCP SDK is 2.x: `from mcp.server.mcpserver import MCPServer`.
 
 ## Environment facts and gotchas
 - Tools: uv (Python 3.12 venv), pnpm 12 (`apps/web/pnpm-workspace.yaml` approves esbuild builds), Docker Desktop. `gh` is logged in as **Lokkhita** (WRITE on upstream). Repo-local git identity = Lokkhita noreply email.
@@ -88,6 +99,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-24: Resume notes consolidated. No new merges; open PRs #6–#28, all green. 1,657 tests, 100% coverage.
 - 2026-11-20: T-004 golden project 1 + eval scorer done (PR #28, branch `feat/T004-golden-shop`, base `feat/T204-embeddings`). 1,657 tests.
 - 2026-11-20: T-204 embeddings done (PR #27, branch `feat/T204-embeddings`, base `feat/T202-git-import`). 1,651 tests.
 - 2026-11-20: T-202 Git import done (PR #26, branch `feat/T202-git-import`, base `feat/T105a-totp`). CI fix (in-memory storage in API fixtures) merged up #22 → #25. 1,644 tests.
