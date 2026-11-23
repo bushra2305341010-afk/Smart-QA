@@ -142,8 +142,11 @@ def _clear_cookies(response: Response) -> None:
 
 
 @router.post("/auth/register", status_code=201)
-def register(body: Credentials, factory: sessionmaker[Session] = Depends(get_factory)) -> UserOut:
-    return _user_out(service.register(factory, body.email, body.password))
+def register(
+    body: Credentials, request: Request, factory: sessionmaker[Session] = Depends(get_factory)
+) -> UserOut:
+    breach = request.app.state.breach_checker
+    return _user_out(service.register(factory, body.email, body.password, breach))
 
 
 def _start(

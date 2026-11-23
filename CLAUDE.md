@@ -12,9 +12,9 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 ## ▶ Resume here (last session ended 2026-11-24)
 1. **Start Docker Desktop** (`open -a Docker`), `cd capstone/Smart-QA`, then `docker compose up -d db redis s3`.
 2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all`.
-   - Open stacked PRs **#6 → #28** (PR #10 was merged into the M06 branch, not main). All CI green as of 2026-11-20.
+   - Open stacked PRs **#6 → latest** (see Status) (PR #10 was merged into the M06 branch, not main). All CI green as of 2026-11-20.
    - If they are merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
-   - If not: branch from the top of the stack, **`feat/T004-golden-shop`** (PR #28).
+   - If not: branch from the top of the stack (see the latest Status line).
 3. **What is built (Nadia's side, all in review):** DB + RLS + audit (M08a), auth/RBAC/2FA/rate limits (M08b, T-105a/c), orchestrator + gates 1–4 (M08c), model gateway on Postgres (T-603), ingest + Git import + embeddings (M09a, T-202, T-204), Product Understanding Graph (M09b), planner (F08), designer (F11), reporter + Excel + evidence pack (M11, N23), `saq` CLI + MCP preview (M12), golden project 1 + scorer (T-004).
 4. **Next tasks:**
    - With `ANTHROPIC_API_KEY` + `MODEL_PRICE_*` set, run the analyst on `evals/golden_projects/shop` and record precision / recall / citation accuracy in `docs/20` §4 (`python -m evals.run_graph_eval --project … --golden evals/golden_projects/shop`).
@@ -99,6 +99,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-24: T-105b breached-password check done (PR #29, branch `feat/T105b-breached-passwords`, base `feat/T004-golden-shop`). 1,662 tests.
 - 2026-11-24: Resume notes consolidated. No new merges; open PRs #6–#28, all green. 1,657 tests, 100% coverage.
 - 2026-11-20: T-004 golden project 1 + eval scorer done (PR #28, branch `feat/T004-golden-shop`, base `feat/T204-embeddings`). 1,657 tests.
 - 2026-11-20: T-204 embeddings done (PR #27, branch `feat/T204-embeddings`, base `feat/T202-git-import`). 1,651 tests.

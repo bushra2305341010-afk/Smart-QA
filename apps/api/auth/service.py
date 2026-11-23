@@ -16,6 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api.auth import passwords
+from apps.api.auth.breached import BreachChecker
 from apps.api.auth.tokens import REFRESH_TTL, hash_secret, new_api_token, new_secret
 from apps.api.db.models import ApiToken, AppUser, AuthSession
 from apps.api.errors import ApiError, conflict, unauthenticated
@@ -37,8 +38,15 @@ def lock_duration(failures: int) -> timedelta | None:
     return min(BASE_LOCK * (1 << min(failures - LOCK_AFTER, 16)), MAX_LOCK)
 
 
-def register(factory: sessionmaker[Session], email: str, password: str) -> AppUser:
+def register(
+    factory: sessionmaker[Session],
+    email: str,
+    password: str,
+    breach: BreachChecker | None = None,
+) -> AppUser:
     problem = passwords.check_password_rule(password)
+    if problem is None and breach is not None and breach.is_breached(password):
+        problem = "This password appears in a known data breach; choose another one"
     if problem:
         raise ApiError(400, "VALIDATION_ERROR", problem, {"field": "password"})
     try:

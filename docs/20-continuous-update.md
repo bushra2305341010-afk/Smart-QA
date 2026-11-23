@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-24 (T-105b breached passwords)
+**Done:** online / offline / off checker, sign-up refusal, settings, docs; task board tidied (T-102 delivered in M06). 1,662 tests, 100% coverage.
+**Decisions:** Default `off` because air-gapped installs must not call out; `online` sends only a 5-character hash prefix and fails open.
+**Next:** learning L2-lite (lessons from human decisions, US-10).
+
 ### Week 4 — 2026-11-20 (T-004 golden project 1)
 **Done:** Shop PRD + OpenAPI, expected graph, scorer, eval runner, docs. 1,657 tests, 100% coverage.
 **Bugs found & fixed:** The seeded conflict (API `maxLength 128`) was invisible to the analyst because the OpenAPI renderer skipped body schemas → body fields with constraints are rendered now.
