@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-25 (M03 safe-action policy)
+**Done:** `packages/policy/{domains,actions}.py`, one test per row of docs/09 §6 plus relaxations and production; 100% branches.
+**Decisions:** Transfers can never be relaxed; in `payments: "test"` only published test card numbers may be typed; keyword rules apply to interactions and route rules to links/requests, so a "Payment history" link is not a payment.
+**Next:** M05 verdict rules.
+
 ### Week 5 — 2026-11-24 (scoped design context)
 **Done:** `journey_scope` + designer context per journey. 1,668 tests, 100% coverage.
 **Next:** waiting on Stuti's runner/judge; model-key eval on golden project 1.

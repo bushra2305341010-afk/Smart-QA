@@ -10,7 +10,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 |---|---|---|---|---|
 | M01 | Foundation: repo skeleton, tooling, FastAPI health, Compose, CI, web scaffold, docs in repo, contributor guides | Nadia | review | #6 (+ S3 fix #11) |
 | M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #7 |
-| M03 | Safe-action policy (the RBAC matrix itself shipped in M08b: `apps/api/auth/permissions.py`) | Stuti | todo | |
+| M03 | Safe-action policy (the RBAC matrix itself shipped in M08b: `apps/api/auth/permissions.py`) | Stuti (built by Nadia) | review | |
 | M04 | Planning: techniques, risk, counts, cost | Nadia | review | #8 |
 | M05 | Verdict rules, flake features, confidence | Stuti | todo | |
 | M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
