@@ -160,6 +160,23 @@ def test_no_database_gives_503_envelope_and_security_headers(monkeypatch) -> Non
     assert "frame-ancestors 'none'" in res.headers["Content-Security-Policy"]
 
 
+def test_docs_page_loads_swagger_and_offers_authorize(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    monkeypatch.setattr(main, "get_settings", lambda: Settings(database_url=None))
+    client = TestClient(main.create_app())
+    docs = client.get("/api/v1/docs")
+    assert docs.status_code == 200
+    assert main.SWAGGER_CDN in docs.headers["Content-Security-Policy"]  # page is not blank
+    other = client.get("/api/v1/healthz").headers["Content-Security-Policy"]
+    assert main.SWAGGER_CDN not in other and "'unsafe-inline'" not in other  # strict elsewhere
+    for path in ("/", "/docs"):
+        res = client.get(path, follow_redirects=False)
+        assert res.status_code == 307 and res.headers["location"] == "/api/v1/docs"
+    schema = client.get("/api/v1/openapi.json").json()
+    assert set(schema["components"]["securitySchemes"]) == {"csrf", "bearer"}
+    assert schema["security"] == [{"csrf": []}, {"bearer": []}]
+    assert client.get("/api/v1/openapi.json").json() == schema  # built once, then cached
+
+
 def test_validation_and_unknown_route_use_the_envelope(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     monkeypatch.setattr(main, "get_settings", lambda: Settings(database_url=None))
     client = TestClient(main.create_app(session_factory=sessionmaker()))

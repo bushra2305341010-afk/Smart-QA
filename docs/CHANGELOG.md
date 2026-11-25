@@ -5,6 +5,9 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+- API docs page (`/api/v1/docs`) was blank: the strict Content-Security-Policy blocked Swagger UI's CDN script and inline start-up script. Only the docs page now allows them. `/` and `/docs` redirect to it, and the page has an "Authorize" dialog (CSRF token after login, or an API token).
+
 ### Changed
 - Designer prompts carry only the segment's journey neighbourhood of the approved graph (`packages/graph/scope.py`) instead of the whole graph: smaller, cheaper prompts on big products; unlinked rules are always included.
 

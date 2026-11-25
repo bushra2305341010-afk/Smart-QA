@@ -98,6 +98,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-25: API docs page fixed (blank under CSP), `/` and `/docs` redirect, Authorize dialog (branch `fix/api-docs-usable`, base `feat/F11-scoped-design-context`). 1,669 tests. Local run: `uv run uvicorn apps.api.main:app --port 8000` → http://127.0.0.1:8000/docs.
 - 2026-11-24: Designer context scoped per journey (PR #31, branch `feat/F11-scoped-design-context`, base `feat/N26-lessons`). 1,668 tests.
 - 2026-11-24: N26 learning L2-lite done (PR #30, branch `feat/N26-lessons`, base `feat/T105b-breached-passwords`). 1,665 tests.
 - 2026-11-24: T-105b breached-password check done (PR #29, branch `feat/T105b-breached-passwords`, base `feat/T004-golden-shop`). 1,662 tests.
