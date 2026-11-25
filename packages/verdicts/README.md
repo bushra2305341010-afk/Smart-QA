@@ -8,4 +8,4 @@ Judge rules, flake features, confidence.
 | Owner | Stuti |
 | Planned module | M05 |
 
-Status: not started — see docs/26-task-board.md.
+Status: built (M05). `rules.decide()` → `VerdictDecision` or `RERUN`; rule ids J0-J7 are stored on `verdict.rule`.

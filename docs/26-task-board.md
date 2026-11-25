@@ -12,7 +12,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M02 | Contracts + citations (normalise, chunk with offsets, quote verify) | Nadia | review | #7 |
 | M03 | Safe-action policy (the RBAC matrix itself shipped in M08b: `apps/api/auth/permissions.py`) | Stuti (built by Nadia) | review | |
 | M04 | Planning: techniques, risk, counts, cost | Nadia | review | #8 |
-| M05 | Verdict rules, flake features, confidence | Stuti | todo | |
+| M05 | Verdict rules, flake features, confidence | Stuti (built by Nadia) | review | |
 | M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
 | M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
 | M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | M08a, M08b, M08c review | M08a #12, M08b #13, M08c #14 |

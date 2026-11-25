@@ -98,6 +98,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-25: M05 verdict rules done (branch `feat/M05-verdict-rules`, base `feat/M03-safe-action-policy`).
 - 2026-11-25: M03 safe-action policy done (branch `feat/M03-safe-action-policy`, base `fix/api-docs-usable`). Nadia is now building Stuti's remaining modules too (M05, compiler, M10, judge, T-203, T-103, M07/M12 UI, T-005, M09c).
 - 2026-11-25: API docs page fixed (blank under CSP), `/` and `/docs` redirect, Authorize dialog (branch `fix/api-docs-usable`, base `feat/F11-scoped-design-context`). 1,669 tests. Local run: `uv run uvicorn apps.api.main:app --port 8000` → http://127.0.0.1:8000/docs.
 - 2026-11-24: Designer context scoped per journey (PR #31, branch `feat/F11-scoped-design-context`, base `feat/N26-lessons`). 1,668 tests.
