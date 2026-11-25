@@ -1,0 +1,159 @@
+openapi: 3.0.3
+info:
+  title: School API
+  version: "1.0"
+  description: JSON API of the school golden app. Log in first; send the token as a Bearer header or keep the session cookie.
+paths:
+  /api/login:
+    post:
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: {type: string, format: email}
+                password: {type: string}
+      responses:
+        "200": {description: Logged in; returns token, role and name}
+        "401": {description: Invalid email or password}
+  /api/students:
+    get:
+      summary: List students sorted by name
+      responses:
+        "200": {description: Students}
+        "401": {description: Not logged in}
+        "403": {description: Students cannot list students}
+    post:
+      summary: Add a student (administrators)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, age, email, parent_email]
+              properties:
+                name: {type: string, minLength: 2, maxLength: 60}
+                age: {type: integer, minimum: 5, maximum: 18}
+                email: {type: string, format: email}
+                parent_email: {type: string, format: email}
+      responses:
+        "201": {description: Student added}
+        "403": {description: Only administrators add students}
+        "409": {description: Email already in use}
+        "422": {description: Validation failed}
+  /api/students/{id}:
+    get:
+      summary: One student with grades and attendance rate
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Student}
+        "403": {description: Students can see only themselves}
+        "404": {description: Student not found}
+    put:
+      summary: Edit a student (administrators)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, age, email, parent_email]
+              properties:
+                name: {type: string, minLength: 2, maxLength: 60}
+                age: {type: integer, minimum: 5, maximum: 18}
+                email: {type: string, format: email}
+                parent_email: {type: string, format: email}
+      responses:
+        "200": {description: Student updated}
+        "409": {description: Email already in use}
+        "422": {description: Validation failed}
+    delete:
+      summary: Delete a student (administrators, destructive)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Deleted}
+        "403": {description: Only administrators delete students}
+  /api/students/{id}/email-parents:
+    post:
+      summary: Send one email to the student's parents
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Email sent}
+        "403": {description: Students cannot email parents}
+  /api/classes:
+    get:
+      summary: List classes with capacity and enrolled count
+      responses:
+        "200": {description: Classes}
+  /api/classes/{id}:
+    get:
+      summary: One class with roster and average grade
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Class}
+        "404": {description: Class not found}
+  /api/classes/{id}/enrolments:
+    post:
+      summary: Enrol a student in a class (administrators)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id]
+              properties:
+                student_id: {type: string}
+      responses:
+        "201": {description: Enrolled}
+        "409": {description: Class is full or student already enrolled}
+  /api/classes/{id}/grades:
+    post:
+      summary: Enter a grade (teacher of the class)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id, score]
+              properties:
+                student_id: {type: string}
+                score: {type: integer, minimum: 0, maximum: 100}
+      responses:
+        "200": {description: Grade saved with its letter grade}
+        "403": {description: Not the teacher of this class}
+        "422": {description: Grade must be a whole number from 0 to 100}
+  /api/classes/{id}/attendance:
+    post:
+      summary: Mark attendance for a date (teacher of the class)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, marks]
+              properties:
+                date: {type: string, format: date}
+                marks: {type: object, description: student id to Present, Absent or Late}
+      responses:
+        "200": {description: Saved}
+        "422": {description: Attendance cannot be marked for a future date}

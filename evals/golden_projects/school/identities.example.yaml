@@ -1,0 +1,17 @@
+# Fake test identities for the school golden app (seeded in app/store.py; example.com only).
+# In Smart QA, keep passwords in the identity vault and reference them as {{secret:name}}.
+# Local values of the secrets: admin-demo-pass, teacher-demo-pass, teacher2-demo-pass,
+# student-demo-pass.
+identities:
+  - {name: admin, role: admin, email: admin@example.com, password: "{{secret:school_admin}}"}
+  - name: teacher
+    role: teacher
+    email: teacher@example.com
+    password: "{{secret:school_teacher}}"
+    classes: [Math 7A]
+  - name: teacher2
+    role: teacher
+    email: teacher2@example.com
+    password: "{{secret:school_teacher2}}"
+    classes: [Science 7A]
+  - {name: student, role: student, email: student@example.com, password: "{{secret:school_student}}"}
