@@ -98,6 +98,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-25: M10a compiler done (branch `feat/M10a-compiler`, base `feat/M05-verdict-rules`). T-005 golden project 2 built by a helper agent on `feat/T005-golden-school` (base `fix/api-docs-usable`).
 - 2026-11-25: M05 verdict rules done (branch `feat/M05-verdict-rules`, base `feat/M03-safe-action-policy`).
 - 2026-11-25: M03 safe-action policy done (branch `feat/M03-safe-action-policy`, base `fix/api-docs-usable`). Nadia is now building Stuti's remaining modules too (M05, compiler, M10, judge, T-203, T-103, M07/M12 UI, T-005, M09c).
 - 2026-11-25: API docs page fixed (blank under CSP), `/` and `/docs` redirect, Authorize dialog (branch `fix/api-docs-usable`, base `feat/F11-scoped-design-context`). 1,669 tests. Local run: `uv run uvicorn apps.api.main:app --port 8000` → http://127.0.0.1:8000/docs.

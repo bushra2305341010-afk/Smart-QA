@@ -18,7 +18,7 @@ approved cases ─▶ Compiler: template + locator fill ─▶ lint + import all
 
 | Concern | Path |
 |---|---|
-| Compiler | `apps/workers/compiler/` (Jinja templates in `templates/`) |
+| Compiler | `packages/compiler/` (step grammar `steps.py`, `compile.py`, Playwright codegen + import allow-list `codegen.py`); worker `apps/workers/compiler.py` |
 | Scheduler | `apps/orchestrator/scheduler.py` |
 | Runner main / protocol | `apps/runner/{main,protocol}.py` |
 | Sandbox | `deploy/runner.Dockerfile`, `apps/runner/sandbox.py` |
@@ -32,7 +32,8 @@ approved cases ─▶ Compiler: template + locator fill ─▶ lint + import all
 
 | Symptom | Go to | What to fix |
 |---|---|---|
-| Compiled test fails import check | Compiler template | Allowed imports list |
+| Compiled test fails import check | `packages/compiler/codegen.py` | `ALLOWED_IMPORTS` |
+| Step left "not compiled" | `packages/compiler/steps.py` | Add a grammar pattern + test; the model fallback only runs with a model configured |
 | Locator flaky | Compiler locator strategy | Prefer `get_by_role`/`get_by_label` over CSS |
 | Evidence missing for a step | `evidence.py` | Capture in `finally`; upload retry |
 | Hash mismatch on read | Upload path | Hash before upload, verify after |

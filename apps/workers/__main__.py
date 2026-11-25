@@ -15,6 +15,7 @@ from apps.api.settings import get_settings
 from apps.api.storage import S3ObjectStore
 from apps.api.trackers import tracker_factory
 from apps.workers.analyst import handle_understand_job
+from apps.workers.compiler import handle_compile_job
 from apps.workers.consumer import Handler, JobConsumer
 from apps.workers.designer import handle_design_job
 from apps.workers.gateway import gateway_factory
@@ -53,6 +54,9 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
         "plan": {"job.plan": functools.partial(handle_plan_job, factory, settings)},
         "design": {
             "job.design": functools.partial(handle_design_job, factory, store, make_gateway)
+        },
+        "compile": {
+            "job.compile": functools.partial(handle_compile_job, factory, store, make_gateway)
         },
         "report": {
             "job.report": functools.partial(

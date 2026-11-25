@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-25 (M10a compiler)
+**Done:** `packages/compiler/{steps,compile,codegen}.py`, `apps/workers/compiler.py`, wired as `job.compile`; 100% coverage.
+**Decisions:** Grammar first, model only for unparsed steps (merge rejects changes to compiled steps; the model may add the expected-result check only when the grammar found none). The runner will execute the JSON actions, not the generated Python, so the plan lock holds; the Python file is the open artifact generated from the same JSON.
+**Next:** M10 runner.
+
 ### Week 5 — 2026-11-25 (M05 verdict rules)
 **Done:** `packages/verdicts/{rules,flake,confidence}.py`, `packages/contracts/run.py`; table test per rule + exhaustive grid proving no Pass without a verified quote; 100% branches.
 **Decisions:** Pass on re-run without noise → Unable to Verify (human queue), not Flaky; same failure twice without any evidence → Unable to Verify; locator/script faults → Test Error even when the quote is missing.
