@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-25 (M05 verdict rules)
+**Done:** `packages/verdicts/{rules,flake,confidence}.py`, `packages/contracts/run.py`; table test per rule + exhaustive grid proving no Pass without a verified quote; 100% branches.
+**Decisions:** Pass on re-run without noise → Unable to Verify (human queue), not Flaky; same failure twice without any evidence → Unable to Verify; locator/script faults → Test Error even when the quote is missing.
+**Next:** compiler (cases → typed actions + Playwright file), then runner.
+
 ### Week 5 — 2026-11-25 (M03 safe-action policy)
 **Done:** `packages/policy/{domains,actions}.py`, one test per row of docs/09 §6 plus relaxations and production; 100% branches.
 **Decisions:** Transfers can never be relaxed; in `payments: "test"` only published test card numbers may be typed; keyword rules apply to interactions and route rules to links/requests, so a "Payment history" link is not a payment.
