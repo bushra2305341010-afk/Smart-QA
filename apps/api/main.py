@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, Request, Response, status
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api import errors
@@ -42,6 +45,33 @@ SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+
+# The interactive API docs page loads Swagger UI from jsDelivr and starts it with an inline
+# script, which the strict policy above blocks (blank page). Only that page gets this policy;
+# it shows no user content.
+SWAGGER_CDN = "https://cdn.jsdelivr.net"
+DOCS_CSP = (
+    f"default-src 'self'; script-src 'self' 'unsafe-inline' {SWAGGER_CDN}; "
+    f"style-src 'self' 'unsafe-inline' {SWAGGER_CDN}; "
+    "img-src 'self' data: https://fastapi.tiangolo.com; "
+    "connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+)
+
+# Shown on the docs page's "Authorize" dialog. Browser sign-in sets an access cookie; requests
+# that change state also need the CSRF token returned by /auth/login. Scripts use API tokens.
+SECURITY_SCHEMES = {
+    "csrf": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token",
+        "description": "After POST /auth/login in this page, paste the returned csrf_token.",
+    },
+    "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "An API token (saq_pat_...) from POST /auth/tokens.",
+    },
 }
 
 
@@ -119,7 +149,24 @@ def create_app(
     ) -> Response:
         response = await call_next(request)
         response.headers.update(SECURITY_HEADERS)
+        if request.url.path == app.docs_url:
+            response.headers["Content-Security-Policy"] = DOCS_CSP
         return response
+
+    def openapi() -> dict[str, Any]:
+        if app.openapi_schema is None:
+            schema = get_openapi(title=app.title, version=app.version, routes=app.routes)
+            schema.setdefault("components", {})["securitySchemes"] = SECURITY_SCHEMES
+            schema["security"] = [{"csrf": []}, {"bearer": []}]
+            app.openapi_schema = schema
+        return app.openapi_schema
+
+    app.openapi = openapi  # type: ignore[method-assign]
+
+    @app.get("/", include_in_schema=False)
+    @app.get("/docs", include_in_schema=False)
+    async def to_docs() -> RedirectResponse:
+        return RedirectResponse(f"{API_PREFIX}/docs")
 
     app.include_router(auth.router, prefix=API_PREFIX)
     app.include_router(projects.router, prefix=API_PREFIX)
