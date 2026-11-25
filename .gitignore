@@ -31,3 +31,6 @@ apps/web/dist/
 data/
 evidence/
 evals/private/
+
+# Local agent worktrees
+.claude/worktrees/
