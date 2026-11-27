@@ -1,20 +1,38 @@
-/* Design tokens — docs/05-frontend-ui-design.md §3. Use these, never raw hex in components. */
+/* Design tokens — docs/05-frontend-ui-design.md §3. Use these, never raw hex in components.
+   Dark mode follows prefers-color-scheme unless the user picks a theme (html[data-theme]). */
 :root {
   --bg: #F8FAFC; --surface: #FFFFFF; --surface-2: #F1F5F9; --border: #E2E8F0;
-  --text: #0F172A; --text-muted: #475569; --sidebar: #0F172A;
-  --primary: #4338CA; --primary-hover: #3730A3; --accent: #0D9488; --focus-ring: #6366F1;
-  --quote-bg: #FEF9C3;
+  --text: #0F172A; --text-muted: #475569; --sidebar: #0F172A; --sidebar-text: #E2E8F0;
+  --primary: #4338CA; --primary-hover: #3730A3; --on-primary: #FFFFFF;
+  --accent: #0D9488; --focus-ring: #6366F1;
+  --quote-bg: #FEF9C3; --danger: #B91C1C; --danger-bg: #FEE2E2;
+  /* Verdict colours are fixed in both themes (§3.2). */
   --pass: #15803D; --pass-bg: #DCFCE7; --fail: #B91C1C; --fail-bg: #FEE2E2;
   --flaky: #B45309; --flaky-bg: #FEF3C7; --blocked: #475569; --blocked-bg: #E2E8F0;
   --testerr: #7E22CE; --testerr-bg: #F3E8FF; --uv: #1D4ED8; --uv-bg: #DBEAFE;
+  --sev-critical: #7F1D1D; --sev-high: #B91C1C; --sev-medium: #B45309; --sev-low: #475569;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0B1120; --surface: #111827; --surface-2: #1E293B; --border: #334155;
     --text: #E2E8F0; --text-muted: #94A3B8; --sidebar: #020617;
-    --primary: #818CF8; --primary-hover: #A5B4FC; --accent: #2DD4BF; --focus-ring: #A5B4FC;
-    --quote-bg: #422006;
+    --primary: #818CF8; --primary-hover: #A5B4FC; --on-primary: #0F172A;
+    --accent: #2DD4BF; --focus-ring: #A5B4FC; --quote-bg: #422006;
+    --danger: #FCA5A5; --danger-bg: #450A0A;
+    color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1120; --surface: #111827; --surface-2: #1E293B; --border: #334155;
+  --text: #E2E8F0; --text-muted: #94A3B8; --sidebar: #020617;
+  --primary: #818CF8; --primary-hover: #A5B4FC; --on-primary: #0F172A;
+  --accent: #2DD4BF; --focus-ring: #A5B4FC; --quote-bg: #422006;
+  --danger: #FCA5A5; --danger-bg: #450A0A;
+  color-scheme: dark;
 }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
 :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

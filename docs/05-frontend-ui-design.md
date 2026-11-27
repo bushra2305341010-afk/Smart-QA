@@ -47,15 +47,15 @@ The users are QA Leads and testers reviewing a lot of AI output. The UI wins if 
 | Live updates | Server-Sent Events (`EventSource`) |
 | Evidence viewer | Playwright trace viewer (embedded iframe), HAR table, `<video>` |
 | i18n | i18next (English, Bangla in v1) — use **Hind Siliguri** / **Noto Sans Bengali** for Bangla |
-| API client | `openapi-typescript` + `openapi-fetch`, generated from FastAPI's OpenAPI |
+| API client | `openapi-typescript` types generated from FastAPI's OpenAPI + a small typed fetch wrapper (`src/api/client.ts`) |
 | Tests | Vitest + Testing Library, Playwright E2E, axe in Storybook |
 
 ### 2.4 Integration (how the frontend plugs into the backend)
 
-1. FastAPI publishes `/openapi.json`. `pnpm gen:api` generates typed client + Zod schemas into `apps/web/src/api/`.
-2. All requests go through `apiClient` with cookie auth and CSRF header.
+1. FastAPI publishes `/api/v1/openapi.json`. `pnpm gen:api` generates `apps/web/src/api/schema.d.ts` (types only; Zod schemas later with forms).
+2. All requests go through `api()` in `src/api/client.ts`: cookie auth, `X-CSRF-Token` echoed from the `saq_csrf` cookie on state-changing calls, one `/auth/refresh` retry on 401, and `ApiError` built from the error envelope.
 3. TanStack Query keys follow `[domain, projectId, id]`. Mutations invalidate the matching keys.
-4. SSE `/api/v1/projects/{id}/events` pushes stage and run updates; a hook `useProjectEvents()` patches the Query cache.
+4. SSE `/api/v1/projects/{id}/events` pushes stage and run updates; `useProjectEvents()` (`src/api/runs.ts`, mounted by the top bar) patches the Query cache. The pipeline query polls every 10 s only while the stream is not open.
 5. Feature flags from `/api/v1/me` decide which screens are visible (MVP vs v1).
 
 ## 3. Colour system
@@ -138,6 +138,9 @@ The **stage stepper** (Ingest → Understand → Plan → Design → Run → Rep
 | Bug review | Draft editor, duplicate warning, tracker picker | Nothing filed without explicit "Confirm & file" |
 | Reports | Excel / evidence-pack buttons, coverage heatmap, trend chart | Downloads named `project_run_date.xlsx` |
 | Settings | Users & roles, model policy, budgets, retention, integrations | Destructive actions need typed confirmation |
+| Sign-in | Email + password, then a 6-digit code when two-factor is on; Security page turns two-factor on | Secret shown once |
+
+**Built so far (M07, `apps/web`):** sign-in/register with the two-factor step, security (two-factor setup), projects, setup (upload, Git import, environments, start/retry/cancel), graph review as a node list + detail panel with source quotes (React Flow canvas later), coverage plan, case review, bug review, reports (downloads per run from the runs list), and the run dashboard (M12): runs list with a "Start regression run" form (environment, optional journeys; disabled with the reason until the pipeline is done), and run detail with verdict tiles that filter, live progress over SSE, a case table (verdict, confidence level, rule, attempts, blocked signal), an "Only Unable to Verify" toggle and an evidence drawer (screenshots per step, trace / HAR / video / console downloads, expected vs actual as plain text, compiled Playwright file). The top bar's stage stepper follows SSE events and polls only while the stream is down. Dark mode follows `prefers-color-scheme`, or the theme picker in the top bar sets `html[data-theme]`.
 
 ## 6. UX rules
 
@@ -154,14 +157,15 @@ The **stage stepper** (Ingest → Understand → Plan → Design → Run → Rep
 
 ```
 apps/web/src/
-  api/            generated client + query hooks
-  app/            router, providers, layout
+  api/            generated types (schema.d.ts), fetch wrapper, query hooks
+  app/            router, providers, layout (nav rail, top bar)
   components/ui/  shadcn components (owned)
-  components/     VerdictBadge, CitationQuote, EvidenceDrawer, StageStepper, CostMeter
-  features/       setup/, graph/, plan/, cases/, runs/, bugs/, reports/, settings/
-  hooks/          useProjectEvents, useHotkeys
+  components/     VerdictBadge, CitationQuote, EvidenceDrawer, StageStepper, CostMeter, StatusBadge, States
+  features/       auth/, projects/, setup/, graph/, plan/, cases/, runs/, bugs/, reports/, settings/
+  hooks/          useProjectEvents, useHotkeys, useProjectId
+  test/           mockApi, renderApp, axe helper, fixtures
   i18n/           en.json, bn.json
-  styles/         tokens.css, globals.css
+  styles/         tokens.css, globals.css (Tailwind maps every colour to a token)
 ```
 
 ## 8. Done checklist for any screen
