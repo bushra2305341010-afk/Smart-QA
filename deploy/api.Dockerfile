@@ -1,3 +1,4 @@
+# API, orchestrator, workers and the migration job share this image (different commands).
 FROM python:3.12-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 UV_COMPILE_BYTECODE=1
 COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /usr/local/bin/uv
@@ -14,4 +15,8 @@ RUN uv sync --frozen --no-dev
 RUN useradd --create-home --uid 10001 saq
 USER saq
 EXPOSE 8000
-CMD ["/app/.venv/bin/uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK --interval=15s --timeout=3s --retries=5 \
+  CMD ["/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/healthz', timeout=2)"]
+# WEB_CONCURRENCY sets the worker count; proxy headers come from the internal Caddy only.
+CMD ["/app/.venv/bin/uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "8000", \
+     "--proxy-headers", "--forwarded-allow-ips", "*", "--no-server-header"]

@@ -57,6 +57,22 @@ cd apps/web && pnpm install && pnpm dev   # http://localhost:5173
 
 Full setup: [docs/15-setup-and-initialization.md](docs/15-setup-and-initialization.md).
 
+Run tests in a browser locally: register a runner (`POST /api/v1/projects/{id}/runners`), then
+`SAQ_API_URL=http://127.0.0.1:8000/api/v1 SAQ_RUNNER_TOKEN=saq_run_... SAQ_BROWSER_CHANNEL=chrome uv run python -m apps.runner`.
+
+## Deploy to production
+
+```bash
+cp .env.production.example .env.production   # fill every value (passwords, JWT key, S3, model)
+make prod-config && make prod-up             # migrations run first; TLS via Caddy
+make smoke URL=https://qa.example.com
+```
+
+Images are published to GHCR by `.github/workflows/release.yml` on `vX.Y.Z` tags. Processes refuse
+to start in `SAQ_ENV=prod` with unsafe settings. Runners connect with mTLS from your team network.
+Guide: [docs/23-deployment-and-release.md](docs/23-deployment-and-release.md) §9–§11; operations:
+[docs/24-operations-runbook.md](docs/24-operations-runbook.md).
+
 ## Contributing
 
 - Start with [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -65,4 +81,8 @@ Full setup: [docs/15-setup-and-initialization.md](docs/15-setup-and-initializati
 
 ## Status
 
-Module 1 (foundation) is in progress. See [docs/26-task-board.md](docs/26-task-board.md) and [docs/CHANGELOG.md](docs/CHANGELOG.md).
+All MVP modules are built and in review: understand (graph, Gate 1), plan (Gate 2), design with
+cited expected results (Gate 3), compile, run (Playwright runner with safe-action policy and
+Blocked detectors), judge (six honest verdicts with clean re-runs), bug drafts (Gate 4), reports,
+web app, CLI and MCP. See [docs/26-task-board.md](docs/26-task-board.md) and
+[docs/CHANGELOG.md](docs/CHANGELOG.md).

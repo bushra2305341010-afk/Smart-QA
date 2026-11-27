@@ -14,7 +14,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M04 | Planning: techniques, risk, counts, cost | Nadia | review | #8 |
 | M05 | Verdict rules, flake features, confidence | Stuti (built by Nadia) | review | |
 | M06 | Model gateway (Claude adapter, schema output, cost, budget, redaction, untrusted wrapping, replay cache) + T-602 local model | Nadia | review | #9, #10 |
-| M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti | todo | |
+| M07 | Web foundations (Tailwind, layout, stepper, API client) | Stuti (built by Nadia) | review | #37 (gate screens) + #43 (run dashboard) |
 | M08 | Split: M08a DB models + migrations + RLS + audit/outbox; M08b auth + RBAC + projects/sources/environments API; M08c orchestrator state machine + gates + recovery | Shared | M08a, M08b, M08c review | M08a #12, M08b #13, M08c #14 |
 | M09 | Split: M09a ingest (upload, parsers, chunks, ingest worker); M09b Product Understanding Graph (analyst, merge, conflicts, ambiguity, graph API, Gate 1); M09c explorer | Nadia | M09a, M09b, M09c review | M09a #16, M09b #17 |
 | F08 | Planner stage: graph → plan worker, plan API, Gate 2 | Nadia | review | #18 |
@@ -22,7 +22,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M10 | Runner + Judge worker (M10a compiler #35; runner #38; judge on `feat/M10b-judge`) | Stuti (built by Nadia) | review | flake eval 91.4% on the seed set |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | review | #20, evidence pack #21 |
 | N26 | Learning L2-lite: lessons + rules from human decisions (US-10) | Nadia | review | #30 |
-| M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | Runs API + SSE + MCP `get_verdicts`/`run_journeys` + `saq run --wait` on `feat/M12-runs-api`; run dashboard UI next | #22, #23 |
+| M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | review | Runs API + SSE + MCP + `saq run --wait` #40; run dashboard UI #43 |
 
 ## Week 0 — Setup
 
@@ -43,14 +43,14 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 
 | ID | Task | Story | Owner | Status | Notes |
 |---|---|---|---|---|---|
-| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, s3, web | — | Nadia | doing | db, redis, api done in M01; s3 = SeaweedFS (MinIO image no longer published, ADR-010); worker (M09a) and orchestrator (M08c) added; runner and web come with Stuti's M10 / M07 |
+| T-101 | Docker Compose: api, worker, orchestrator, runner, db, redis, s3, web | — | Nadia | review | Dev: `docker-compose.yml`. Production: `deploy/compose.prod.yml` (migrate job, read-only containers, Caddy TLS + runner mTLS, profiles runner / bundled-s3), images `deploy/{api,web,runner}.Dockerfile`, release workflow to GHCR |
 | T-102 | Model Gateway: Claude adapter, schema output, cost log | — | Nadia | done | Delivered in M06 (#9) + T-603 (#15) |
 | T-103 | Runner registration over mTLS | US-06 | Stuti (built by Nadia) | review | Token registration + `cert_sha256` pin checked against the TLS proxy header; proxy config in docs/23 |
 | T-104 | Auth: register/login/session, RBAC skeleton | US-11 | Nadia | review | Done in M08b (#13) because the API needed it; TOTP → T-105a, breached-password check → T-105b, per-IP/user rate limits → T-105c |
 | T-105a | TOTP second factor (`/auth/login/mfa`) | US-11 | Nadia | review | #25 |
 | T-105b | Breached-password check (k-anonymity) in `check_password_rule` | US-11 | Nadia | review | #29: `BREACH_CHECK_MODE` off / online (HIBP range API, 5-char prefix only) / offline file |
 | T-105c | Rate limits: 600 req/min per user, 30 job starts/min per project, per-IP login backoff (Redis) | — | Nadia | review | #24; memory or Redis backend |
-| T-105 | Web shell: layout, stage stepper, tokens | — | Stuti | doing | Vite+React+TS scaffold, tokens and VerdictBadge in M01; layout/stepper in M07 |
+| T-105 | Web shell: layout, stage stepper, tokens | — | Stuti (built by Nadia) | review | #37 |
 
 ## Week 2 — Ingest
 

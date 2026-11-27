@@ -1,0 +1,44 @@
+# Public site: TLS (automatic certificates for SAQ_DOMAIN), SPA and API on one origin.
+{$SAQ_DOMAIN} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+	handle /api/* {
+		reverse_proxy api:8000 {
+			# Only the runner listener below may assert a client certificate.
+			header_up -X-Client-Cert-Sha256
+			# Server-Sent Events must not be buffered.
+			flush_interval -1
+		}
+	}
+	handle {
+		header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'"
+		header X-Frame-Options DENY
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# Runner listener (T-103): mutual TLS. Only runner endpoints are reachable here, and the proxy
+# (not the client) sets the certificate fingerprint the API compares with runner.cert_sha256.
+{$SAQ_RUNNER_DOMAIN}:{$SAQ_RUNNER_PORT:8443} {
+	tls {
+		client_auth {
+			mode require_and_verify
+			trust_pool file /etc/caddy/runner-ca.pem
+		}
+	}
+	@runner path /api/v1/runner/*
+	handle @runner {
+		reverse_proxy api:8000 {
+			header_up X-Client-Cert-Sha256 {http.request.tls.client.fingerprint}
+		}
+	}
+	respond 404
+}

@@ -103,6 +103,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-27: Production deployment ready on `feat/deploy-production` (base `feat/M09c-explorer`; merges #43 run dashboard and #36 school). All planned MVP modules built; open PRs #6 → #44.
 - 2026-11-27: M09c explorer done (branch `feat/M09c-explorer`, base `feat/T203-identity-vault`). 1,964 tests.
 - 2026-11-27: T-203 vault done (branch `feat/T203-identity-vault`, base `feat/M12-runs-api`). M12 run dashboard UI being built by a helper agent on `feat/M12-run-dashboard` (M07 merged in).
 - 2026-11-27: Runs API + SSE + MCP/CLI runs done (branch `feat/M12-runs-api`, base `feat/M10b-judge`). 1,954 tests.

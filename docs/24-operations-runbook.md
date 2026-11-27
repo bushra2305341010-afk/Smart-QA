@@ -14,15 +14,17 @@ Step-by-step actions for when something goes wrong in a running deployment. For 
 
 ### Stop everything (SEV1 kill switch)
 ```bash
-saq admin pause-all-runs --reason "SEV1 <short>"     # runners stop pulling jobs
-saq runner revoke --all                              # if a runner may be compromised
+docker compose -f deploy/compose.prod.yml --env-file .env.production stop worker orchestrator         # no new stage work is dispatched
+curl -X DELETE …/api/v1/projects/<prj>/runners/<rnr>   # revoke a runner (repeat per runner)
+docker stop saq-runner                                  # on each runner host
 ```
+Cancel a project's pipeline: `saq event -p <prj> cancel`. (Planned: `saq admin pause-all-runs`.)
 
 ### Runs stuck
-1. `saq debug run <run_id>` → check stage + last completed case.
-2. Runner online? `saq runner list`. If offline → restart runner container.
-3. Queue backed up? Flower (`:5555`) → scale workers `docker compose up -d --scale worker=3`.
-4. Resume: `saq run resume <run_id>`.
+1. `saq status -p <prj>` and `saq verdicts -p <prj>`: stage, status and which cases have no verdict.
+2. Runners online? `GET /projects/<prj>/runners` (`status`, `last_seen_at`). A killed runner's lease expires after 10 min and another runner takes the job; after 3 losses the case becomes Test Error.
+3. Jobs not consumed? `docker compose -f deploy/compose.prod.yml --env-file .env.production logs worker orchestrator`; scale workers: set `WORKER_REPLICAS=3` and `make prod-up`.
+4. Failed stage: `saq event -p <prj> retry`.
 
 ### Model provider failing / costs spike
 1. Check `model_call` errors and the cost dashboard.
@@ -30,13 +32,13 @@ saq runner revoke --all                              # if a runner may be compro
 3. Cost spike → check cache hit rate; lower budget cap; pause non-urgent understand/design jobs.
 
 ### Database issues
-1. `/readyz` failing → `docker compose logs db`.
-2. Disk full → run retention job `saq admin retention --now`; extend volume.
-3. Corruption / bad migration → restore latest backup ([07](07-database.md) §7), then `saq audit verify`.
+1. `/readyz` failing → `docker compose -f deploy/compose.prod.yml --env-file .env.production logs db`.
+2. Disk full → extend the volume; prune old dumps in `./backups`. (Planned: retention job.)
+3. Corruption / bad migration → restore the latest dump (`pg_restore`, see `deploy/scripts/backup.sh`), then `saq audit verify -p <prj>`.
 
 ### Suspected secret leak
 1. Rotate the secret (model key, tracker token, JWT key) immediately.
-2. Revoke sessions: `saq admin revoke-sessions --all`.
+2. Revoke sessions: rotating `JWT_PRIVATE_KEY` and restarting `api` invalidates every access token; refresh sessions are revoked per user via `/auth/logout`. (Planned: `saq admin revoke-sessions`.)
 3. Search logs and exports for the leaked value; purge.
 4. Post-mortem within 48 h.
 
@@ -49,12 +51,16 @@ saq runner revoke --all                              # if a runner may be compro
 
 | Task | Frequency | Command |
 |---|---|---|
-| Backup check | Daily | `make backup-verify` |
-| Restore drill | Monthly | `make restore-drill` |
-| Dependency audit | Weekly (CI nightly) | — |
-| Rotate JWT key | 90 days | `saq admin rotate-jwt` |
-| Runner cert renewal | Automatic at day 20 | check `saq runner list` |
-| Learning report review | Weekly | `saq learn report` |
+| Database backup | Daily (cron) | `make backup` → `./backups/saq-<UTC>.dump`, keeps 14 (copy off-host) |
+| Restore drill | Monthly | restore the latest dump into a scratch Postgres, `alembic current`, `saq audit verify` |
+| Evidence / reports | Continuous | your S3 bucket with versioning + lifecycle rules |
+| Smoke test | After every deploy | `make smoke URL=https://…` |
+| Dependency audit | Weekly | CI + `uv lock --upgrade` / `pnpm outdated` in a PR |
+| Rotate JWT key | 90 days | new `JWT_PRIVATE_KEY`, `make prod-up` (users sign in again) |
+| Rotate DB / Redis passwords | 180 days | `ALTER ROLE … PASSWORD`, update `.env.production`, `make prod-up` |
+| Runner certificates | Before expiry (365 d) | issue a new cert, register a new runner with its `cert_sha256`, revoke the old one |
+| Audit chain | Weekly | `saq audit verify -p <prj>` |
+| Flake eval | Before each release | `python -m evals.run_flake_eval` (≥ 85%, 0 false bugs) |
 
 ## 4. Post-mortem template
 

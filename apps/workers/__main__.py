@@ -11,7 +11,7 @@ import threading
 import redis
 
 from apps.api.db.session import make_engine, make_session_factory
-from apps.api.settings import get_settings
+from apps.api.settings import check_production, get_settings
 from apps.api.storage import S3ObjectStore
 from apps.api.trackers import tracker_factory
 from apps.workers.analyst import handle_understand_job
@@ -29,6 +29,7 @@ from packages.citations.embed import LocalEmbedder
 
 def main() -> None:  # pragma: no cover - process wiring; parts are tested separately
     settings = get_settings()
+    check_production(settings)
     logging.basicConfig(level=settings.log_level.upper())
     if not (settings.worker_database_url and settings.redis_url and settings.s3_endpoint):
         raise SystemExit("Set WORKER_DATABASE_URL, REDIS_URL and S3_ENDPOINT")

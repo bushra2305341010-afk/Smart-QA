@@ -40,6 +40,12 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-27 (production deployment)
+**Done:** prod compose + images + Caddy + release workflow + fail-fast settings + backup/smoke scripts + deploy docs; integration branch `feat/deploy-production` merges every module (stack through M09c, run dashboard, school golden project).
+**Decisions:** Caddy instead of nginx (automatic TLS, simple client-cert auth, placeholder for the cert fingerprint); runners outbound-only with mTLS on a separate listener; secrets only via env file/secret manager, never in images.
+**Not verified here:** image builds and a live TLS deploy (no network in this session); CI builds the images on the PR.
+**Next:** human merges of PRs #6 → #44, a staging deploy, model-key eval on golden projects 1 and 2.
+
 ### Week 5 — 2026-11-27 (M09c explorer)
 **Done:** `apps/runner/explorer.py`, `packages/contracts/explore.py`, explorer endpoints; real-browser + API tests.
 **Decisions:** Deterministic crawl instead of a model tool loop: reproducible, zero model cost, and it cannot be talked into clicking (read-only by construction; buttons are listed, not pressed).
