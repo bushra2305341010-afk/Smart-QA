@@ -1,7 +1,13 @@
 /** Verdict chip: always colour + icon + word, never colour alone (docs/05 §3.2). */
 export type Verdict = "pass" | "fail" | "flaky" | "blocked" | "test_error" | "unable_to_verify";
 
-const META: Record<Verdict, { label: string; icon: string; cls: string }> = {
+export function isVerdict(v: unknown): v is Verdict {
+  return typeof v === "string" && (VERDICTS as string[]).includes(v);
+}
+
+export const VERDICTS: Verdict[] = ["pass", "fail", "flaky", "blocked", "test_error", "unable_to_verify"];
+
+export const VERDICT_META: Record<Verdict, { label: string; icon: string; cls: string }> = {
   pass: { label: "Pass", icon: "✓", cls: "text-pass bg-pass-bg" },
   fail: { label: "Fail", icon: "✕", cls: "text-fail bg-fail-bg" },
   flaky: { label: "Flaky", icon: "⇄", cls: "text-flaky bg-flaky-bg" },
@@ -13,7 +19,7 @@ const META: Record<Verdict, { label: string; icon: string; cls: string }> = {
 type Props = { verdict: Verdict; confidence?: "high" | "medium" | "low" };
 
 export function VerdictBadge({ verdict, confidence }: Props) {
-  const m = META[verdict];
+  const m = VERDICT_META[verdict];
   return (
     <span
       role="status"

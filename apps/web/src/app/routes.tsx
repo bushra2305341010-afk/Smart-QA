@@ -7,6 +7,7 @@ import { GraphReviewPage } from "../features/graph/GraphReviewPage";
 import { PlanPage } from "../features/plan/PlanPage";
 import { ProjectsPage } from "../features/projects/ProjectsPage";
 import { ReportsPage } from "../features/reports/ReportsPage";
+import { RunDetailPage } from "../features/runs/RunDetailPage";
 import { RunsPage } from "../features/runs/RunsPage";
 import { SecurityPage } from "../features/settings/SecurityPage";
 import { SetupPage } from "../features/setup/SetupPage";
@@ -37,6 +38,7 @@ export function AppRoutes() {
           <Route path="plan" element={<PlanPage />} />
           <Route path="cases" element={<CaseReviewPage />} />
           <Route path="runs" element={<RunsPage />} />
+          <Route path="runs/:runId" element={<RunDetailPage />} />
           <Route path="bugs" element={<BugReviewPage />} />
           <Route path="reports" element={<ReportsPage />} />
         </Route>

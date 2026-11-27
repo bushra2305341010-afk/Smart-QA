@@ -83,12 +83,15 @@ export function useCreateEnvironment(pid: string) {
   });
 }
 
-export function usePipeline(pid: string) {
+/**
+ * The pipeline state. Live updates come from `useProjectEvents` (SSE, mounted in the top bar);
+ * the top bar passes `poll` (10 s) only while the event stream is not open.
+ */
+export function usePipeline(pid: string, poll: number | false = false) {
   return useQuery({
     queryKey: keys.pipeline(pid),
     queryFn: () => api<PipelineOut>(`/projects/${pid}/pipeline`),
-    // Until the SSE hook lands (run dashboard), poll so the stepper follows workers.
-    refetchInterval: 10_000,
+    refetchInterval: poll,
   });
 }
 

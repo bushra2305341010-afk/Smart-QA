@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useLogout, useMe } from "../api/auth";
 import { useCosts, usePipeline } from "../api/projects";
+import { useProjectEvents } from "../api/runs";
 import { CostMeter } from "../components/CostMeter";
 import { StageStepper } from "../components/StageStepper";
 import { useProjectId } from "../hooks/useProjectId";
@@ -8,7 +9,8 @@ import { ProjectSwitcher } from "./ProjectSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
 
 function ProjectStatus({ pid }: { pid: string }) {
-  const pipeline = usePipeline(pid);
+  const live = useProjectEvents(pid);
+  const pipeline = usePipeline(pid, live ? false : 10_000);
   const costs = useCosts(pid);
   return (
     <>

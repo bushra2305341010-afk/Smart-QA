@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { downloadUrl } from "../../api/client";
-import { useBugs } from "../../api/review";
+import { useRuns } from "../../api/runs";
 import { PageHeader } from "../../components/PageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../../components/States";
 import { useRequiredProjectId } from "../../hooks/useProjectId";
@@ -10,7 +11,9 @@ const RUN_ID = /^run_[0-9a-f]{32}$/;
 function Downloads({ pid, runId }: { pid: string; runId: string }) {
   return (
     <li className="flex flex-wrap items-center gap-2 rounded border border-border p-2 text-sm">
-      <span className="font-mono">{runId}</span>
+      <Link to={`/projects/${pid}/runs/${runId}`} className="font-mono text-primary underline">
+        {runId}
+      </Link>
       <a className="btn-secondary ml-auto" href={downloadUrl(`/projects/${pid}/runs/${runId}/export.xlsx`)} download>
         Excel workbook<span className="sr-only"> for {runId}</span>
       </a>
@@ -21,22 +24,27 @@ function Downloads({ pid, runId }: { pid: string; runId: string }) {
   );
 }
 
-/**
- * Six-sheet Excel workbook and HTML evidence pack per run. There is no run list endpoint yet,
- * so runs are taken from bug drafts, plus any run ID typed in.
- */
+/** Six-sheet Excel workbook and HTML evidence pack per run (from GET /runs, plus any run ID typed in). */
 export function ReportsPage() {
   const pid = useRequiredProjectId();
-  const bugs = useBugs(pid);
+  const list = useRuns(pid);
   const [typed, setTyped] = useState("");
   const [extra, setExtra] = useState<string[]>([]);
-  const fromBugs = [...new Set((bugs.data ?? []).map((b) => b.run_id))];
-  const runs = [...new Set([...fromBugs, ...extra])];
+  const listed = (list.data?.items ?? []).map((r) => r.id);
+  const runs = [...new Set([...listed, ...extra])];
   const valid = RUN_ID.test(typed.trim());
 
   return (
     <section>
-      <PageHeader title="Reports" description="Open artifacts: Excel workbook and evidence pack per run." />
+      <PageHeader
+        title="Reports"
+        description="Open artifacts: Excel workbook and evidence pack per run."
+        actions={
+          <Link to={`/projects/${pid}/runs`} className="btn-secondary no-underline">
+            Runs dashboard
+          </Link>
+        }
+      />
       <form
         className="card mb-4 flex flex-wrap items-end gap-2"
         onSubmit={(e) => {
@@ -62,10 +70,10 @@ export function ReportsPage() {
           Add run
         </button>
       </form>
-      {bugs.isPending ? (
+      {list.isPending ? (
         <LoadingState label="Loading runs…" />
-      ) : bugs.error ? (
-        <ErrorState error={bugs.error} title="Could not load runs" />
+      ) : list.error ? (
+        <ErrorState error={list.error} title="Could not load runs" />
       ) : runs.length === 0 ? (
         <EmptyState title="No runs yet">Reports appear after a run finishes. Paste a run ID above to download one.</EmptyState>
       ) : (

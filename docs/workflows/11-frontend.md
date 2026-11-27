@@ -1,6 +1,6 @@
 # Sector 11 · Frontend
 
-**Screens:** sign-in / register (+ two-factor step), projects, project setup, graph review (Gate 1), coverage plan (Gate 2), case review (Gate 3), runs (placeholder), bug review (Gate 4), reports, security settings.
+**Screens:** sign-in / register (+ two-factor step), projects, project setup, graph review (Gate 1), coverage plan (Gate 2), case review (Gate 3), runs (list + regression run form, run detail with verdict tiles, live progress and evidence drawer), bug review (Gate 4), reports, security settings.
 **Owner:** Stuti · Support: Nadia · Design: [../05-frontend-ui-design.md](../05-frontend-ui-design.md)
 
 ## Flow
@@ -10,7 +10,8 @@ FastAPI OpenAPI ─▶ pnpm gen:api ─▶ src/api/schema.d.ts (types only)
 route ─▶ feature page ─▶ TanStack Query hook (src/api/*.ts) ─▶ api() fetch wrapper ─▶ /api/v1
         cookie session · X-CSRF-Token from the saq_csrf cookie · 401 → one /auth/refresh + retry
 mutation onSuccess ─▶ invalidate [domain, projectId, …] ─▶ list + stage stepper refetch
-(planned) SSE /events ─▶ useProjectEvents ─▶ patch Query cache ─▶ live UI  (pipeline polls every 10 s until then)
+SSE /projects/{id}/events ─▶ useProjectEvents (top bar) ─▶ `pipeline` patches + invalidates the stepper,
+        `run` patches the runs list + invalidates that run ─▶ live UI (pipeline polls every 10 s only while the stream is down)
 ```
 
 ## Code map
@@ -21,12 +22,12 @@ mutation onSuccess ─▶ invalidate [domain, projectId, …] ─▶ list + stag
 | Layout | `src/app/AppShell.tsx` (skip link, nav rail, top bar), `NavRail.tsx`, `TopBar.tsx`, `ProjectSwitcher.tsx`, `ThemeToggle.tsx`, `RequireAuth.tsx`, `NotFoundPage.tsx` |
 | Generated API types | `src/api/schema.d.ts` (do not edit by hand; `pnpm gen:api` with the API on :8000) |
 | API client | `src/api/client.ts` (`api()`, `ApiError` from the error envelope, CSRF header, refresh-once), `src/api/types.ts` (named aliases + JSON-column shapes) |
-| Query hooks | `src/api/auth.ts`, `src/api/projects.ts` (projects, sources, environments, pipeline, costs), `src/api/review.ts` (graph, plans, cases, bugs) |
-| Shared components | `src/components/`: `VerdictBadge`, `CitationQuote`, `StageStepper`, `CostMeter`, `StatusBadge`, `PageHeader`, `States` (Loading / Empty / Error with trace id) |
+| Query hooks | `src/api/auth.ts`, `src/api/projects.ts` (projects, sources, environments, pipeline, costs), `src/api/review.ts` (graph, plans, cases, bugs), `src/api/runs.ts` (runs list/detail, start run, `useProjectEvents` SSE) |
+| Shared components | `src/components/`: `VerdictBadge` (+ `VERDICTS`, `VERDICT_META`), `CitationQuote`, `EvidenceDrawer`, `StageStepper`, `CostMeter`, `StatusBadge`, `PageHeader`, `States` (Loading / Empty / Error with trace id) |
 | Hooks | `src/hooks/useProjectId.ts`, `src/hooks/useHotkeys.ts` (A / R / J / K, ignored while typing) |
-| Features | `src/features/auth/`, `projects/`, `setup/`, `graph/`, `plan/`, `cases/`, `bugs/`, `reports/`, `settings/`, `runs/` (placeholder only) |
+| Features | `src/features/auth/`, `projects/`, `setup/`, `graph/`, `plan/`, `cases/`, `bugs/`, `reports/`, `settings/`, `runs/` (`RunsPage`, `StartRunForm`, `RunDetailPage`, `VerdictCounts`) |
 | Tokens and Tailwind | `src/styles/tokens.css`, `src/styles/globals.css`, `tailwind.config.js` (every colour is a token) |
-| Tests | `*.test.ts(x)` next to the code; helpers in `src/test/utils.tsx` (`mockApi`, `renderApp`, `expectNoAxeViolations`), data in `src/test/fixtures.ts` |
+| Tests | `*.test.ts(x)` next to the code; helpers in `src/test/utils.tsx` (`mockApi`, `renderApp`, `expectNoAxeViolations`), data in `src/test/fixtures.ts` and `src/test/runFixtures.ts` (runs + `FakeEventSource`) |
 | Lint | `eslint.config.js` (typescript-eslint, react-hooks, jsx-a11y; bans `dangerouslySetInnerHTML` and raw hex literals) |
 | i18n | not started (`i18n/en.json`, `bn.json` planned) |
 
@@ -41,10 +42,11 @@ mutation onSuccess ─▶ invalidate [domain, projectId, …] ─▶ list + stag
 | `/projects/:pid/graph` | Gate 1 | `/graph`, `/graph/{gv}`, `PATCH …/nodes/{nid}`, `POST …/approve`, event `graph_rejected` |
 | `/projects/:pid/plan` | Gate 2 | `/plans`, `PATCH …/segments/{seg}`, `POST …/approve`, event `plan_edited` |
 | `/projects/:pid/cases` | Gate 3 | `/cases`, `POST /cases/review`, `POST /cases/approve` |
-| `/projects/:pid/runs` | Placeholder (run dashboard + SSE to come) | — |
+| `/projects/:pid/runs` | Runs list, start regression run | `GET /runs`, `POST /runs` (`{env_id?, journeys[], source: "ui"}`; 409 `STATE_CONFLICT` unless the pipeline is `done`), `/environments`, `/plans` (journey names), `/pipeline` |
+| `/projects/:pid/runs/:runId` | Verdict tiles, live progress, case table, verdict + Unable to Verify filters, evidence drawer | `GET /runs/{run}`, `/evidence/{sha256}` (screenshots as `<img>`, other kinds as downloads), `/cases/{tc}/compiled.py` |
 | `/projects/:pid/bugs` | Gate 4 | `/bugs`, `/bugs/{bug}/duplicates`, `PATCH /bugs/{bug}`, `…/confirm`, `…/dismiss`, `POST /bugs/approve` |
-| `/projects/:pid/reports` | Downloads | `/runs/{run}/export.xlsx`, `/runs/{run}/evidence-pack` (run ids from bugs or typed in) |
-| top bar | Stepper, cost meter, switcher | `/pipeline`, `/costs`, `/projects`, `/me` |
+| `/projects/:pid/reports` | Downloads | `/runs/{run}/export.xlsx`, `/runs/{run}/evidence-pack` (run ids from `GET /runs` or typed in); links to the runs dashboard |
+| top bar | Stepper, cost meter, switcher, live events | `/pipeline`, `/costs`, `/projects`, `/me`, `/events` (SSE) |
 
 ## Bug locator
 
@@ -53,7 +55,7 @@ mutation onSuccess ─▶ invalidate [domain, projectId, …] ─▶ list + stag
 | Type errors after backend change | Run `pnpm gen:api` | Regenerate `schema.d.ts`, then fix `src/api/types.ts` aliases |
 | 403 `CSRF_FAILED` | `src/api/client.ts` `send()` | `saq_csrf` cookie missing (signed out?) or header not echoed |
 | Signed out after ~15 min | `refreshOnce()` in `client.ts` | Refresh cookie path is `/api/v1/auth`; proxy must keep it |
-| UI not live-updating | `usePipeline` poll / future `useProjectEvents`, proxy buffering | Event name mismatch; `proxy_buffering off` |
+| UI not live-updating | `useProjectEvents` in `src/api/runs.ts` (mounted by `TopBar`), proxy buffering | Event name mismatch (`pipeline`, `run`); `proxy_buffering off`; a closed stream (401) reopens after 5 s |
 | Stale data after approve | Mutation `onSuccess` in `src/api/review.ts` | Invalidate correct query keys (`reviewKeys`, `keys.pipeline`) |
 | Colour wrong in dark mode | Hard-coded hex / missing token | Use tokens; `pnpm lint` flags hex literals |
 | Keyboard shortcut conflicts | `useHotkeys` | Ignored in inputs; scope by focused panel if needed |

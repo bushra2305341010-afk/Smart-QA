@@ -27,6 +27,31 @@ export type CasePage = S["CasePage"];
 export type BugOut = S["BugOut"];
 export type BugEditIn = S["BugEditIn"];
 export type DuplicateOut = S["DuplicateOut"];
+export type RunOut = S["RunOut"];
+export type RunPage = S["Page_RunOut_"];
+export type RunDetail = S["RunDetail"];
+export type RunIn = S["RunIn"];
+export type RunStarted = S["RunStarted"];
+export type CaseRow = S["CaseRow"];
+export type EvidenceOut = S["EvidenceOut"];
+
+/** `RunOut.totals`: compiler counts, plus `verdicts` once the Judge has run (apps/workers/judge.py). */
+export type RunTotals = {
+  cases?: number;
+  compiled?: number;
+  partial?: number;
+  not_compiled?: number;
+  verdicts?: Partial<Record<string, number>>;
+};
+
+/** `CaseRow.failure` (packages/contracts/run.py Failure). */
+export type RunFailure = {
+  kind?: string;
+  message?: string;
+  step_n?: number | null;
+  expected?: string | null;
+  actual?: string | null;
+};
 
 /** A plan segment's "why this many" row (packages/contracts/plan.py TechniqueRow). */
 export type TechniqueRow = { technique: string; count: number; reason: string };

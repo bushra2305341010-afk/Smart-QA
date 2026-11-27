@@ -1,12 +1,12 @@
 # Web App
 
-React 18 + TypeScript (strict) + Vite + Tailwind SPA for the four human gates: setup, graph review (Gate 1), coverage plan (Gate 2), case review (Gate 3), bug review (Gate 4), reports. The run dashboard is a routed placeholder.
+React 18 + TypeScript (strict) + Vite + Tailwind SPA for the four human gates: setup, graph review (Gate 1), coverage plan (Gate 2), case review (Gate 3), bug review (Gate 4), reports, and the run dashboard (runs list, regression run form, run detail with verdict tiles, live progress over SSE and an evidence drawer).
 
 | | |
 |---|---|
 | Design doc | docs/05-frontend-ui-design.md, docs/workflows/11-frontend.md (code map, screen → API) |
 | Owner | Stuti |
-| Module | M07 web foundations + T-105 web shell |
+| Module | M07 web foundations + T-105 web shell, M12 run dashboard |
 
 ## Commands
 
@@ -27,3 +27,4 @@ Run the API with `uv run uvicorn apps.api.main:app --port 8000` (see the repo RE
 - Colours only from `src/styles/tokens.css` (Tailwind classes such as `bg-primary`, `text-uv`).
 - Model, document and app-under-test text is rendered as plain text, never as HTML.
 - Every screen has loading, empty and error states and an axe test with zero violations.
+- Live updates come from `useProjectEvents` (SSE `/projects/{id}/events`); tests stub `EventSource` with `FakeEventSource` from `src/test/runFixtures.ts` (jsdom has none).
