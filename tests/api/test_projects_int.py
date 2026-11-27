@@ -128,15 +128,20 @@ def test_identities_are_write_only(project) -> None:  # type: ignore[no-untyped-
     ).json()
     res = owner.post(
         f"{V1}/projects/{pid}/identities",
-        json={"env_id": env["id"], "role_name": "admin", "secret_ref": "vault:shop/admin"},
+        json={"env_id": env["id"], "role_name": "admin", "secret_ref": "vault:shop_admin"},
     )
     assert res.status_code == 201
     assert "secret_ref" not in res.json() and "vault" not in res.text
     missing = owner.post(
         f"{V1}/projects/{pid}/identities",
-        json={"env_id": f"env_{'0' * 32}", "role_name": "x", "secret_ref": "y"},
+        json={"env_id": f"env_{'0' * 32}", "role_name": "x", "secret_ref": "env:x"},
     )
     assert missing.status_code == 404
+    raw = owner.post(  # a pasted password is refused: only references are stored
+        f"{V1}/projects/{pid}/identities",
+        json={"env_id": env["id"], "role_name": "x", "secret_ref": "hunter2!"},
+    )
+    assert raw.status_code == 400 and "hunter2" not in raw.text
 
 
 def test_audit_endpoint_verifies_chain(project) -> None:  # type: ignore[no-untyped-def]

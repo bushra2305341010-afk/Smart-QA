@@ -474,7 +474,11 @@ def list_environments(
 class IdentityIn(BaseModel):
     env_id: str
     role_name: str = Field(min_length=1, max_length=100)
-    secret_ref: str = Field(min_length=1, max_length=500, description="Vault reference, write-only")
+    secret_ref: str = Field(
+        pattern=r"^(?:vault|env):[a-z0-9_]{1,40}$",
+        description="Where the runner finds the login: `vault:<name>` (runner's encrypted vault) "
+        "or `env:<name>` (SAQ_SECRET_<NAME>). Never the secret itself. Write-only.",
+    )
 
 
 class IdentityOut(BaseModel):

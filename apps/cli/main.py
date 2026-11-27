@@ -8,6 +8,7 @@
     saq audit verify --project prj_...
     saq run --project prj_... --journey Checkout --wait     (exit 1 on Fail / Test Error)
     saq verdicts --project prj_... [--run run_...]
+    saq vault keygen | set NAME | list | rm NAME      (on the runner machine; values never leave it)
 
 The token comes from `SAQ_TOKEN` or the config file written by `saq login` (mode 0600).
 Errors print the API error code and exit with status 1.
@@ -30,6 +31,11 @@ audit_app = typer.Typer(help="Audit ledger.", no_args_is_help=True)
 app.add_typer(audit_app, name="audit")
 mcp_app = typer.Typer(help="MCP server for coding agents (read-only).", no_args_is_help=True)
 app.add_typer(mcp_app, name="mcp")
+vault_app = typer.Typer(
+    help="Runner-side encrypted vault for test logins (SAQ_VAULT_FILE, SAQ_VAULT_KEY).",
+    no_args_is_help=True,
+)
+app.add_typer(vault_app, name="vault")
 
 Project = Annotated[str, typer.Option("--project", "-p", help="Project ID (prj_...)")]
 AsJson = Annotated[bool, typer.Option("--json", help="Print raw JSON")]
@@ -312,6 +318,62 @@ def audit_verify(project: Project, as_json: AsJson = False) -> None:
     )
     if not result["verified"]:
         raise typer.Exit(1)
+
+
+def _vault() -> Any:
+    from apps.runner.vault import Vault, VaultError
+
+    try:
+        vault = Vault.from_env()
+    except VaultError as exc:
+        fail("VAULT", str(exc))
+    if vault is None:
+        fail("VAULT", "Set SAQ_VAULT_FILE (and SAQ_VAULT_KEY)")
+    return vault
+
+
+def _vault_call(fn: Callable[[], Any]) -> Any:
+    from apps.runner.vault import VaultError
+
+    try:
+        return fn()
+    except VaultError as exc:
+        fail("VAULT", str(exc))
+
+
+@vault_app.command("keygen")
+def vault_keygen() -> None:
+    """Print a new random vault key (store it as SAQ_VAULT_KEY, e.g. in your secret manager)."""
+    from apps.runner.vault import new_key
+
+    typer.echo(new_key())
+
+
+@vault_app.command("set")
+def vault_set(
+    name: str,
+    value: Annotated[str, typer.Option(prompt=True, hide_input=True, help="Prompted if omitted")],
+) -> None:
+    """Store a login secret; tests refer to it as {{secret:NAME}}, identities as vault:NAME."""
+    vault = _vault()
+    _vault_call(lambda: vault.set(name, value))
+    typer.echo(f"stored {name}")
+
+
+@vault_app.command("list")
+def vault_list() -> None:
+    """Names only; values are never printed."""
+    vault = _vault()
+    for name in _vault_call(vault.names):
+        typer.echo(name)
+
+
+@vault_app.command("rm")
+def vault_rm(name: str) -> None:
+    vault = _vault()
+    if not _vault_call(lambda: vault.remove(name)):
+        fail("NOT_FOUND", f"No secret named {name}")
+    typer.echo(f"removed {name}")
 
 
 def mcp_server(project: str) -> Any:

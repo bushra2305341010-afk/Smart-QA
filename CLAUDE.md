@@ -103,6 +103,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-27: T-203 vault done (branch `feat/T203-identity-vault`, base `feat/M12-runs-api`). M12 run dashboard UI being built by a helper agent on `feat/M12-run-dashboard` (M07 merged in).
 - 2026-11-27: Runs API + SSE + MCP/CLI runs done (branch `feat/M12-runs-api`, base `feat/M10b-judge`). 1,954 tests.
 - 2026-11-27: M10b Judge done (branch `feat/M10b-judge`, base `feat/M10-runner`).
 - 2026-11-27: M10 runner done (branch `feat/M10-runner`, base `feat/M10a-compiler`). 1,866 tests.

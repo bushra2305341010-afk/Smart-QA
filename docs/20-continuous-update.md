@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-27 (T-203 identity vault)
+**Done:** `apps/runner/vault.py`, `saq vault`, reference-only identities.
+**Decisions:** The vault lives on the runner, not the control plane: secrets never cross the network and a compromised control plane cannot read them (P4 local-first). Passphrase keys use scrypt (n=2^15); decrypted once per runner process.
+**Next:** M09c explorer, production deployment.
+
 ### Week 5 — 2026-11-27 (runs API, SSE, MCP/CLI runs)
 **Done:** `apps/api/routers/runs.py`, `run_requested` transition with job params, compiler env/journey filter, MCP `get_verdicts`/`run_journeys`, `saq run --wait`/`saq verdicts`. 1,954 tests.
 **Decisions:** SSE polls Postgres snapshots (works without Redis, survives restarts; clients reconnect after `max_s`); regression runs re-enter at COMPILE so Gate 1/2 approvals stand and Gate 4 still needs a human; MCP-started runs need the explicit project opt-in.

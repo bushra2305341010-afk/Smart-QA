@@ -6,6 +6,7 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 ## [Unreleased]
 
 ### Security
+- T-203 identity vault: test logins live only on the runner, in an AES-256-GCM encrypted file (`SAQ_VAULT_FILE`, key or scrypt passphrase in `SAQ_VAULT_KEY`; atomic 0600 writes; wrong key or tampering fails closed). `saq vault keygen|set|list|rm` (values never printed). The API now accepts only references for identities (`vault:<name>` or `env:<name>`), so a pasted password is refused.
 - M03 safe-action policy (`packages/policy`, N18): the runner checks every action before it runs. Blocks delete/remove/close-account (text, aria-label, accessible name, title, routes, HTTP DELETE), payments (unless `payments: "test"`; real-looking card numbers always), money transfers (never relaxable), email/SMS/invites (unless `mail_sink`), off-domain URLs (host allow-list with wildcards and ports; `javascript:`/`data:`/`file:` refused) and uploads outside `evals/fixtures`. Production environments are blocked unless `allow_production`. 100% branch coverage.
 
 ### Fixed

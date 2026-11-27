@@ -70,7 +70,7 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 | GET | `/projects/{id}/sources/{sid}/chunks` | Viewer+ | Chunks with offsets |
 | POST | `/projects/{id}/environments` | QA Lead+ | Add env (url, kind, safe flags); `kind=production` needs Owner; base URL host is added to `allowed_hosts` |
 | GET | `/projects/{id}/environments` | Viewer+ | Environments |
-| POST | `/projects/{id}/identities` | QA Lead+ | Add test identity (stored in vault, write-only) |
+| POST | `/projects/{id}/identities` | QA Lead+ | Add test identity: `{env_id, role_name, secret_ref}` where `secret_ref` is `vault:<name>` (runner vault, T-203) or `env:<name>`; the value never reaches the API |
 | GET | `/projects/{id}/data-sharing` | Viewer+ | What leaves the machine under current model policy |
 
 ### Understanding (graph)
