@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-27 (runs API, SSE, MCP/CLI runs)
+**Done:** `apps/api/routers/runs.py`, `run_requested` transition with job params, compiler env/journey filter, MCP `get_verdicts`/`run_journeys`, `saq run --wait`/`saq verdicts`. 1,954 tests.
+**Decisions:** SSE polls Postgres snapshots (works without Redis, survives restarts; clients reconnect after `max_s`); regression runs re-enter at COMPILE so Gate 1/2 approvals stand and Gate 4 still needs a human; MCP-started runs need the explicit project opt-in.
+**Next:** run dashboard UI on the web branch, then T-203 vault, M09c explorer, production deployment.
+
 ### Week 5 — 2026-11-27 (M10b Judge)
 **Done:** `apps/workers/judge.py`, migration 0010, `evals/run_flake_eval.py` + `evals/datasets/flakes.jsonl`; end-to-end judge round trip test (fail → re-run → Fail/Flaky/UV/Test Error → bug draft → Gate 4).
 **Decisions:** verdict is stored on the deciding attempt (the re-run when there is one); the seed flake set is synthetic and must be replaced by human-confirmed labels before the number is quoted.

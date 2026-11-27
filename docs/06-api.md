@@ -99,10 +99,11 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 ### Runs, verdicts, bugs
 | Method | Path | Role | Purpose |
 |---|---|---|---|
-| POST | `/projects/{id}/runs` | Tester+ | Start run (`env_id`, `scope`) → 202 |
-| GET | `/runs/{id}` | Viewer+ | Status, counts, verdicts |
-| GET | `/runs/{id}/results` | Viewer+ | Per-case results |
-| GET | `/results/{id}/evidence` | Viewer+ | Signed evidence URLs + hashes |
+| POST | `/projects/{id}/runs` | Tester+ (`run.start`) | Regression run once the pipeline is `done`: `{env_id?, journeys[], source}` → 202 `{stage: compile, status: queued}`; `source: mcp` needs `settings.mcp.allow_runs` |
+| GET | `/projects/{id}/runs` | Viewer+ | Runs, newest first (paged) |
+| GET | `/projects/{id}/runs/{run}` | Viewer+ | Status, totals and one row per case: latest attempt, verdict, rule, confidence level, failure, blocked signal, evidence hashes |
+| GET | `/projects/{id}/evidence/{sha256}` | Viewer+ | Evidence bytes (only if this project references the hash) |
+| GET | `/projects/{id}/cases/{tc}/compiled.py` | Viewer+ | Generated Playwright test file (P6) |
 | POST | `/results/{id}/heal/approve` | QA Lead | Accept locator diff |
 | GET | `/projects/{id}/bugs` | Viewer+ | Bugs (`?status=`, `?run_id=`) |
 | PATCH | `/projects/{id}/bugs/{bug}` | Tester+ | Edit a draft's title / severity / body |
@@ -137,7 +138,7 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 
 ## 4. Server-Sent Events
 
-`GET /projects/{id}/events` (text/event-stream)
+`GET /projects/{id}/events?poll_s=2&max_s=300` (text/event-stream). **Implemented (M12):** events `pipeline` (`{stage, status}`) and `run` (latest run summary), sent when they change, plus `: ping` keep-alives; the stream closes after `max_s` and the client reconnects (`retry: 3000`). The finer events below are planned.
 
 | Event | Payload |
 |---|---|

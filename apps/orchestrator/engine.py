@@ -42,6 +42,10 @@ class Actor:
     role: str | None = None
 
 
+# User events whose payload is handed to the dispatched job (e.g. env and journeys of a run).
+PARAM_EVENTS = frozenset({"run_requested"})
+
+
 def job_key(state_id: uuid.UUID) -> str:
     """One key per dispatch; re-dispatching the same state (recovery) reuses it (docs/12 §3)."""
     return hashlib.sha256(f"pipeline_state:{state_id}".encode()).hexdigest()
@@ -160,7 +164,9 @@ def transition(
             s,
             project_id=project_id,
             topic=f"job.{state.stage}",
-            payload=job_payload(state, attempt),
+            payload=job_payload(
+                state, attempt, **({"params": payload} if event in PARAM_EVENTS and payload else {})
+            ),
         )
     return state
 

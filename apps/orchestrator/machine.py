@@ -88,6 +88,9 @@ TRANSITIONS: dict[tuple[Stage, str], Rule] = {
     (Stage.JUDGE, "verdicts_ready"): Rule(Stage.BUG_REVIEW, "system"),
     (Stage.BUG_REVIEW, "bugs_confirmed"): Rule(Stage.REPORT, "user", "bug.confirm", gate=4),
     (Stage.REPORT, "reported"): Rule(Stage.DONE, "system"),
+    # Regression run of the already-approved cases (no new model calls for unchanged cases);
+    # Gate 3's precondition is re-checked, Gates 1, 2 and 4 stay in force.
+    (Stage.DONE, "run_requested"): Rule(Stage.COMPILE, "user", "run.start", gate=3),
 }
 
 # Events that act on the current stage instead of moving along the pipeline.
@@ -145,9 +148,12 @@ def plan_step(stage: Stage | None, status: Status | None, event: str) -> Rule:
     accept decisions only while awaiting approval.
     """
     rule = TRANSITIONS.get((stage, event)) if stage else None
-    expected = (
-        {Status.AWAITING_APPROVAL} if stage in GATE_STAGES else {Status.QUEUED, Status.RUNNING}
-    )
+    if stage in GATE_STAGES:
+        expected = {Status.AWAITING_APPROVAL}
+    elif stage == Stage.DONE:
+        expected = {Status.DONE}
+    else:
+        expected = {Status.QUEUED, Status.RUNNING}
     if rule is None or status not in expected:
         raise TransitionError(stage, status, event)
     return rule

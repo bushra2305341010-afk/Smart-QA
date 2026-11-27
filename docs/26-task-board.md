@@ -22,7 +22,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M10 | Runner + Judge worker (M10a compiler #35; runner #38; judge on `feat/M10b-judge`) | Stuti (built by Nadia) | review | flake eval 91.4% on the seed set |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | review | #20, evidence pack #21 |
 | N26 | Learning L2-lite: lessons + rules from human decisions (US-10) | Nadia | review | #30 |
-| M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | CLI + MCP preview review; UI is Stuti | #22, #23 |
+| M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | Runs API + SSE + MCP `get_verdicts`/`run_journeys` + `saq run --wait` on `feat/M12-runs-api`; run dashboard UI next | #22, #23 |
 
 ## Week 0 — Setup
 

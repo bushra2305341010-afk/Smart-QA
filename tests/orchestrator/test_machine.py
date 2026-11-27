@@ -29,9 +29,12 @@ STEP_EVENTS = sorted({e for _, e in TRANSITIONS})
 )
 def test_every_stage_status_event(stage: Stage, status: Status, event: str) -> None:
     rule = TRANSITIONS.get((stage, event))
-    expected_status = (
-        {Status.AWAITING_APPROVAL} if stage in GATE_STAGES else {Status.QUEUED, Status.RUNNING}
-    )
+    if stage in GATE_STAGES:
+        expected_status = {Status.AWAITING_APPROVAL}
+    elif stage == Stage.DONE:  # only a finished pipeline may start a regression run
+        expected_status = {Status.DONE}
+    else:
+        expected_status = {Status.QUEUED, Status.RUNNING}
     if rule is not None and status in expected_status:
         assert plan_step(stage, status, event) is rule
     else:
@@ -59,7 +62,8 @@ def test_mandatory_gates_only_open_by_a_human() -> None:
 def test_pipeline_reaches_done_in_order() -> None:
     stage, path = Stage.INGEST, [Stage.INGEST]
     forward = {s: r for (s, e), r in TRANSITIONS.items() if e not in {
-        "graph_rejected", "plan_edited", "rerun_needed", "cases_auto_approved"}}  # fmt: skip
+        "graph_rejected", "plan_edited", "rerun_needed", "cases_auto_approved",
+        "run_requested"}}  # fmt: skip
     while stage != Stage.DONE:
         stage = forward[stage].target
         path.append(stage)
