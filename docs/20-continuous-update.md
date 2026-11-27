@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-27 (local production deploy)
+**Done:** ran `deploy/compose.prod.yml` on the laptop (project `smart-qa-staging`, `SAQ_DOMAIN=localhost`, bundled S3): images built, migrations, all services healthy, `smoke.sh` OK over HTTPS, register/login/project, Secure cookies + HSTS/CSP, runner mTLS (pinned cert accepted, no cert refused, forged header on the public site 401, non-runner paths 404 on the runner port), DB roles without superuser/BYPASSRLS, 31 tables with forced RLS, API non-root on a read-only filesystem.
+**Debug:** `migrate` exited 1 → pydantic could not parse `MODEL_PRICE_*=` (empty) → `env_ignore_empty=True`. A multi-line PEM pasted through `sed` broke the env file → template now shows the single-quoted one-line form.
+**Not done:** model-stage pipeline (no model key/local model on this machine); merging the PRs (needs the owner's go-ahead in the permission prompt).
+
 ### Week 5 — 2026-11-27 (production deployment)
 **Done:** prod compose + images + Caddy + release workflow + fail-fast settings + backup/smoke scripts + deploy docs; integration branch `feat/deploy-production` merges every module (stack through M09c, run dashboard, school golden project).
 **Decisions:** Caddy instead of nginx (automatic TLS, simple client-cert auth, placeholder for the cert fingerprint); runners outbound-only with mTLS on a separate listener; secrets only via env file/secret manager, never in images.

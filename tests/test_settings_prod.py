@@ -85,3 +85,10 @@ def test_signer_accepts_escaped_one_line_pem() -> None:
     one_line = pem.strip().replace("\n", "\\n")
     assert JwtSigner.from_pem(one_line) is not None
     assert JwtSigner.from_pem(pem) is not None
+
+
+def test_empty_env_values_mean_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MODEL_PRICE_INPUT_PER_MTOK", "")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    s = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert s.model_price_input_per_mtok is None and s.anthropic_api_key is None

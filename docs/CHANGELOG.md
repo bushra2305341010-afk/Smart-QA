@@ -10,6 +10,7 @@ Sections: Added, Changed, Fixed, Security, Removed, Deprecated.
 - M03 safe-action policy (`packages/policy`, N18): the runner checks every action before it runs. Blocks delete/remove/close-account (text, aria-label, accessible name, title, routes, HTTP DELETE), payments (unless `payments: "test"`; real-looking card numbers always), money transfers (never relaxable), email/SMS/invites (unless `mail_sink`), off-domain URLs (host allow-list with wildcards and ports; `javascript:`/`data:`/`file:` refused) and uploads outside `evals/fixtures`. Production environments are blocked unless `allow_production`. 100% branch coverage.
 
 ### Fixed
+- Empty values in env files (`KEY=`, as in `.env.production.example`) crashed settings parsing in every container (`MODEL_PRICE_*`); empty now means unset. The template shows `JWT_PRIVATE_KEY` as one single-quoted line; `SMOKE_INSECURE=1` lets the smoke test run against a local (self-signed) deploy. Found by a full local production deploy.
 - API docs page (`/api/v1/docs`) was blank: the strict Content-Security-Policy blocked Swagger UI's CDN script and inline start-up script. Only the docs page now allows them. `/` and `/docs` redirect to it, and the page has an "Authorize" dialog (CSRF token after login, or an API token).
 
 ### Changed

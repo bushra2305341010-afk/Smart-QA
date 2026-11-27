@@ -16,7 +16,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Process-wide configuration loaded from env vars (prefix-free, see .env.example)."""
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # env_ignore_empty: `KEY=` lines in env files (as in .env.production.example) mean "not set".
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
     saq_env: Literal["dev", "test", "prod"] = "dev"
     database_url: str | None = None
