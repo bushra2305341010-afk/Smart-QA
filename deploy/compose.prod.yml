@@ -1,0 +1,160 @@
+# Production stack (single host). docs/23-deployment-and-release.md §Production.
+#   cp .env.production.example .env.production   # fill every value
+#   docker compose -f deploy/compose.prod.yml --env-file .env.production up -d --build
+# Bring your own S3 (recommended) or add `--profile bundled-s3` for SeaweedFS on this host.
+# Runners normally run inside the team network (deploy/runner.Dockerfile); `--profile runner`
+# starts one here for small setups.
+name: smart-qa
+
+x-app: &app
+  image: ${SAQ_IMAGE_PREFIX:-ghcr.io/bushra2305341010-afk/smart-qa}-api:${SAQ_VERSION:-latest}
+  build: { context: .., dockerfile: deploy/api.Dockerfile }
+  env_file: [../.env.production]
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  networks: [backend]
+  logging: { driver: json-file, options: { max-size: "20m", max-file: "5" } }
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: saq_migrator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: saq
+      SAQ_APP_DB_PASSWORD: ${SAQ_APP_DB_PASSWORD:?set SAQ_APP_DB_PASSWORD}
+      SAQ_WORKER_DB_PASSWORD: ${SAQ_WORKER_DB_PASSWORD:?set SAQ_WORKER_DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./postgres/init-prod:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saq_migrator -d saq"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [backend]
+    security_opt: ["no-new-privileges:true"]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks: [backend]
+    security_opt: ["no-new-privileges:true"]
+
+  # One-shot: schema migrations with the owner role, before any app process starts.
+  migrate:
+    <<: *app
+    restart: "no"
+    command: ["/app/.venv/bin/alembic", "upgrade", "head"]
+    environment:
+      MIGRATION_DATABASE_URL: postgresql+psycopg://saq_migrator:${POSTGRES_PASSWORD}@db:5432/saq
+    depends_on:
+      db: { condition: service_healthy }
+
+  api:
+    <<: *app
+    environment:
+      SAQ_ENV: prod
+      DATABASE_URL: postgresql+psycopg://saq_app:${SAQ_APP_DB_PASSWORD}@db:5432/saq
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RATE_LIMIT_BACKEND: redis
+      WEB_CONCURRENCY: ${API_WORKERS:-2}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  orchestrator:
+    <<: *app
+    command: ["/app/.venv/bin/python", "-m", "apps.orchestrator"]
+    environment:
+      SAQ_ENV: prod
+      DATABASE_URL: postgresql+psycopg://saq_app:${SAQ_APP_DB_PASSWORD}@db:5432/saq
+      WORKER_DATABASE_URL: postgresql+psycopg://saq_worker:${SAQ_WORKER_DB_PASSWORD}@db:5432/saq
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RATE_LIMIT_BACKEND: redis
+    healthcheck: { disable: true }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *app
+    command: ["/app/.venv/bin/python", "-m", "apps.workers"]
+    environment:
+      SAQ_ENV: prod
+      DATABASE_URL: postgresql+psycopg://saq_app:${SAQ_APP_DB_PASSWORD}@db:5432/saq
+      WORKER_DATABASE_URL: postgresql+psycopg://saq_worker:${SAQ_WORKER_DB_PASSWORD}@db:5432/saq
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RATE_LIMIT_BACKEND: redis
+    healthcheck: { disable: true }
+    deploy: { replicas: "${WORKER_REPLICAS:-1}" }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  web:
+    image: ${SAQ_IMAGE_PREFIX:-ghcr.io/bushra2305341010-afk/smart-qa}-web:${SAQ_VERSION:-latest}
+    build: { context: .., dockerfile: deploy/web.Dockerfile }
+    restart: unless-stopped
+    environment:
+      SAQ_DOMAIN: ${SAQ_DOMAIN:?set SAQ_DOMAIN}
+      SAQ_RUNNER_DOMAIN: ${SAQ_RUNNER_DOMAIN:-${SAQ_DOMAIN}}
+      SAQ_RUNNER_PORT: ${SAQ_RUNNER_PORT:-8443}
+    ports: ["80:80", "443:443", "443:443/udp", "${SAQ_RUNNER_PORT:-8443}:${SAQ_RUNNER_PORT:-8443}"]
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+      - ${RUNNER_CA_FILE:-./runner-ca.pem}:/etc/caddy/runner-ca.pem:ro
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [backend]
+    security_opt: ["no-new-privileges:true"]
+
+  s3:
+    profiles: [bundled-s3]
+    image: chrislusf/seaweedfs:4.00
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+    restart: unless-stopped
+    volumes:
+      - s3-data:/data
+      - ${S3_CONFIG_FILE:-./seaweedfs/s3.json}:/etc/seaweedfs/s3.json:ro
+    networks: [backend]
+
+  runner:
+    profiles: [runner]
+    image: ${SAQ_IMAGE_PREFIX:-ghcr.io/bushra2305341010-afk/smart-qa}-runner:${SAQ_VERSION:-latest}
+    build: { context: .., dockerfile: deploy/runner.Dockerfile }
+    restart: unless-stopped
+    environment:
+      SAQ_API_URL: ${RUNNER_API_URL:-http://api:8000/api/v1}
+      SAQ_RUNNER_TOKEN: ${SAQ_RUNNER_TOKEN:-}  # from POST /projects/{id}/runners
+      SAQ_VAULT_FILE: /vault/vault.json
+      SAQ_VAULT_KEY: ${SAQ_VAULT_KEY:-}
+    volumes: [runner-vault:/vault]
+    shm_size: "1gb"
+    security_opt: ["no-new-privileges:true"]
+    networks: [backend]
+
+networks:
+  backend: {}
+
+volumes:
+  db-data:
+  redis-data:
+  caddy-data:
+  caddy-config:
+  s3-data:
+  runner-vault:

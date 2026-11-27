@@ -15,14 +15,13 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
    - Open stacked PRs **#6 → latest** (see Status) (PR #10 was merged into the M06 branch, not main). All CI green as of 2026-11-20.
    - If they are merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
    - If not: branch from the top of the stack (see the latest Status line).
-3. **What is built (all in review):** DB + RLS + audit (M08a), auth/RBAC/2FA/rate limits (M08b, T-105a/c), orchestrator + gates 1–4 (M08c), model gateway on Postgres (T-603), ingest + Git import + embeddings (M09a, T-202, T-204), Product Understanding Graph (M09b), planner (F08), designer (F11), reporter + Excel + evidence pack (M11, N23), `saq` CLI + MCP preview (M12), golden project 1 + scorer (T-004). **New on 2026-11-25 (Nadia took over Stuti's modules):** safe-action policy (M03, PR #33), verdict rules (M05, #34), compiler (M10a, #35), golden project 2 school (T-005, #36, sibling PR on `fix/api-docs-usable`), web foundations + gate screens (M07/T-105, #37, sibling PR), runner + runner API + execute scheduler (M10, branch `feat/M10-runner`, in progress).
-4. **Next tasks (in order):**
-   - Finish `feat/M10-runner`: fix Playwright-sync vs asyncio-loop clash when browser tests run after other tests in one session (`tests/runner/site.py` `chromium` fixture), then docs (sector 05, docs/06 §5 runner protocol, docs/07 runner/runner_job/result.details, CHANGELOG, board) and PR on `feat/M10a-compiler`. CI needs `uv run playwright install chromium` for `-m browser` tests.
-   - M10b Judge worker (`apps/workers/judge.py`, `job.judge`): `packages.verdicts.rules.decide` per case, queue attempt-2 `RunnerJob`s + `rerun_needed`, write `verdict` (rule NOT NULL), call `apps.workers.reporter.draft_bugs` before `verdicts_ready`; flake eval set ≥ 85%.
-   - Runs API (`GET /projects/{id}/runs`, results, evidence) + SSE events; M12 run dashboard UI on top of the M07 branch; MCP `get_verdicts` / `run_journeys`, `saq run --wait`.
-   - T-203 identity vault (runner-side, `apps/runner/secrets.py` resolver already masks values), T-103 mTLS deploy notes (API side done: `cert_sha256` + `X-Client-Cert-Sha256`), M09c explorer (uses `packages/policy`).
-   - Model-key eval on golden projects 1 and 2 (`python -m evals.run_graph_eval --golden evals/golden_projects/{shop,school}`).
-5. **Waiting on the user:** recreate the old dev DB volume (`docker compose down -v`); merge #6 → #35 in order with "Create a merge commit" (#36 and #37 target `fix/api-docs-usable`); delete stale upstream branch `feat/T602-local-model`; remove the throwaway test DB with `docker rm -f saq-testdb` once the volume is recreated.
+3. **What is built (all in review, 2026-11-27):** every planned MVP module. Stack: #6 M01 … #32 API docs → #33 M03 policy → #34 M05 verdicts → #35 compiler → #38 runner (+T-103) → #39 judge → #40 runs API/SSE/MCP/CLI → #41 T-203 vault → #42 M09c explorer → #44 production deployment (top: `feat/deploy-production`, which also merges #43 run dashboard (contains #37 web) and #36 school golden project). Siblings #36/#37 target `fix/api-docs-usable`; #43 targets `feat/M12-runs-api`.
+4. **Next tasks:**
+   - Watch CI on #37–#44 (the new `images` job builds the Docker images; never built locally because this machine had no network).
+   - Staging deploy with `deploy/compose.prod.yml` (docs/23 §9–§10) and `make smoke`.
+   - With a model key: golden-project evals (`python -m evals.run_graph_eval --golden evals/golden_projects/{shop,school}`), replace the synthetic flake seed set with human-confirmed labels.
+   - Known gaps (planned, documented): finer SSE events, `saq admin` commands, Trivy/SBOM, healer (F19), a11y scan (F25), React Flow graph canvas, i18n.
+5. **Waiting on the user:** merge #6 → #44 in order with "Create a merge commit" (#36 and #37 before #43/#44); recreate the old dev DB volume (`docker compose down -v`); delete stale branch `feat/T602-local-model`; remove `saq-testdb` when no longer needed.
 6. **Before each PR:** `make test` (ruff, mypy --strict, pytest; 100% coverage), plus a CI-like run `S3_ENDPOINT= S3_ACCESS_KEY= S3_SECRET_KEY= uv run pytest -o addopts=""` with `MIGRATION_DATABASE_URL` set; web `pnpm test && pnpm typecheck`; update docs/CHANGELOG/task board/dev log/this file **in a separate step before `git commit`**; push to `upstream`; open the PR with `--base <previous branch>`. CI fixes on a lower branch are merged up the stack (no force-push).
 
 ### Code conventions learned
@@ -103,6 +102,8 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-27: Local production deploy verified end to end (see dev log); fix for empty env values pushed to `feat/deploy-production` (#44).
+- 2026-11-27: Production deployment ready on `feat/deploy-production` (base `feat/M09c-explorer`; merges #43 run dashboard and #36 school). All planned MVP modules built; open PRs #6 → #44.
 - 2026-11-27: M09c explorer done (branch `feat/M09c-explorer`, base `feat/T203-identity-vault`). 1,964 tests.
 - 2026-11-27: T-203 vault done (branch `feat/T203-identity-vault`, base `feat/M12-runs-api`). M12 run dashboard UI being built by a helper agent on `feat/M12-run-dashboard` (M07 merged in).
 - 2026-11-27: Runs API + SSE + MCP/CLI runs done (branch `feat/M12-runs-api`, base `feat/M10b-judge`). 1,954 tests.

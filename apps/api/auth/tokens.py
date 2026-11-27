@@ -55,6 +55,8 @@ class JwtSigner:
 
     @classmethod
     def from_pem(cls, pem: str) -> JwtSigner:
+        """Accepts a real multi-line PEM or a one-line `\\n`-escaped one (env files)."""
+        pem = pem.replace("\\n", "\n").strip() + "\n"
         key = serialization.load_pem_private_key(pem.encode(), password=None)
         if not isinstance(key, Ed25519PrivateKey):
             raise ValueError("JWT_PRIVATE_KEY must be an Ed25519 private key (PEM)")

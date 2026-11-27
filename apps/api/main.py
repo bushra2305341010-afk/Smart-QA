@@ -31,7 +31,7 @@ from apps.api.routers import (
     runners,
     runs,
 )
-from apps.api.settings import Settings, get_settings
+from apps.api.settings import Settings, check_production, get_settings
 from apps.api.storage import ObjectStore, S3ObjectStore
 from apps.api.trackers import TrackerFactory, tracker_factory
 
@@ -132,6 +132,7 @@ def create_app(
     )
     if session_factory is None and settings.database_url:
         session_factory = make_session_factory(make_engine(settings.database_url))
+    check_production(settings)
     app.state.session_factory = session_factory
     app.state.jwt_signer = jwt_signer or _signer(settings)
     app.state.object_store = object_store or _store(settings)
