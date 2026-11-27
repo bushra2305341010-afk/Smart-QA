@@ -161,6 +161,9 @@ Implemented (M10) as HTTPS polling, outbound from the runner. `Authorization: Be
 | `PUT /runner/evidence/{sha256}?kind=` | raw bytes (≤ 50 MB); `422 HASH_MISMATCH` if the body does not hash to the path |
 | `POST /runner/jobs/{job_id}/result` | `{result: AttemptResult, browser, evidence: [{kind, sha256, size, step_n}]}` → `{result_id, created, run_finished}`; idempotent; the last open job moves the pipeline to Judge |
 
+| `GET /runner/environments` | the project's environments (for the explorer) |
+| `POST /runner/explorations` | `{env_id, exploration}` → pending Screen/Field nodes in the draft graph (409 if none) |
+
 An expired lease (runner killed or offline) makes the job claimable again; after 3 losses the attempt is recorded as an error (Test Error).
 
 ## 6. Example

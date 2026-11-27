@@ -29,12 +29,25 @@ from apps.api import ids, runs
 from apps.api.auth.deps import ProjectContext, get_factory, get_store, require
 from apps.api.auth.tokens import hash_secret, new_secret
 from apps.api.db import audit
-from apps.api.db.models import Environment, Evidence, Identity, Run, Runner, RunnerJob, TestCase
+from apps.api.db.models import (
+    Edge,
+    Environment,
+    Evidence,
+    GraphVersion,
+    Identity,
+    Node,
+    Run,
+    Runner,
+    RunnerJob,
+    TestCase,
+)
 from apps.api.db.session import project_session
 from apps.api.errors import ApiError, not_found
 from apps.api.storage import ObjectStore, evidence_key, sha256_hex
 from apps.orchestrator import engine
+from packages.contracts.explore import Exploration
 from packages.contracts.run import AttemptResult, CompiledCase
+from packages.graph.model import norm_label
 
 router = APIRouter(tags=["runners"])
 RUNNER_PREFIX = "saq_run_"
@@ -333,3 +346,152 @@ def report_result(
         finished = runs.finish_if_done(s, auth.project_id, job.run_id, auth.actor)
         return ResultOut(result_id=ids.encode("res", row.id), created=created,
                          run_finished=finished)  # fmt: skip
+
+
+# ---------- explorer (M09c) ----------
+
+
+class RunnerEnvOut(EnvOut):
+    id: str
+    name: str
+
+
+@router.get("/runner/environments")
+def runner_environments(
+    auth: RunnerAuth = Depends(runner_auth),
+    factory: sessionmaker[Session] = Depends(get_factory),
+) -> list[RunnerEnvOut]:
+    with project_session(factory, auth.project_id) as s:
+        return [
+            RunnerEnvOut(
+                id=ids.encode("env", e.id),
+                name=e.name,
+                kind=e.kind,
+                base_url=e.base_url,
+                allowed_hosts=e.allowed_hosts,
+                safe_actions=e.safe_actions,
+            )
+            for e in s.scalars(select(Environment).order_by(Environment.created_at))
+        ]
+
+
+class ExplorationIn(BaseModel):
+    env_id: str
+    exploration: Exploration
+
+
+class ExplorationOut(BaseModel):
+    graph_version: int
+    screens_added: int
+    fields_added: int
+    skipped_existing: int
+
+
+@router.post("/runner/explorations", status_code=201)
+def submit_exploration(
+    body: ExplorationIn,
+    auth: RunnerAuth = Depends(runner_auth),
+    factory: sessionmaker[Session] = Depends(get_factory),
+) -> ExplorationOut:
+    """Observed Screens/Fields become *pending* nodes of the draft graph for Gate 1 review.
+    They carry no quote, so they never justify an expected result on their own."""
+    env_uuid = ids.decode("env", body.env_id, "Environment")
+    with project_session(factory, auth.project_id) as s:
+        if s.get(Environment, env_uuid) is None:
+            raise not_found("Environment")
+        gv = s.scalar(
+            select(GraphVersion)
+            .where(GraphVersion.status == "draft")
+            .order_by(GraphVersion.number.desc())
+            .limit(1)
+        )
+        if gv is None:
+            raise ApiError(
+                409,
+                "STATE_CONFLICT",
+                "No draft graph to add observations to; start the pipeline (understand) first",
+            )
+        existing = {
+            (n.type, norm_label(n.label)): n
+            for n in s.scalars(select(Node).where(Node.graph_version_id == gv.id))
+        }
+        screens = fields = skipped = 0
+        origin = {"origin": "explorer", "env_id": body.env_id}
+        for screen in body.exploration.screens:
+            label = screen.title or screen.path
+            key = ("Screen", norm_label(label))
+            node = existing.get(key)
+            if node is None:
+                node = Node(
+                    project_id=auth.project_id,
+                    graph_version_id=gv.id,
+                    type="Screen",
+                    label=label,
+                    attrs={
+                        **origin,
+                        "route": screen.path,
+                        "actions": ", ".join(screen.actions)[:300],
+                    },
+                )
+                s.add(node)
+                s.flush()
+                existing[key] = node
+                screens += 1
+            else:
+                skipped += 1
+            for f in screen.fields:
+                fkey = ("Field", norm_label(f.label))
+                if fkey in existing:
+                    skipped += 1
+                    continue
+                attrs = {
+                    **origin,
+                    "input_type": f.input_type,
+                    "required": str(f.required).lower(),
+                    **{
+                        k: str(v)
+                        for k, v in (("min", f.min), ("max", f.max), ("max_length", f.max_length))
+                        if v is not None
+                    },
+                }
+                if f.options:
+                    attrs["options"] = ", ".join(f.options)[:300]
+                field = Node(
+                    project_id=auth.project_id,
+                    graph_version_id=gv.id,
+                    type="Field",
+                    label=f.label,
+                    attrs=attrs,
+                )
+                s.add(field)
+                s.flush()
+                existing[fkey] = field
+                s.add(
+                    Edge(
+                        project_id=auth.project_id,
+                        from_node_id=node.id,
+                        to_node_id=field.id,
+                        kind="has_field",
+                    )
+                )
+                fields += 1
+        audit.record(
+            s,
+            project_id=auth.project_id,
+            actor=auth.actor.id,
+            action="graph.explored",
+            entity=f"graph:{gv.number}",
+            payload={
+                "screens": screens,
+                "fields": fields,
+                "steps": body.exploration.steps,
+                "blocked": len(body.exploration.blocked),
+                "budget_exhausted": body.exploration.budget_exhausted,
+            },
+        )
+        return ExplorationOut(
+            graph_version=gv.number,
+            screens_added=screens,
+            fields_added=fields,
+            skipped_existing=skipped,
+        )

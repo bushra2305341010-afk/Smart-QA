@@ -23,7 +23,7 @@ Explorer tool loop (≤150 steps, policy-checked) ───┤
 |---|---|
 | Extraction contract (what the model returns) | `packages/contracts/graph.py` |
 | Analyst worker + prompt (`analyst@1.0.0`) | `apps/workers/analyst.py` (`job.understand`), gateway wiring `apps/workers/gateway.py` |
-| Explorer worker | `apps/workers/explorer/` (M09c) |
+| Explorer | `apps/runner/explorer.py` (runs on the runner; `python -m apps.runner.explorer`), endpoint `POST /runner/explorations` in `apps/api/routers/runners.py` (M09c) |
 | Merge / quote check / build | `packages/graph/{model,merge,cite,build}.py` |
 | Conflicts / ambiguity | `packages/graph/{conflicts,ambiguity}.py` (deterministic code) |
 | Diff, brief | v1 |

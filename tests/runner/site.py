@@ -12,12 +12,17 @@ import pytest
 
 PAGES = {
     "/": "<title>Home</title><h1>Shop</h1><a href='/form'>Form</a>"
-         "<a href='https://evil.example/'>Elsewhere</a>",
+         "<a href='https://evil.example/'>Elsewhere</a><a href='/danger'>Students</a>"
+         "<a href='/students/4/delete'>Delete 4</a><a href='/captcha'>Reset</a>"
+         "<a href='/missing#top'>Old</a><a href='mailto:x@example.com'>Mail</a>",
     "/form": """<title>Form</title>
       <label>Email <input id=e></label>
       <label>Password <input id=p type=password></label>
       <label>Country <select id=c><option>BD</option><option>IN</option></select></label>
       <label><input type=checkbox id=t> I agree</label>
+      <label>Age <input id=a type=number min=5 max=18 required></label>
+      <label>Note <textarea maxlength=200></textarea></label>
+      <input type=hidden name=csrf value=x>
       <button onclick="document.getElementById('out').textContent =
         'Saved ' + document.getElementById('e').value + ' ' +
         (document.getElementById('p').value.length) + ' ' +
