@@ -30,7 +30,14 @@ def _fail(app, puid, data, reason: str, attempt: int):  # type: ignore[no-untype
         s.add(r)
         s.flush()
         s.add(
-            Verdict(project_id=puid, result_id=r.id, verdict="fail", confidence=0.9, reason=reason)
+            Verdict(
+                project_id=puid,
+                result_id=r.id,
+                verdict="fail",
+                confidence=0.9,
+                reason=reason,
+                rule="J3.fail_same_twice",
+            )
         )
 
 

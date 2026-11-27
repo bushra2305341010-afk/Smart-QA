@@ -103,6 +103,7 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-27: M10b Judge done (branch `feat/M10b-judge`, base `feat/M10-runner`).
 - 2026-11-27: M10 runner done (branch `feat/M10-runner`, base `feat/M10a-compiler`). 1,866 tests.
 - 2026-11-25: M10 runner in progress on `feat/M10-runner` (base `feat/M10a-compiler`): `runner`/`runner_job` tables + `result.details` (migration 0009), runner API (`/runner/heartbeat`, `jobs/pull`, `evidence/{sha256}`, `jobs/{id}/result`, registration/revoke), `job.execute` scheduler, runner process (`apps/runner`: policy hook, detectors, evidence, secrets masking, executor, main loop). 35 browser + 7 protocol tests green; one fixture-order issue left. PRs opened today: #33 M03, #34 M05, #35 compiler, #36 T-005, #37 M07 web.
 - 2026-11-25: M10a compiler done (branch `feat/M10a-compiler`, base `feat/M05-verdict-rules`). T-005 golden project 2 built by a helper agent on `feat/T005-golden-school` (base `fix/api-docs-usable`).

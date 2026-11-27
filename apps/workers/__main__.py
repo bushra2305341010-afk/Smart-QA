@@ -21,6 +21,7 @@ from apps.workers.designer import handle_design_job
 from apps.workers.executor import handle_execute_job
 from apps.workers.gateway import gateway_factory
 from apps.workers.ingest import GitOptions, handle_ingest_job
+from apps.workers.judge import handle_judge_job
 from apps.workers.planner import handle_plan_job
 from apps.workers.reporter import handle_report_job
 from packages.citations.embed import LocalEmbedder
@@ -60,6 +61,7 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
             "job.compile": functools.partial(handle_compile_job, factory, store, make_gateway)
         },
         "execute": {"job.execute": functools.partial(handle_execute_job, factory)},
+        "judge": {"job.judge": functools.partial(handle_judge_job, factory)},
         "report": {
             "job.report": functools.partial(
                 handle_report_job, factory, store, tracker_factory(settings)

@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-27 (M10b Judge)
+**Done:** `apps/workers/judge.py`, migration 0010, `evals/run_flake_eval.py` + `evals/datasets/flakes.jsonl`; end-to-end judge round trip test (fail → re-run → Fail/Flaky/UV/Test Error → bug draft → Gate 4).
+**Decisions:** verdict is stored on the deciding attempt (the re-run when there is one); the seed flake set is synthetic and must be replaced by human-confirmed labels before the number is quoted.
+**Next:** runs API + SSE, M12 run dashboard, MCP/CLI run tools.
+
 ### Week 5 — 2026-11-27 (M10 runner)
 **Done:** runner tables + protocol API, execute scheduler, runner process with policy hook, detectors, evidence, secrets masking; 35 real-browser tests + protocol/e2e tests. Full suite 1,866 passed.
 **Decisions:** Runner tokens embed the project id so the API opens an RLS scope before lookup (no cross-project table scan); evidence goes to the API (hash-checked) instead of presigned URLs so the in-memory store works the same; blocked third-party GETs are aborted silently but a blocked navigation or write request marks the attempt Blocked.

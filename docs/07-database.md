@@ -58,7 +58,7 @@ Every table has `id`, `project_id` (except `app_user`), `created_at`, `updated_a
 | `runner` | name, token_hash (unique), cert_sha256, status (registered/online/offline/revoked), version, last_seen_at | migration 0009 |
 | `runner_job` | run_id, test_case_id, attempt, status (queued/leased/done/lost), runner_id, leased_until, leases | lease expiry → re-lease; 3 losses → error result |
 | `evidence` | result_id, step_n, kind (screenshot/trace/video/har/console/request), sha256, object_key, size | |
-| `verdict` | result_id, verdict (enum), confidence, reason, rule | |
+| `verdict` | result_id, verdict (enum), confidence, reason, rule (NOT NULL, migration 0010) | on the deciding attempt |
 | `bug` | verdict_id, title, severity, body_md, status (draft/confirmed/dismissed/filed), tracker, tracker_ref, dedup_of | |
 | `regression_memory` | journey_node_id, last_pass_at, flake_rate, bugs_found | |
 | `project_rule` | kind (`suppress_bug`, `count_hint`), condition jsonb, action jsonb, source_feedback_id, active | L2-lite (`apps/api/learning.py`) |
