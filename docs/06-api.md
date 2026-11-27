@@ -150,9 +150,17 @@ Base URL: `/api/v1` · JSON · OpenAPI at `/api/v1/openapi.json` · Auth: sessio
 
 ## 5. Runner protocol (internal, WSS + mTLS)
 
-`wss://<control-plane>/runner/v1` · messages are JSON:
-`register` → `heartbeat` (10 s) → `job.pull` → `job.accepted` → `log` (stream) → `evidence.upload` (presigned PUT) → `result` → `job.done`.
-Missed 3 heartbeats → runner marked offline, its jobs re-queued.
+Implemented (M10) as HTTPS polling, outbound from the runner. `Authorization: Bearer saq_run_<project hex>_<secret>`; if the runner was registered with `cert_sha256`, the TLS proxy's `X-Client-Cert-Sha256` must match (mTLS).
+
+| Call | Body / result |
+|---|---|
+| `POST /projects/{id}/runners` (user, `environments.manage`) | `{name, cert_sha256?}` → `{id, token}` (token shown once) · `GET` lists · `DELETE /runners/{rnr}` revokes |
+| `POST /runner/heartbeat` | `{version}` → `{ok, renewed}`; renews this runner's leases (10 min) |
+| `POST /runner/jobs/pull` | `204` or `{job_id, run_id, case_id, code, attempt, lease_seconds, case: CompiledCase, env: {kind, base_url, allowed_hosts, safe_actions}, identities: [{role_name, secret_ref}]}` |
+| `PUT /runner/evidence/{sha256}?kind=` | raw bytes (≤ 50 MB); `422 HASH_MISMATCH` if the body does not hash to the path |
+| `POST /runner/jobs/{job_id}/result` | `{result: AttemptResult, browser, evidence: [{kind, sha256, size, step_n}]}` → `{result_id, created, run_finished}`; idempotent; the last open job moves the pipeline to Judge |
+
+An expired lease (runner killed or offline) makes the job claimable again; after 3 losses the attempt is recorded as an error (Test Error).
 
 ## 6. Example
 

@@ -24,7 +24,7 @@ from apps.api.db.models.ops import (
     TrainedModel,
 )
 from apps.api.db.models.plan import Plan, Segment, Step, TestCase
-from apps.api.db.models.run import Bug, Evidence, Result, Run, Verdict
+from apps.api.db.models.run import Bug, Evidence, Result, Run, Runner, RunnerJob, Verdict
 
 __all__ = [
     "ApiToken",
@@ -53,6 +53,8 @@ __all__ = [
     "ReplayCache",
     "Result",
     "Run",
+    "Runner",
+    "RunnerJob",
     "Segment",
     "Source",
     "Step",

@@ -28,6 +28,7 @@ from apps.api.routers import (
     pipeline,
     plans,
     projects,
+    runners,
 )
 from apps.api.settings import Settings, get_settings
 from apps.api.storage import ObjectStore, S3ObjectStore
@@ -177,6 +178,7 @@ def create_app(
     app.include_router(cases.router, prefix=API_PREFIX)
     app.include_router(bugs.router, prefix=API_PREFIX)
     app.include_router(learning.router, prefix=API_PREFIX)
+    app.include_router(runners.router, prefix=API_PREFIX)
 
     @app.get(f"{API_PREFIX}/healthz", tags=["ops"])
     async def healthz() -> dict[str, str]:

@@ -40,6 +40,12 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-27 (M10 runner)
+**Done:** runner tables + protocol API, execute scheduler, runner process with policy hook, detectors, evidence, secrets masking; 35 real-browser tests + protocol/e2e tests. Full suite 1,866 passed.
+**Decisions:** Runner tokens embed the project id so the API opens an RLS scope before lookup (no cross-project table scan); evidence goes to the API (hash-checked) instead of presigned URLs so the in-memory store works the same; blocked third-party GETs are aborted silently but a blocked navigation or write request marks the attempt Blocked.
+**Debug:** sync Playwright started twice (fixture registered in two modules) then a session-wide loop broke later asyncio tests → fixtures registered once in `tests/conftest.py`, browser scoped per module.
+**Next:** Judge worker (M10b).
+
 ### Week 5 — 2026-11-25 (M10a compiler)
 **Done:** `packages/compiler/{steps,compile,codegen}.py`, `apps/workers/compiler.py`, wired as `job.compile`; 100% coverage.
 **Decisions:** Grammar first, model only for unparsed steps (merge rejects changes to compiled steps; the model may add the expected-result check only when the grammar found none). The runner will execute the JSON actions, not the generated Python, so the plan lock holds; the Python file is the open artifact generated from the same JSON.

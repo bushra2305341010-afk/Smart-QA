@@ -18,6 +18,7 @@ from apps.workers.analyst import handle_understand_job
 from apps.workers.compiler import handle_compile_job
 from apps.workers.consumer import Handler, JobConsumer
 from apps.workers.designer import handle_design_job
+from apps.workers.executor import handle_execute_job
 from apps.workers.gateway import gateway_factory
 from apps.workers.ingest import GitOptions, handle_ingest_job
 from apps.workers.planner import handle_plan_job
@@ -58,6 +59,7 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
         "compile": {
             "job.compile": functools.partial(handle_compile_job, factory, store, make_gateway)
         },
+        "execute": {"job.execute": functools.partial(handle_execute_job, factory)},
         "report": {
             "job.report": functools.partial(
                 handle_report_job, factory, store, tracker_factory(settings)

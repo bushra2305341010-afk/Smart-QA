@@ -64,6 +64,9 @@ class Result(ProjectScoped, Base):
     )
     duration_ms: Mapped[int | None] = mapped_column(Integer)
     browser: Mapped[str | None] = mapped_column(Text)
+    # The runner's full `AttemptResult` (failure kind/message, blocked signal, noise counters);
+    # the Judge reads it. Never holds secret values (placeholders only).
+    details: Mapped[JsonDict] = mapped_column(default=dict, server_default="{}")
 
 
 class Evidence(ProjectScoped, Base):
@@ -121,3 +124,49 @@ class Bug(ProjectScoped, Base):
     tracker: Mapped[str | None] = mapped_column(Text)
     tracker_ref: Mapped[str | None] = mapped_column(Text)
     dedup_of: Mapped[uuid.UUID | None]
+
+
+class Runner(ProjectScoped, Base):
+    """A registered runner (T-103). Only the token hash is stored; `cert_sha256` pins the client
+    certificate the TLS proxy reports, when mTLS is used."""
+
+    __tablename__ = "runner"
+    __extra_args__ = (UniqueConstraint("token_hash"),)
+
+    name: Mapped[str] = mapped_column(Text)
+    token_hash: Mapped[str] = mapped_column(Text)
+    cert_sha256: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(
+        choice("runner_status", "registered", "online", "offline", "revoked"),
+        default="registered",
+        server_default="registered",
+    )
+    version: Mapped[str | None] = mapped_column(Text)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RunnerJob(ProjectScoped, Base):
+    """One attempt of one case waiting for / leased by a runner. A lease that expires (runner
+    killed, network lost) makes the job claimable again; the result's unique key keeps the
+    retry idempotent (NFR-4)."""
+
+    __tablename__ = "runner_job"
+    __extra_args__ = (
+        scoped_fk("run_id", "run"),
+        scoped_fk("test_case_id", "test_case"),
+        scoped_fk("runner_id", "runner", ondelete=None),
+        UniqueConstraint("run_id", "test_case_id", "attempt"),
+        Index("ix_runner_job_run_id_status", "run_id", "status"),
+    )
+
+    run_id: Mapped[uuid.UUID]
+    test_case_id: Mapped[uuid.UUID]
+    attempt: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    status: Mapped[str] = mapped_column(
+        choice("runner_job_status", "queued", "leased", "done", "lost"),
+        default="queued",
+        server_default="queued",
+    )
+    runner_id: Mapped[uuid.UUID | None]
+    leased_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    leases: Mapped[int] = mapped_column(Integer, default=0, server_default="0")

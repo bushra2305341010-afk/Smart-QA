@@ -126,3 +126,7 @@ def make_tenant(owner: sessionmaker[Session]):  # type: ignore[no-untyped-def]
             return Tenant(user.id, project.id)
 
     return _make
+
+
+# Real-browser fixtures for runner tests (`-m browser`), registered once for the session.
+from tests.runner.site import chromium, site  # noqa: E402, F401
