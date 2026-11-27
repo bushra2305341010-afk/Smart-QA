@@ -25,4 +25,5 @@ SAQ_BROWSER_CHANNEL=chrome SAQ_SECRET_PASSWORD=... uv run python -m apps.runner
 - `policy_hook.py`: `packages.policy.check` before every action (on the live element) and every request (route guard).
 - `detectors.py`: CAPTCHA / MFA / bot wall / login wall / environment down → Blocked.
 - `secrets.py`: `{{secret:name}}` resolved on the runner only (`SAQ_SECRET_<NAME>`), masked in uploads.
+- `vault.py`: encrypted vault for `{{secret:name}}` (T-203); `saq vault set NAME` on the runner machine.
 - `evidence.py`: SHA-256 content addresses; uploaded before the result references them.

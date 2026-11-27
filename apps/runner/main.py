@@ -10,6 +10,7 @@ Environment:
   SAQ_RUNNER_TOKEN       saq_run_... from POST /projects/{id}/runners
   SAQ_BROWSER_CHANNEL    optional, e.g. "chrome" to use the installed Chrome
   SAQ_SECRET_<NAME>      values for {{secret:name}} placeholders (never sent anywhere)
+  SAQ_VAULT_FILE / SAQ_VAULT_KEY   encrypted vault for the same placeholders (T-203)
   SAQ_CLIENT_CERT / SAQ_CLIENT_KEY   optional client certificate for mTLS
 """
 
@@ -30,6 +31,7 @@ from apps.runner.evidence import Collector
 from apps.runner.executor import CaseRunner
 from apps.runner.policy_hook import policy_context
 from apps.runner.secrets import EnvSecrets, Resolver, SecretSource
+from apps.runner.vault import Vault
 from packages.contracts.run import AttemptResult, CompiledCase
 
 log = logging.getLogger("saq.runner")
@@ -137,6 +139,8 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
 
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
     client = RunnerClient.from_env()
+    vault = Vault.from_env()
+    sources: list[SecretSource] = [EnvSecrets(), *([vault] if vault else [])]
     client.heartbeat()
     stop = threading.Event()
     threading.Thread(target=heartbeat_loop, args=(client, stop), daemon=True).start()
@@ -147,7 +151,7 @@ def main() -> None:  # pragma: no cover - process wiring; parts are tested separ
                           f"chromium {chromium.version}")  # fmt: skip
         try:
             while not stop.is_set():
-                if not process_one(client, browser, [EnvSecrets()]):
+                if not process_one(client, browser, sources):
                     stop.wait(2)
         finally:
             stop.set()
