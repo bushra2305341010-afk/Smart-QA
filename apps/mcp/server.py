@@ -1,10 +1,12 @@
 """MCP preview (pillar P5, docs/13-mcp-connection.md): Smart QA as an independent verifier
 for coding agents.
 
-Read-only tools only. The server calls the Smart QA API with the user's API token, so role
-checks, row-level security and budgets stay on the server. Not exposed: approving gates, filing
-bugs, changing settings, starting runs. Text that comes from documents or the app under test is
-returned inside an `<untrusted_data>` wrapper: it is data for the agent, never instructions.
+Read-only tools, plus `run_journeys`, which the API refuses unless the project setting
+`mcp.allow_runs` is true and the token may start runs. The server calls the Smart QA API with
+the user's API token, so role checks, row-level security and budgets stay on the server. Not
+exposed: approving gates, filing bugs, changing settings. Text that comes from documents or the
+app under test is returned inside an `<untrusted_data>` wrapper: it is data for the agent,
+never instructions.
 
     claude mcp add smart-qa -- saq mcp serve --project prj_...
 """
@@ -23,6 +25,8 @@ from packages.model_gateway.untrusted import wrap_untrusted
 from packages.planning.from_graph import EdgeView, NodeView
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, destructive_hint=False, open_world_hint=False)
+STARTS_RUN = ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False,
+                             open_world_hint=False)  # fmt: skip
 ClientFactory = Callable[[], httpx.Client]
 
 
@@ -30,8 +34,7 @@ class ApiError(Exception):
     pass
 
 
-def _get(client: httpx.Client, path: str, **params: Any) -> Any:
-    res = client.get(path, params=params or None)
+def _check(res: httpx.Response) -> Any:
     if res.status_code >= 400:
         try:
             err = res.json()["error"]
@@ -39,6 +42,10 @@ def _get(client: httpx.Client, path: str, **params: Any) -> Any:
         except (ValueError, KeyError, TypeError):
             raise ApiError(f"{res.status_code}: {res.text[:200]}") from None
     return res.json()
+
+
+def _get(client: httpx.Client, path: str, **params: Any) -> Any:
+    return _check(client.get(path, params=params or None))
 
 
 def get_brief(client: httpx.Client, project: str) -> str:
@@ -94,6 +101,42 @@ def understand_change(client: httpx.Client, project: str, diff: str) -> dict[str
     }
 
 
+def get_verdicts(client: httpx.Client, project: str, run_id: str | None = None) -> dict[str, Any]:
+    """Verdicts of a run (latest if none given) with rule, confidence and evidence hashes.
+    Failure text comes from the app under test, so it is wrapped as untrusted data."""
+    if run_id is None:
+        page = _get(client, f"/projects/{project}/runs", limit=1)
+        if not page["items"]:
+            raise ApiError("NOT_FOUND: no run yet")
+        run_id = page["items"][0]["id"]
+    run = _get(client, f"/projects/{project}/runs/{run_id}")
+    cases = []
+    for c in run["cases"]:
+        detail = (c.get("failure") or {}).get("message") or c.get("reason") or ""
+        cases.append({
+            "code": c["code"], "verdict": c["verdict"], "confidence": c["level"],
+            "rule": c["rule"], "blocked": c["blocked"],
+            "detail": wrap_untrusted(f"result of {c['code']}", detail) if detail else "",
+            "evidence": [f"{e['kind']}:{e['sha256']}" for e in c["evidence"]],
+        })  # fmt: skip
+    counts: dict[str, int] = {}
+    for c in cases:
+        key = c["verdict"] or "pending"
+        counts[key] = counts.get(key, 0) + 1
+    return {"run_id": run["id"], "status": run["status"], "counts": counts, "cases": cases}
+
+
+def run_journeys(
+    client: httpx.Client, project: str, journeys: list[str] | None = None, env: str | None = None
+) -> dict[str, Any]:
+    """Start a regression run of approved cases (only if the project allows MCP runs)."""
+    body: dict[str, Any] = {"journeys": journeys or [], "source": "mcp"}
+    if env:
+        body["env_id"] = env
+    state = _check(client.post(f"/projects/{project}/runs", json=body))
+    return {**state, "note": "Poll get_verdicts; confirming bugs stays with humans (Gate 4)."}
+
+
 def build_server(client_factory: ClientFactory, project: str) -> MCPServer:
     server: MCPServer = MCPServer(
         "smart-qa",
@@ -121,5 +164,19 @@ def build_server(client_factory: ClientFactory, project: str) -> MCPServer:
         """Journeys affected by a code change (unified diff or changed lines), with reasons."""
         with client_factory() as c:
             return understand_change(c, project, diff)
+
+    @server.tool(name="get_verdicts", annotations=READ_ONLY)
+    def get_verdicts_tool(run_id: str | None = None) -> dict[str, Any]:
+        """Honest verdicts (Pass/Fail/Flaky/Blocked/Test Error/Unable to Verify) of a run."""
+        with client_factory() as c:
+            return get_verdicts(c, project, run_id)
+
+    @server.tool(name="run_journeys", annotations=STARTS_RUN)
+    def run_journeys_tool(
+        journeys: list[str] | None = None, env: str | None = None
+    ) -> dict[str, Any]:
+        """Run approved tests for journeys (disabled unless the project sets mcp.allow_runs)."""
+        with client_factory() as c:
+            return run_journeys(c, project, journeys, env)
 
     return server

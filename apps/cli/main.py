@@ -6,6 +6,8 @@
     saq cases --project prj_...             saq bugs --project prj_...
     saq report --project prj_... --run run_... --xlsx out.xlsx --pack out.html
     saq audit verify --project prj_...
+    saq run --project prj_... --journey Checkout --wait     (exit 1 on Fail / Test Error)
+    saq verdicts --project prj_... [--run run_...]
 
 The token comes from `SAQ_TOKEN` or the config file written by `saq login` (mode 0600).
 Errors print the API error code and exit with status 1.
@@ -15,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, Any
@@ -219,6 +222,80 @@ def report(
         if path is not None:
             path.write_bytes(call("GET", f"/projects/{project}/runs/{run}/{suffix}").content)
             typer.echo(f"wrote {path}")
+
+
+VERDICT_ORDER = ("fail", "test_error", "blocked", "flaky", "unable_to_verify", "pass")
+WAIT_DONE = {"bug_review", "report", "done"}
+SLEEP: Callable[[float], None] = time.sleep
+
+
+def _verdict_lines(run: dict[str, Any]) -> list[str]:
+    counts: dict[str, int] = {}
+    for c in run["cases"]:
+        counts[c["verdict"] or "pending"] = counts.get(c["verdict"] or "pending", 0) + 1
+    head = ", ".join(f"{counts[v]} {v}" for v in (*VERDICT_ORDER, "pending") if v in counts)
+    out = [f"{run['id']}  {run['status']}  {head or 'no results'}"]
+    for c in run["cases"]:
+        out.append(f"  {c['code']:12} {(c['verdict'] or 'pending'):16} {c['rule'] or ''}".rstrip())
+    return out
+
+
+def _latest_run(project: str) -> dict[str, Any]:
+    items = call("GET", f"/projects/{project}/runs", params={"limit": 1}).json()["items"]
+    if not items:
+        fail("NOT_FOUND", "No run yet")
+    return dict(call("GET", f"/projects/{project}/runs/{items[0]['id']}").json())
+
+
+@app.command()
+def run(
+    project: Project,
+    journey: Annotated[list[str] | None, typer.Option(help="Only these journeys")] = None,
+    env: Annotated[str | None, typer.Option(help="Environment ID (env_...)")] = None,
+    wait: Annotated[
+        bool, typer.Option(help="Wait for verdicts; exit 1 on Fail/Test Error")
+    ] = False,
+    timeout: Annotated[int, typer.Option(help="Seconds to wait")] = 1800,
+    as_json: AsJson = False,
+) -> None:
+    """Start a regression run of the approved test cases."""
+    body: dict[str, Any] = {"journeys": journey or [], "source": "cli"}
+    if env:
+        body["env_id"] = env
+    before = call("GET", f"/projects/{project}/runs", params={"limit": 1}).json()["items"]
+    started = call("POST", f"/projects/{project}/runs", json=body).json()
+    if not wait:
+        show(started, as_json, lambda d: [f"run requested: {d['stage']} {d['status']}"])
+        return
+    deadline = time.monotonic() + timeout
+    while True:
+        cur = call("GET", f"/projects/{project}/pipeline").json()["current"]
+        if cur["status"] in ("failed", "cancelled"):
+            fail("RUN_FAILED", f"pipeline {cur['stage']} {cur['status']}")
+        latest = call("GET", f"/projects/{project}/runs", params={"limit": 1}).json()["items"]
+        is_new = latest and (not before or latest[0]["id"] != before[0]["id"])
+        if cur["stage"] in WAIT_DONE and is_new:
+            break
+        if time.monotonic() > deadline:
+            fail("TIMEOUT", f"still at {cur['stage']} {cur['status']}")
+        SLEEP(5)
+    result = _latest_run(project)
+    show(result, as_json, _verdict_lines)
+    if any(c["verdict"] in ("fail", "test_error") for c in result["cases"]):
+        raise typer.Exit(1)
+
+
+@app.command()
+def verdicts(
+    project: Project,
+    run_id: Annotated[str | None, typer.Option("--run", help="Run ID (default: latest)")] = None,
+    as_json: AsJson = False,
+) -> None:
+    """Verdicts of a run with rule ids."""
+    data = (
+        call("GET", f"/projects/{project}/runs/{run_id}").json() if run_id else _latest_run(project)
+    )
+    show(data, as_json, _verdict_lines)
 
 
 @audit_app.command("verify")

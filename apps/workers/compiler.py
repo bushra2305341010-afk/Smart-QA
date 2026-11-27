@@ -81,9 +81,9 @@ def code_key(case_id: uuid.UUID | str) -> str:
     return f"compiled/{case_id}.py"
 
 
-def pick_environment(s: Session, pid: uuid.UUID) -> Environment:
+def pick_environment(s: Session, pid: uuid.UUID, env_id: str | None = None) -> Environment:
     settings = s.scalar(select(Project.settings).where(Project.id == pid)) or {}
-    wanted = settings.get("default_env_id")
+    wanted = env_id or settings.get("default_env_id")
     envs = list(s.scalars(select(Environment).order_by(Environment.created_at)))
     if wanted:
         for env in envs:
@@ -165,12 +165,15 @@ def compile_all(
     store: ObjectStore,
     make_gateway: GatewayFactory | None,
     pid: uuid.UUID,
+    *,
+    env_id: str | None = None,
+    journeys: list[str] | None = None,
 ) -> tuple[uuid.UUID, dict[str, int]]:
     with project_session(factory, pid) as s:
         plan = s.scalar(select(Plan).where(Plan.status == "approved"))
         if plan is None:
             raise CompilerError("No approved plan")
-        env = pick_environment(s, pid)
+        env = pick_environment(s, pid, env_id)
         routes = _routes(s, plan.graph_version_id)
         facts = _screen_facts(s, plan.graph_version_id)
         rows = s.scalars(
@@ -179,6 +182,14 @@ def compile_all(
             .where(Segment.plan_id == plan.id, TestCase.review_status.in_(APPROVED))
             .order_by(TestCase.code)
         ).all()
+        if journeys:
+            wanted = {j.casefold() for j in journeys}
+            keep = {
+                seg.id
+                for seg in s.scalars(select(Segment).where(Segment.plan_id == plan.id))
+                if str(seg.techniques.get("journey", "")).casefold() in wanted
+            }
+            rows = [c for c in rows if c.segment_id in keep]
         inputs = [
             CaseInput(
                 c.id,
@@ -192,7 +203,7 @@ def compile_all(
             )
             for c in rows
         ]  # fmt: skip
-        env_id, plan_id, base_url = env.id, plan.id, env.base_url
+        target_env, plan_id, base_url = env.id, plan.id, env.base_url
     if not inputs:
         raise CompilerError("No approved test cases to compile")
     gateway = make_gateway(pid) if make_gateway else None
@@ -217,7 +228,7 @@ def compile_all(
     with project_session(factory, pid) as s:
         for case_id in [i.case_id for i in inputs]:
             s.get_one(TestCase, case_id).compiled_path = compiled.get(case_id)
-        run = Run(project_id=pid, env_id=env_id, plan_id=plan_id, totals=dict(totals))
+        run = Run(project_id=pid, env_id=target_env, plan_id=plan_id, totals=dict(totals))
         s.add(run)
         s.flush()
         run_id = run.id
@@ -241,7 +252,11 @@ def handle_compile_job(
 
     send("job_started")
     try:
-        run_id, totals = compile_all(factory, store, make_gateway, pid)
+        params = message.get("params") or {}
+        run_id, totals = compile_all(
+            factory, store, make_gateway, pid,
+            env_id=params.get("env_id"), journeys=params.get("journeys"),
+        )  # fmt: skip
     except CompilerError as exc:
         send("job_failed", reason=str(exc))
         return

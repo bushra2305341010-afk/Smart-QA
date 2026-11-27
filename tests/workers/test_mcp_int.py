@@ -74,8 +74,11 @@ def test_server_lists_read_only_tools_and_calls_them(env, app) -> None:  # type:
         return tools, planned, brief, change
 
     tools, planned, brief, change = asyncio.run(run())
-    assert {t.name for t in tools} == {"get_brief", "plan_tests", "understand_change"}
-    assert all(t.annotations.read_only_hint for t in tools)
+    assert {t.name for t in tools} == {
+        "get_brief", "plan_tests", "understand_change", "get_verdicts", "run_journeys"
+    }  # fmt: skip
+    assert all(t.annotations.read_only_hint for t in tools if t.name != "run_journeys")
+    assert not next(t for t in tools if t.name == "run_journeys").annotations.read_only_hint
     assert "Sign up" in str(planned) and "untrusted_data" in str(brief) and "Sign up" in str(change)
 
 
