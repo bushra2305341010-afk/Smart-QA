@@ -1,27 +1,30 @@
 /** Verdict chip: always colour + icon + word, never colour alone (docs/05 §3.2). */
 export type Verdict = "pass" | "fail" | "flaky" | "blocked" | "test_error" | "unable_to_verify";
 
-const META: Record<Verdict, { label: string; icon: string; fg: string; bg: string }> = {
-  pass: { label: "Pass", icon: "✓", fg: "var(--pass)", bg: "var(--pass-bg)" },
-  fail: { label: "Fail", icon: "✕", fg: "var(--fail)", bg: "var(--fail-bg)" },
-  flaky: { label: "Flaky", icon: "⇄", fg: "var(--flaky)", bg: "var(--flaky-bg)" },
-  blocked: { label: "Blocked", icon: "⊘", fg: "var(--blocked)", bg: "var(--blocked-bg)" },
-  test_error: { label: "Test Error", icon: "🔧", fg: "var(--testerr)", bg: "var(--testerr-bg)" },
-  unable_to_verify: { label: "Unable to Verify", icon: "?", fg: "var(--uv)", bg: "var(--uv-bg)" },
+export function isVerdict(v: unknown): v is Verdict {
+  return typeof v === "string" && (VERDICTS as string[]).includes(v);
+}
+
+export const VERDICTS: Verdict[] = ["pass", "fail", "flaky", "blocked", "test_error", "unable_to_verify"];
+
+export const VERDICT_META: Record<Verdict, { label: string; icon: string; cls: string }> = {
+  pass: { label: "Pass", icon: "✓", cls: "text-pass bg-pass-bg" },
+  fail: { label: "Fail", icon: "✕", cls: "text-fail bg-fail-bg" },
+  flaky: { label: "Flaky", icon: "⇄", cls: "text-flaky bg-flaky-bg" },
+  blocked: { label: "Blocked", icon: "⊘", cls: "text-blocked bg-blocked-bg" },
+  test_error: { label: "Test Error", icon: "🔧", cls: "text-testerr bg-testerr-bg" },
+  unable_to_verify: { label: "Unable to Verify", icon: "?", cls: "text-uv bg-uv-bg" },
 };
 
 type Props = { verdict: Verdict; confidence?: "high" | "medium" | "low" };
 
 export function VerdictBadge({ verdict, confidence }: Props) {
-  const m = META[verdict];
+  const m = VERDICT_META[verdict];
   return (
     <span
       role="status"
       aria-label={`Verdict: ${m.label}${confidence ? `, ${confidence} confidence` : ""}`}
-      style={{
-        color: m.fg, background: m.bg, borderRadius: 999, padding: "2px 10px",
-        fontWeight: 700, fontSize: 12, display: "inline-flex", gap: 6,
-      }}
+      className={`inline-flex gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold ${m.cls}`}
     >
       <span aria-hidden="true">{m.icon}</span>
       {m.label}
