@@ -78,6 +78,7 @@ jobs:
     # Every PR proves the three production images still build (pushed only by release.yml).
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         component: [api, web, runner]
     steps:
