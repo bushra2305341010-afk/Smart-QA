@@ -247,3 +247,45 @@ def test_end_to_end_with_real_browser(
         for e in s.scalars(select(Evidence)):
             data = setup["store"].get(e.object_key)
             assert hashlib.sha256(data).hexdigest() == e.sha256 == e.object_key.rsplit("/", 1)[1]
+
+
+@pytest.mark.browser
+def test_explorer_observations_become_pending_nodes(
+    setup: dict[str, Any], app: sessionmaker[Session], chromium: Any, site: Any
+) -> None:
+    from apps.api.db.models import Edge, GraphVersion, Node
+    from apps.runner.explorer import explore, submit
+    from apps.runner.policy_hook import policy_context
+
+    http, _ = runner(setup)
+    client = RunnerClient(http)
+    host, port = site.server_address[:2]
+    envs = http.get("/runner/environments").json()
+    assert envs[0]["kind"] == "local" and envs[0]["id"].startswith("env_")
+    env = {**envs[0], "base_url": f"http://{host}:{port}"}
+    page = chromium.new_context().new_page()
+    result = explore(page, policy_context(env))
+    page.context.close()
+    with pytest.raises(Exception, match="409"):
+        submit(client, env["id"], result)  # the seeded graph is approved: no draft to add to
+    puid = setup["puid"]
+    with project_session(app, puid) as s:
+        s.add(GraphVersion(project_id=puid, number=2, status="draft"))
+    out = submit(client, env["id"], result)
+    assert out == {"graph_version": 2, "screens_added": 3, "fields_added": 6, "skipped_existing": 0}
+    again = submit(client, env["id"], result)
+    assert again["screens_added"] == 0 and again["skipped_existing"] == 9
+    missing = http.post(
+        "/runner/explorations",
+        json={"env_id": f"env_{'0' * 32}", "exploration": result.model_dump(mode="json")},
+    )
+    assert missing.status_code == 404
+    with project_session(app, puid) as s:
+        nodes = s.scalars(select(Node).where(Node.attrs["origin"].astext == "explorer")).all()
+        assert {n.review_status for n in nodes} == {"pending"}
+        age = next(n for n in nodes if n.label == "Age")
+        assert age.attrs["required"] == "true" and age.attrs["max"] == "18"
+        assert next(n for n in nodes if n.label == "Country").attrs["options"] == "BD, IN"
+        assert len(s.scalars(select(Edge).where(Edge.kind == "has_field")).all()) == 6
+    audit = setup["user"].get(f"{V1}/projects/{setup['pid']}/audit?limit=200").json()["items"]
+    assert any(e["action"] == "graph.explored" for e in audit)

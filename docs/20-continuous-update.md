@@ -40,6 +40,11 @@ Copy this block to the top of §3 every Friday.
 
 ## 3. Development log
 
+### Week 5 — 2026-11-27 (M09c explorer)
+**Done:** `apps/runner/explorer.py`, `packages/contracts/explore.py`, explorer endpoints; real-browser + API tests.
+**Decisions:** Deterministic crawl instead of a model tool loop: reproducible, zero model cost, and it cannot be talked into clicking (read-only by construction; buttons are listed, not pressed).
+**Next:** production deployment.
+
 ### Week 5 — 2026-11-27 (T-203 identity vault)
 **Done:** `apps/runner/vault.py`, `saq vault`, reference-only identities.
 **Decisions:** The vault lives on the runner, not the control plane: secrets never cross the network and a compromised control plane cannot read them (P4 local-first). Passphrase keys use scrypt (n=2^15); decrypted once per runner process.
