@@ -35,6 +35,8 @@ jobs:
           version: "0.5.11"
       - run: uv python install 3.12
       - run: uv sync --frozen
+      - name: Chromium for runner tests (-m browser)
+        run: uv run playwright install --with-deps chromium
       - name: Lint
         run: uv run ruff check . && uv run ruff format --check .
       - name: Type check

@@ -11,7 +11,7 @@ GLOBAL_TABLES = {"app_user", "auth_session", "api_token"}
 
 
 def test_all_docs_tables_are_modelled():
-    assert len(models.__all__) == len(Base.metadata.tables) == 32
+    assert len(models.__all__) == len(Base.metadata.tables) == 34
 
 
 def test_every_table_except_user_is_project_scoped():

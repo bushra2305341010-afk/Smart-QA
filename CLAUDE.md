@@ -9,18 +9,20 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 - Mentor: Md. Mahedi Hassan, Lecturer (Senior Scale), Dept. of SWE, DIU
 - Course: SE331 Design Capstone · 12-week MVP
 
-## ▶ Resume here (last session ended 2026-11-24)
+## ▶ Resume here (last session ended 2026-11-25)
 1. **Start Docker Desktop** (`open -a Docker`), `cd capstone/Smart-QA`, then `docker compose up -d db redis s3`.
 2. **Sync:** `git fetch upstream && gh pr list --repo bushra2305341010-afk/Smart-QA --state all`.
    - Open stacked PRs **#6 → latest** (see Status) (PR #10 was merged into the M06 branch, not main). All CI green as of 2026-11-20.
    - If they are merged into `main`: `git checkout main && git pull upstream main` and branch from `main`.
    - If not: branch from the top of the stack (see the latest Status line).
-3. **What is built (Nadia's side, all in review):** DB + RLS + audit (M08a), auth/RBAC/2FA/rate limits (M08b, T-105a/c), orchestrator + gates 1–4 (M08c), model gateway on Postgres (T-603), ingest + Git import + embeddings (M09a, T-202, T-204), Product Understanding Graph (M09b), planner (F08), designer (F11), reporter + Excel + evidence pack (M11, N23), `saq` CLI + MCP preview (M12), golden project 1 + scorer (T-004).
-4. **Next tasks:**
-   - With `ANTHROPIC_API_KEY` + `MODEL_PRICE_*` set, run the analyst on `evals/golden_projects/shop` and record precision / recall / citation accuracy in `docs/20` §4 (`python -m evals.run_graph_eval --project … --golden evals/golden_projects/shop`).
-   - When Stuti's runner/judge lands (M03, M05, M10): her judge must call `apps.workers.reporter.draft_bugs` before `verdicts_ready`; then add MCP `get_verdicts` / `run_journeys` and `saq run --wait`; M09c explorer needs her M03 policy.
-   - Open: T-203 encrypted identity vault (Stuti), M12 UI (Stuti).
-5. **Waiting on the user:** recreate the old dev DB volume (`docker compose down -v`); merge #6 → #28 in order with "Create a merge commit"; delete stale upstream branch `feat/T602-local-model`; remove the throwaway test DB with `docker rm -f saq-testdb` once the volume is recreated.
+3. **What is built (all in review):** DB + RLS + audit (M08a), auth/RBAC/2FA/rate limits (M08b, T-105a/c), orchestrator + gates 1–4 (M08c), model gateway on Postgres (T-603), ingest + Git import + embeddings (M09a, T-202, T-204), Product Understanding Graph (M09b), planner (F08), designer (F11), reporter + Excel + evidence pack (M11, N23), `saq` CLI + MCP preview (M12), golden project 1 + scorer (T-004). **New on 2026-11-25 (Nadia took over Stuti's modules):** safe-action policy (M03, PR #33), verdict rules (M05, #34), compiler (M10a, #35), golden project 2 school (T-005, #36, sibling PR on `fix/api-docs-usable`), web foundations + gate screens (M07/T-105, #37, sibling PR), runner + runner API + execute scheduler (M10, branch `feat/M10-runner`, in progress).
+4. **Next tasks (in order):**
+   - Finish `feat/M10-runner`: fix Playwright-sync vs asyncio-loop clash when browser tests run after other tests in one session (`tests/runner/site.py` `chromium` fixture), then docs (sector 05, docs/06 §5 runner protocol, docs/07 runner/runner_job/result.details, CHANGELOG, board) and PR on `feat/M10a-compiler`. CI needs `uv run playwright install chromium` for `-m browser` tests.
+   - M10b Judge worker (`apps/workers/judge.py`, `job.judge`): `packages.verdicts.rules.decide` per case, queue attempt-2 `RunnerJob`s + `rerun_needed`, write `verdict` (rule NOT NULL), call `apps.workers.reporter.draft_bugs` before `verdicts_ready`; flake eval set ≥ 85%.
+   - Runs API (`GET /projects/{id}/runs`, results, evidence) + SSE events; M12 run dashboard UI on top of the M07 branch; MCP `get_verdicts` / `run_journeys`, `saq run --wait`.
+   - T-203 identity vault (runner-side, `apps/runner/secrets.py` resolver already masks values), T-103 mTLS deploy notes (API side done: `cert_sha256` + `X-Client-Cert-Sha256`), M09c explorer (uses `packages/policy`).
+   - Model-key eval on golden projects 1 and 2 (`python -m evals.run_graph_eval --golden evals/golden_projects/{shop,school}`).
+5. **Waiting on the user:** recreate the old dev DB volume (`docker compose down -v`); merge #6 → #35 in order with "Create a merge commit" (#36 and #37 target `fix/api-docs-usable`); delete stale upstream branch `feat/T602-local-model`; remove the throwaway test DB with `docker rm -f saq-testdb` once the volume is recreated.
 6. **Before each PR:** `make test` (ruff, mypy --strict, pytest; 100% coverage), plus a CI-like run `S3_ENDPOINT= S3_ACCESS_KEY= S3_SECRET_KEY= uv run pytest -o addopts=""` with `MIGRATION_DATABASE_URL` set; web `pnpm test && pnpm typecheck`; update docs/CHANGELOG/task board/dev log/this file **in a separate step before `git commit`**; push to `upstream`; open the PR with `--base <previous branch>`. CI fixes on a lower branch are merged up the stack (no force-push).
 
 ### Code conventions learned
@@ -32,6 +34,9 @@ Smart Autonomous QA: an AI multi-agent QA platform for web apps. It understands 
 - MCP SDK is 2.x: `from mcp.server.mcpserver import MCPServer`.
 
 ## Environment facts and gotchas
+- DB tests: run against the separate `saq-testdb` container (port 55432, user `saq_migrator`; password from `docker inspect saq-testdb`) via `MIGRATION_DATABASE_URL=...:55432/saq`, so helper agents or other runs that recreate `saq_test` on :5432 cannot interfere.
+- Playwright: Python package `playwright` (added 2026-11-25). Locally the runner and `-m browser` tests use the installed Google Chrome (`channel="chrome"` / `SAQ_BROWSER_CHANNEL=chrome`), no browser download needed.
+- Never `git add -A` here: `.claude/worktrees/` (helper-agent worktrees) is now git-ignored, but stage explicit paths.
 - Tools: uv (Python 3.12 venv), pnpm 12 (`apps/web/pnpm-workspace.yaml` approves esbuild builds), Docker Desktop. `gh` is logged in as **Lokkhita** (WRITE on upstream). Repo-local git identity = Lokkhita noreply email.
 - Remotes: `upstream` = bushra2305341010-afk/Smart-QA (push here), `origin` = old fork Lokkhita/Smart-QA (unused).
 - Local S3 = SeaweedFS on :8333 (keys in `deploy/seaweedfs/s3.json`); use boto3 with `request_checksum_calculation="when_required"`, not the AWS CLI (ADR-010).
@@ -98,6 +103,8 @@ After any change, update the matching doc (see `docs/20-continuous-update.md` §
 - DB: expand → migrate → contract; every table has `project_id` + RLS.
 
 ## Status (update as work progresses)
+- 2026-11-27: M10 runner done (branch `feat/M10-runner`, base `feat/M10a-compiler`). 1,866 tests.
+- 2026-11-25: M10 runner in progress on `feat/M10-runner` (base `feat/M10a-compiler`): `runner`/`runner_job` tables + `result.details` (migration 0009), runner API (`/runner/heartbeat`, `jobs/pull`, `evidence/{sha256}`, `jobs/{id}/result`, registration/revoke), `job.execute` scheduler, runner process (`apps/runner`: policy hook, detectors, evidence, secrets masking, executor, main loop). 35 browser + 7 protocol tests green; one fixture-order issue left. PRs opened today: #33 M03, #34 M05, #35 compiler, #36 T-005, #37 M07 web.
 - 2026-11-25: M10a compiler done (branch `feat/M10a-compiler`, base `feat/M05-verdict-rules`). T-005 golden project 2 built by a helper agent on `feat/T005-golden-school` (base `fix/api-docs-usable`).
 - 2026-11-25: M05 verdict rules done (branch `feat/M05-verdict-rules`, base `feat/M03-safe-action-policy`).
 - 2026-11-25: M03 safe-action policy done (branch `feat/M03-safe-action-policy`, base `fix/api-docs-usable`). Nadia is now building Stuti's remaining modules too (M05, compiler, M10, judge, T-203, T-103, M07/M12 UI, T-005, M09c).

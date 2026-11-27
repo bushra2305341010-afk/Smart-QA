@@ -25,6 +25,11 @@ def source_key(sha256: str) -> str:
     return f"sources/{sha256}"
 
 
+def evidence_key(sha256: str) -> str:
+    """Runner evidence (screenshot, trace, console log) by content address (ADR-007)."""
+    return f"evidence/{sha256[:2]}/{sha256}"
+
+
 def text_key(sha256: str) -> str:
     """Normalised text of a source; chunk offsets and quote checks index into it."""
     return f"texts/{sha256}.txt"

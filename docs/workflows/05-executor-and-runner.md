@@ -19,9 +19,10 @@ approved cases ─▶ Compiler: template + locator fill ─▶ lint + import all
 | Concern | Path |
 |---|---|
 | Compiler | `packages/compiler/` (step grammar `steps.py`, `compile.py`, Playwright codegen + import allow-list `codegen.py`); worker `apps/workers/compiler.py` |
-| Scheduler | `apps/orchestrator/scheduler.py` |
-| Runner main / protocol | `apps/runner/{main,protocol}.py` |
-| Sandbox | `deploy/runner.Dockerfile`, `apps/runner/sandbox.py` |
+| Scheduler | `apps/workers/executor.py` (`job.execute`), progress helpers `apps/api/runs.py` |
+| Runner API | `apps/api/routers/runners.py` (registration, heartbeat, pull/lease, evidence, result) |
+| Runner main / protocol client | `apps/runner/main.py`, executor `apps/runner/executor.py`, secrets `apps/runner/secrets.py` |
+| Sandbox | `deploy/runner.Dockerfile` (fresh browser context per job) |
 | Evidence capture | `apps/runner/evidence.py` |
 | Policy hook | `apps/runner/policy_hook.py` → `packages/policy` |
 | Blocked detectors | `apps/runner/detectors.py` (CAPTCHA, MFA, bot wall) |

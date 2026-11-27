@@ -29,6 +29,7 @@ dependencies = [
     "openpyxl>=3.1",
     "typer>=0.15",
     "mcp>=1.2",
+    "playwright>=1.49",
 ]
 
 [project.scripts]
@@ -69,7 +70,8 @@ ignore = ["S101"]  # assert is fine in tests
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "apps.api.auth.deps.require", "typer.Option", "typer.Argument"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S", "N802", "N803"]
+# Table-driven test rows read better on one line.
+"tests/**" = ["S", "N802", "N803", "E501"]
 # Migrations build DDL from module constants (no user input).
 "apps/api/alembic/**" = ["S608", "E501"]
 
@@ -91,6 +93,7 @@ pythonpath = ["."]
 addopts = "-q --strict-markers"
 markers = [
     "integration: needs running Postgres/Redis (docker compose up -d db redis)",
+    "browser: drives a real Chromium (uv run playwright install chromium); skipped without one",
 ]
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = ["error"]

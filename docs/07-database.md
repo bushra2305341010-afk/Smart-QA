@@ -54,7 +54,9 @@ Every table has `id`, `project_id` (except `app_user`), `created_at`, `updated_a
 | `test_case` | segment_id, code (TC-CHK-007), role, technique, priority, preconditions jsonb, data jsonb, expected_text, citation jsonb, requirement_id, review_status, compiled_path | |
 | `step` | test_case_id, n, action, node_id | |
 | `run` | env_id, plan_id, status, started_at, finished_at, last_completed_case_id, totals jsonb | resume point (NFR-4) |
-| `result` | run_id, test_case_id, attempt, status, duration_ms, browser | |
+| `result` | run_id, test_case_id, attempt, status, duration_ms, browser, details jsonb (the runner's `AttemptResult`) | unique (run, case, attempt) |
+| `runner` | name, token_hash (unique), cert_sha256, status (registered/online/offline/revoked), version, last_seen_at | migration 0009 |
+| `runner_job` | run_id, test_case_id, attempt, status (queued/leased/done/lost), runner_id, leased_until, leases | lease expiry → re-lease; 3 losses → error result |
 | `evidence` | result_id, step_n, kind (screenshot/trace/video/har/console/request), sha256, object_key, size | |
 | `verdict` | result_id, verdict (enum), confidence, reason, rule | |
 | `bug` | verdict_id, title, severity, body_md, status (draft/confirmed/dismissed/filed), tracker, tracker_ref, dedup_of | |
