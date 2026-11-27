@@ -26,7 +26,8 @@ Rules are **code** (`packages/verdicts/rules.py`); the LLM only scores semantic 
 | Rules | `packages/verdicts/rules.py` |
 | Flake features | `packages/verdicts/flake.py` |
 | Confidence | `packages/verdicts/confidence.py` |
-| Worker | `apps/workers/judge/` |
+| Worker | `apps/workers/judge.py` (`job.judge`; re-run via attempt-2 `runner_job` + `rerun_needed`) |
+| Flake eval | `evals/run_flake_eval.py`, `evals/datasets/flakes.jsonl` |
 | AI-feature oracle | `apps/workers/judge/semantic_oracle.py` |
 | UV queue UI | `apps/web/src/features/runs/UvQueue.tsx` |
 

@@ -56,7 +56,7 @@ def seed(s: Session, pid: uuid.UUID) -> Seed:
     s.add(result)
     s.flush()
     verdict = Verdict(project_id=pid, result_id=result.id, verdict="fail", confidence=0.9,
-                      reason="500 on submit")  # fmt: skip
+                      reason="500 on submit", rule="J3.fail_same_twice")  # fmt: skip
     s.add(verdict)
     s.flush()
     bug = Bug(project_id=pid, verdict_id=verdict.id, title="Checkout 500", severity="high",

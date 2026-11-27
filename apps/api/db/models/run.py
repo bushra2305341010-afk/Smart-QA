@@ -97,7 +97,7 @@ class Verdict(ProjectScoped, Base):
     verdict: Mapped[str] = mapped_column(choice("verdict_value", *VERDICTS))
     confidence: Mapped[float] = mapped_column(Float)
     reason: Mapped[str] = mapped_column(Text)
-    rule: Mapped[str | None] = mapped_column(Text)
+    rule: Mapped[str] = mapped_column(Text)  # deciding rule id (J0-J7); never empty
 
 
 class Bug(ProjectScoped, Base):

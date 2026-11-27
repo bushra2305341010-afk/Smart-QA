@@ -19,7 +19,7 @@ Rule: at most **2 items in `doing` per person**. Finish before starting.
 | M09 | Split: M09a ingest (upload, parsers, chunks, ingest worker); M09b Product Understanding Graph (analyst, merge, conflicts, ambiguity, graph API, Gate 1); M09c explorer | Nadia | M09a, M09b review | M09a #16, M09b #17 |
 | F08 | Planner stage: graph → plan worker, plan API, Gate 2 | Nadia | review | #18 |
 | F11 | Designer stage: cited cases, review, Gate 3 | Nadia | review | #19 |
-| M10 | Runner + Judge worker (M10a compiler #35; runner + protocol + scheduler on `feat/M10-runner`) | Stuti (built by Nadia) | doing | Judge worker next |
+| M10 | Runner + Judge worker (M10a compiler #35; runner #38; judge on `feat/M10b-judge`) | Stuti (built by Nadia) | review | flake eval 91.4% on the seed set |
 | M11 | Reporter: bug drafts, Excel, evidence pack, GitHub filing | Nadia | review | #20, evidence pack #21 |
 | N26 | Learning L2-lite: lessons + rules from human decisions (US-10) | Nadia | review | #30 |
 | M12 | Run dashboard + bug review UI, CLI, MCP preview | Shared | CLI + MCP preview review; UI is Stuti | #22, #23 |

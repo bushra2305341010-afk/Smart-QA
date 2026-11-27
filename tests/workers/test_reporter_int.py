@@ -105,9 +105,9 @@ def env(app):  # type: ignore[no-untyped-def]
                    for i, a in enumerate(["Open cart", "Pay"], start=1)])  # fmt: skip
         s.add_all([
             Verdict(project_id=puid, result_id=second.id, verdict="fail", confidence=0.95,
-                    reason="Order total wrong for admin@shop.example"),
+                    reason="Order total wrong for admin@shop.example", rule="J3.fail_same_twice"),
             Verdict(project_id=puid, result_id=flaky.id, verdict="flaky", confidence=0.6,
-                    reason="timing"),
+                    reason="timing", rule="J2.pass_on_rerun_with_noise"),
             Evidence(project_id=puid, result_id=second.id, step_n=2, kind="screenshot",
                      sha256="ab" * 32, object_key="evidence/ab", size=10),
             PipelineState(project_id=puid, stage="bug_review", status="awaiting_approval",
